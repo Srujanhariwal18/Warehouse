@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Sora:wght@500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #14b8a6;
+  --color-secondary: #f59e0b;
+  --color-main: #161c1b;
+  --color-sidebar: #121817;
+  --color-surface: #1d2523;
+  --color-surface-2: #242e2b;
+  --color-surface-3: #2c3734;
+  --color-text-primary: #edf3f0;
+  --color-text-secondary: #aebdb8;
+  --color-text-muted: #8a9b95;
+  --color-success: #4ade80;
+  --color-warning: #fb923c;
+  --color-danger: #f87171;
+  --font-display: 'Sora', sans-serif;
+  --font-sans: 'Geist', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-main);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
