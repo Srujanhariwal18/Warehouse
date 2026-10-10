@@ -1,0 +1,15 @@
+{
+  "explorer.excludeGitIgnore": true,
+  "files.exclude": {
+    "**/.gsd": true,
+    "**/.agent": true,
+    "**/.agents": true,
+    "**/.gemini": true,
+    "**/adapters": true,
+    "**/scripts": true,
+    "**/GSD-STYLE.md": true,
+    "**/PROJECT_RULES.md": true,
+    "**/VERSION": true,
+    "**/model_capabilities.yaml": true
+  }
+}

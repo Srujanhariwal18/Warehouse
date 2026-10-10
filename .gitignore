@@ -1,0 +1,15 @@
+# GSD (Get Shit Done) files and tooling
+.gsd/
+.agent/
+.agents/
+.gemini/
+adapters/
+scripts/
+GSD-STYLE.md
+PROJECT_RULES.md
+VERSION
+model_capabilities.yaml
+
+# IDE
+.vscode/*
+!.vscode/settings.json
