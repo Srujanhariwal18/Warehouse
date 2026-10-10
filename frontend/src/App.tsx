@@ -1,10 +1,12 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppShell } from '@/components/AppShell'
+import { AlertsPage } from '@/pages/AlertsPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { FoundationPage } from '@/pages/FoundationPage'
 import { InventoryPage } from '@/pages/InventoryPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { OrdersPage } from '@/pages/OrdersPage'
+import { ReportsPage } from '@/pages/ReportsPage'
 import { StockTransactionsPage } from '@/pages/StockTransactionsPage'
 import { SuppliersPage } from '@/pages/SuppliersPage'
 import { WarehousesPage } from '@/pages/WarehousesPage'
@@ -20,6 +22,8 @@ function App() {
         <Route element={<OrdersPage />} path="/app/orders" />
         <Route element={<SuppliersPage />} path="/app/suppliers" />
         <Route element={<WarehousesPage />} path="/app/warehouses" />
+        <Route element={<ReportsPage />} path="/app/reports" />
+        <Route element={<AlertsPage />} path="/app/alerts" />
       </Route>
       <Route element={<NotFoundPage />} path="*" />
       <Route element={<Navigate replace to="/" />} path="/app" />

@@ -137,6 +137,64 @@ warehouse and inventory management.
   - Completed transactions are immutable historical records with stable identifiers.
   - Deterministic initial seed transactions are distinguishable from transactions recorded during the active session.
 
+### Reports and analytics (`/app/reports`)
+
+- **Valuation and intelligence KPIs**:
+  - **Total Inventory Value**: Estimated valuation computed directly as $\sum (\text{product.stock} \times \text{product.price})$.
+    Explicitly labelled as an estimate based on current unit prices rather than accounting book value or realized margin.
+  - **Total Units in Stock**: Total physical quantity across selected warehouse facilities.
+  - **Catalog Products**: Accurate count of all active registered product lines.
+  - **Low Stock & Stockout Counts**: Instant counts of threshold exceptions.
+- **Category valuation breakdown**: Recharts Donut/Pie distribution and itemized category breakdown table
+  illustrating product lines count, stock units, total valuation in INR, and share of catalog value.
+- **Warehouse stock allocation**: Stacked/grouped bar chart and facility breakdown detailing units on hand,
+  valuation, and allocation percentage per distribution center. Explicitly handles both legacy single-facility
+  records and products with distributed `warehouseStock` maps without double-counting inventory.
+- **Top 10 products by valuation**: Ranked asset table showing SKU, product name, unit price, stock, total valuation,
+  and percentage share of catalog value.
+- **Stock movement velocity analytics**:
+  - **Movement Summary**: Real-time totals for Stock In volume (+), Stock Out volume (-), internal Transfers volume,
+    audited Adjustments count, and organization-wide Net Movement.
+  - **Org Net Movement Rule**: Stock In increases total organization units; Stock Out decreases total units; Adjustments
+    apply signed deltas; Inter-facility transfers have strictly **zero net effect** on organization-wide total inventory.
+  - **Velocity Trends**: Recharts AreaChart illustrating daily inbound receipts, outbound dispatches, and transfer
+    volumes across selected date ranges.
+  - **Warehouse Movement Breakdown**: Facility-by-facility inbound, outbound, transfer in/out, and net stock changes.
+  - **High-Velocity Lines**: Top products ranked by total volume of warehouse transactions.
+- **Multi-criteria unified filtering**:
+  - Filter across 7 Days, 30 Days, 90 Days, All History, or Custom date ranges (with start and end date bounds).
+  - Warehouse facility filter, category filter, and transaction type filter.
+  - All charts, tables, summaries, and CSV exports share the active filter state.
+- **Data export capabilities**:
+  - **Export Valuation CSV**: Download full filtered inventory valuation report.
+  - **Export Movement CSV**: Download full filtered transaction history and movement velocity report.
+
+### Inventory alerts and exceptions (`/app/alerts`)
+
+- **Dynamic rule-based alert engine**: Derived in real time from `useInventoryStore()` and `useTransactionStore()`
+  without duplicate state.
+- **Alert classification rules**:
+  - **Critical (Out of Stock)**: Product total stock equals 0. Immediate replenishment alert.
+  - **Warning (Low Stock)**: Product stock is $> 0$ and $\le$ `product.reorderThreshold`.
+  - **Warning / Info (Unusual Movement)**: Flagged when a single transaction moves $\ge 50$ units, or when a single
+    dispatch removes $\ge 50\%$ of available inventory in a single operation.
+  - **Info / Warning (Recent Adjustments)**: Surfaces recent audit adjustments with date, product, warehouse, signed delta,
+    and mandatory reason notes.
+- **Exception management interface**:
+  - KPI summary cards for Total Alerts, Critical (OOS), Warnings (Low Stock), and Exceptions/Adjustments.
+  - Search by product name, SKU, or exception keywords.
+  - Filters by severity (`Critical`, `Warning`, `Info`), alert type, and warehouse facility.
+  - Direct quick-action links to `/app/inventory` or `/app/transactions` to resolve shortages.
+  - **Export Alerts CSV**: Download current active alert log matching all applied filters.
+
+### CSV export security and formatting
+
+- **Formula injection protection (CWE-123)**: Prevents spreadsheet formula execution by safely prefixing untrusted
+  text cells starting with `=`, `+`, `-`, or `@` with a single quote (`'`), preserving clean numeric literals for calculations.
+- **International UTF-8 encoding**: Outputs with UTF-8 BOM (`\uFEFF`) ensuring accented characters, Indian Rupee
+  context, and special characters render cleanly in Microsoft Excel, LibreOffice, and Google Sheets.
+- **RFC-4180 escaping**: Automatic wrapping and quote-doubling for cells containing commas, quotes, and line breaks.
+
 ### Mock data and persistence note
 
 All inventory, warehouse, zone, rack, order, supplier, and transaction data is managed in-memory via
@@ -157,6 +215,8 @@ Refreshing or reloading the page resets the state to initial mock data.
 - `/app/orders` — Orders management, status workflows, and order creation.
 - `/app/suppliers` — Suppliers directory, vendor profiles, contact details, and product links.
 - `/app/warehouses` — Warehouse, zone, and rack management with three-tier hierarchical drill-downs.
+- `/app/reports` — Comprehensive inventory valuation, category breakdown, warehouse stock distribution, and movement velocity analytics.
+- `/app/alerts` — Real-time inventory alert feed, stockout warnings, low-stock notifications, and movement exception logs.
 
 ## Requirements
 

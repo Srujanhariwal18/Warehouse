@@ -1,5 +1,7 @@
 import {
+  AlertTriangle,
   ArrowLeftRight,
+  BarChart3,
   Bell,
   Boxes,
   ChevronDown,
@@ -24,6 +26,8 @@ const navigation = [
   { label: 'Orders', icon: Package, to: '/app/orders' },
   { label: 'Suppliers', icon: Truck, to: '/app/suppliers' },
   { label: 'Warehouses', icon: Warehouse, to: '/app/warehouses' },
+  { label: 'Reports', icon: BarChart3, to: '/app/reports' },
+  { label: 'Alerts', icon: AlertTriangle, to: '/app/alerts' },
 ]
 
 const pageTitles: Record<string, string> = {
@@ -33,6 +37,8 @@ const pageTitles: Record<string, string> = {
   '/app/orders': 'Orders',
   '/app/suppliers': 'Suppliers',
   '/app/warehouses': 'Warehouses',
+  '/app/reports': 'Reports & Analytics',
+  '/app/alerts': 'Inventory Alerts',
 }
 
 export function AppShell() {
