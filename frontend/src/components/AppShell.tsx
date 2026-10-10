@@ -7,6 +7,7 @@ import {
   Package,
   Search,
   Settings,
+  Truck,
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -18,12 +19,14 @@ const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/app/dashboard' },
   { label: 'Inventory', icon: Boxes, to: '/app/inventory' },
   { label: 'Orders', icon: Package, to: '/app/orders' },
+  { label: 'Suppliers', icon: Truck, to: '/app/suppliers' },
 ]
 
 const pageTitles: Record<string, string> = {
   '/app/dashboard': 'Dashboard',
   '/app/inventory': 'Inventory',
   '/app/orders': 'Orders',
+  '/app/suppliers': 'Suppliers',
 }
 
 export function AppShell() {

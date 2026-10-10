@@ -58,15 +58,34 @@ warehouse and inventory management.
   dynamic line items, live inventory stock ceiling validation, automatic line and
   order total calculations, and comprehensive input error feedback.
 
+### Suppliers management (`/app/suppliers`)
+
+- **Suppliers summary**: Real-time KPI summaries for total suppliers, active
+  suppliers, inactive suppliers, and suppliers linked to inventory products.
+- **Suppliers directory**: Comprehensive vendor registry with Supplier ID, company
+  name, primary contact person, email, phone number, location, and active/inactive status badges.
+- **Search, filter, and sort**: Fast searching across company name, contact person,
+  email, phone, and city; status filtering (All, Active, Inactive); multi-column sorting
+  (by company name, contact person, status, or date added); and configurable pagination (10, 20, 40).
+- **Supplier inspection drawer**: Slide-out details drawer showing primary contact
+  info, email, phone, location address, registered and updated dates, and a reactive list of
+  associated inventory products mapped via `supplierId`.
+- **Supplier management (Add / Edit)**: Accessible modal dialogs with validation
+  for required company name, contact person, valid email format, case-insensitive
+  unique email verification, valid phone format, and location address.
+- **Deactivation safety**: Confirmation modal required before deactivating a supplier.
+  Deactivating or reactivating a supplier never deletes or alters products, inventory
+  stock quantities, or orders.
+
 ### Mock data and persistence note
 
-All inventory, warehouse, order, and transaction data is managed in-memory via
-shared React Context stores (`InventoryProvider` and `OrdersProvider`). Updates made
-during a browser session (such as adding/editing products, performing stock adjustments,
-creating orders, or updating order statuses) update the shared stores in real time
-across the Dashboard, Inventory, and Orders pages.
+All inventory, warehouse, order, supplier, and transaction data is managed in-memory via
+shared React Context stores (`InventoryProvider`, `OrdersProvider`, and `SuppliersProvider`).
+Updates made during a browser session (such as adding/editing products, performing stock adjustments,
+creating orders, updating order statuses, or adding/editing/deactivating suppliers) update the shared
+stores in real time across the workspace.
 **These updates are mock data and are not persisted to a real backend or database.**
-Creating an order does not deduct inventory stock in this phase.
+Creating an order does not deduct inventory stock, and deactivating a supplier does not alter inventory stock.
 Refreshing or reloading the page resets the state to initial mock data.
 
 ## Routes
@@ -75,6 +94,7 @@ Refreshing or reloading the page resets the state to initial mock data.
 - `/app/dashboard` — Operational dashboard with real-time inventory and pending orders metrics.
 - `/app/inventory` — Product catalogue, search, filters, adjustments, and management.
 - `/app/orders` — Orders management, status workflows, and order creation.
+- `/app/suppliers` — Suppliers directory, vendor profiles, contact details, and product links.
 
 ## Requirements
 
@@ -90,6 +110,12 @@ npm install
 ```
 
 ## Development and build commands
+
+Run automated test suites:
+
+```bash
+npm test
+```
 
 Start the local Vite development server:
 

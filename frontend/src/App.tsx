@@ -5,6 +5,7 @@ import { FoundationPage } from '@/pages/FoundationPage'
 import { InventoryPage } from '@/pages/InventoryPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { OrdersPage } from '@/pages/OrdersPage'
+import { SuppliersPage } from '@/pages/SuppliersPage'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route element={<DashboardPage />} path="/app/dashboard" />
         <Route element={<InventoryPage />} path="/app/inventory" />
         <Route element={<OrdersPage />} path="/app/orders" />
+        <Route element={<SuppliersPage />} path="/app/suppliers" />
       </Route>
       <Route element={<NotFoundPage />} path="*" />
       <Route element={<Navigate replace to="/" />} path="/app" />

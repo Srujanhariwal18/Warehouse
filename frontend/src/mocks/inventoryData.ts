@@ -14,6 +14,7 @@ export type Product = {
   reorderThreshold: number
   warehouseId: string
   barcode?: string
+  supplierId?: string
 }
 
 export type StockTransaction = {
@@ -102,6 +103,7 @@ export const products: Product[] = names.map((name, index) => ({
   ...(index % 4 === 0
     ? { barcode: `890100${String(index + 1).padStart(6, '0')}` }
     : {}),
+  ...(index % 2 === 0 ? { supplierId: `SUP-${101 + ((index / 2) % 8)}` } : {}),
 }))
 
 export const stockTransactions: StockTransaction[] = [
