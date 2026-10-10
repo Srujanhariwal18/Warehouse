@@ -655,11 +655,19 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           warehouseStock: updatedWarehouseStock,
         })
         appendTransaction({
-          id,
+          id: `${id}-out`,
           productId: product.id,
-          type: 'Adjustment',
-          quantity: 0,
+          type: 'Outbound',
+          quantity: input.quantity,
           warehouseId: input.sourceWarehouseId,
+          date,
+        })
+        appendTransaction({
+          id: `${id}-in`,
+          productId: product.id,
+          type: 'Inbound',
+          quantity: input.quantity,
+          warehouseId: input.destinationWarehouseId,
           date,
         })
         setTransactionsList((prev) => [newRecord, ...prev])
