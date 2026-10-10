@@ -220,78 +220,72 @@ export function SuppliersPage() {
         reload.
       </div>
 
-      {/* KPI Cards Grid */}
+      {/* Vendor Directory Telemetry Strip */}
       <section
         aria-label="Supplier key performance indicators"
-        className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm"
       >
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs uppercase tracking-wider text-text-muted">
-              Total Suppliers
-            </span>
-            <div className="rounded-lg bg-surface-3 p-2 text-text-secondary">
-              <Building2 size={18} />
+        <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // TOTAL VENDORS
+              </span>
+              <Building2 className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {stats.total}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Registered vendor profiles
             </div>
           </div>
-          <p className="mt-3 font-display text-3xl font-semibold text-text-primary">
-            {stats.total}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Registered vendor profiles
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs uppercase tracking-wider text-text-muted">
-              Active Suppliers
-            </span>
-            <div className="rounded-lg bg-success/10 p-2 text-success">
-              <UserCheck size={18} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ACTIVE OPERATIONAL
+              </span>
+              <UserCheck className="text-success" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-success sm:text-3xl">
+              {stats.active}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Approved for fulfillment
             </div>
           </div>
-          <p className="mt-3 font-display text-3xl font-semibold text-success">
-            {stats.active}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Approved for fulfillment
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs uppercase tracking-wider text-text-muted">
-              Inactive Suppliers
-            </span>
-            <div className="rounded-lg bg-surface-3 p-2 text-text-muted">
-              <UserX size={18} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // INACTIVE VENDORS
+              </span>
+              <UserX className="text-text-muted" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-secondary sm:text-3xl">
+              {stats.inactive}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Paused or decommissioned
             </div>
           </div>
-          <p className="mt-3 font-display text-3xl font-semibold text-text-secondary">
-            {stats.inactive}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Temporarily paused or decommissioned
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-xs uppercase tracking-wider text-text-muted">
-              Linked to Products
-            </span>
-            <div className="rounded-lg bg-primary/10 p-2 text-primary">
-              <Package size={18} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // CATALOGUE LINKED
+              </span>
+              <Package className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-secondary sm:text-3xl">
+              {stats.linked}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Associated with products
             </div>
           </div>
-          <p className="mt-3 font-display text-3xl font-semibold text-primary">
-            {stats.linked}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Associated with inventory catalog
-          </p>
-        </Card>
+        </div>
       </section>
 
       {/* Main Table Card with Search & Controls */}

@@ -232,33 +232,54 @@ export function InventoryPage() {
           </button>
         </div>
       )}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          [
-            'Total products',
-            products.length.toLocaleString('en-IN'),
-            'Catalogue items',
-          ],
-          [
-            'Low-stock products',
-            lowStockProducts.length.toLocaleString('en-IN'),
-            'At or below threshold',
-          ],
-          [
-            'Out of stock',
-            outOfStock.toLocaleString('en-IN'),
-            'Require replenishment',
-          ],
-          ['Inventory value', formatInr(inventoryValue), 'Current unit prices'],
-        ].map(([label, value, detail]) => (
-          <Card className="p-5" key={label}>
-            <p className="text-sm text-text-muted">{label}</p>
-            <p className="mt-5 font-display text-2xl font-semibold text-text-primary">
-              {value}
-            </p>
-            <p className="mt-2 text-xs text-text-muted">{detail}</p>
-          </Card>
-        ))}
+      {/* Unified Catalogue Telemetry Strip */}
+      <div className="rounded-xl border border-surface-border bg-gradient-to-r from-surface via-surface to-[#162027] p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-1">
+          <span className="font-mono text-[10px] uppercase text-primary tracking-widest font-semibold flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            TOTAL MATERIALS VALUATION
+          </span>
+          <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
+            {formatInr(inventoryValue)}
+          </p>
+          <p className="text-xs text-text-muted">
+            Aggregated valuation based on active catalog pricing across all
+            warehouse hubs
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-6 font-mono text-xs">
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              TOTAL ITEMS
+            </span>
+            <span className="text-base font-bold text-text-primary">
+              {products.length} SKUs
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              LOW BUFFER
+            </span>
+            <span
+              className={`text-base font-bold ${lowStockProducts.length > 0 ? 'text-amber-400' : 'text-text-muted'}`}
+            >
+              {lowStockProducts.length}
+            </span>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              OUT OF STOCK
+            </span>
+            <span
+              className={`text-base font-bold ${outOfStock > 0 ? 'text-rose-400' : 'text-text-muted'}`}
+            >
+              {outOfStock}
+            </span>
+          </div>
+        </div>
       </div>
       <Card className="p-4">
         <div className="grid gap-3 md:grid-cols-[1.5fr_repeat(3,1fr)_auto]">
@@ -409,28 +430,71 @@ export function InventoryPage() {
                     warehouseMap.get(product.warehouseId) ?? 'Unknown'
                   return (
                     <tr className="text-text-secondary" key={product.id}>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         <button
-                          className="rounded text-left font-medium text-text-primary hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                          className="rounded text-left font-medium text-text-primary hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary transition-colors"
                           onClick={() => setSelected(product)}
                           type="button"
                         >
                           {product.name}
                         </button>
                       </td>
-                      <td className="px-4 py-4 font-mono text-xs">
-                        {product.sku}
+                      <td className="px-4 py-3.5">
+                        <span className="inline-block rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-xs font-semibold text-primary">
+                          {product.sku}
+                        </span>
                       </td>
-                      <td className="px-4 py-4">{product.category}</td>
-                      <td className="px-4 py-4">{warehouseName}</td>
-                      <td className="px-4 py-4 font-medium text-text-primary">
-                        {product.stock}
+                      <td className="px-4 py-3.5 text-xs text-text-secondary">
+                        {product.category}
                       </td>
-                      <td className="px-4 py-4">{formatInr(product.price)}</td>
-                      <td className="px-4 py-4">
+                      <td className="px-4 py-3.5 text-xs text-text-secondary">
+                        {warehouseName}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-text-primary">
+                            <span>{product.stock}</span>
+                            <span className="text-[10px] text-text-muted font-normal">
+                              units
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-3">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                product.stock === 0
+                                  ? 'bg-danger'
+                                  : product.stock <= product.reorderThreshold
+                                    ? 'bg-warning'
+                                    : 'bg-primary'
+                              }`}
+                              style={{
+                                width: `${
+                                  product.stock === 0
+                                    ? 100
+                                    : Math.min(
+                                        100,
+                                        Math.max(
+                                          15,
+                                          (product.stock /
+                                            ((product.reorderThreshold || 10) *
+                                              2.5)) *
+                                            100,
+                                        ),
+                                      )
+                                }%`,
+                              }}
+                              title={`Stock: ${product.stock} / Reorder: ${product.reorderThreshold}`}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-xs text-text-secondary">
+                        {formatInr(product.price)}
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-xs font-semibold text-text-primary">
                         {formatInr(product.stock * product.price)}
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-5 py-3.5">
                         <StatusBadge tone={stockStatus.tone}>
                           {stockStatus.label}
                         </StatusBadge>

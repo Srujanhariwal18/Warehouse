@@ -293,67 +293,53 @@ export function StockTransactionsPage() {
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Transactions
+      {/* Operational Movement Telemetry Strip */}
+      <div className="rounded-xl border border-surface-border bg-gradient-to-r from-surface via-surface to-[#162027] p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div className="space-y-1">
+          <span className="font-mono text-[10px] uppercase text-primary tracking-widest font-semibold flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            AUDIT STREAM VELOCITY
+          </span>
+          <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
+            {stats.totalTransactions}{' '}
+            <span className="text-base font-normal text-text-secondary font-sans">
+              Recorded Events
             </span>
-            <FileText className="text-primary" size={20} />
-          </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {stats.totalTransactions}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Recorded audit events
-          </div>
-        </Card>
+          </p>
+          <p className="text-xs text-text-muted">
+            Immutable movement history including receipts, dispatches,
+            adjustments, and transfers
+          </p>
+        </div>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Stock In (Received)
+        <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-6 font-mono text-xs">
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              INFLOW (RECEIPTS)
             </span>
-            <ArrowDownLeft className="text-success" size={20} />
+            <span className="text-base font-bold text-emerald-400">
+              +{stats.totalReceived.toLocaleString('en-IN')} units
+            </span>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            +{stats.totalReceived.toLocaleString()}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Units received into facilities
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Stock Out (Dispatched)
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              OUTFLOW (DISPATCH)
             </span>
-            <ArrowUpRight className="text-danger" size={20} />
+            <span className="text-base font-bold text-rose-400">
+              -{stats.totalDispatched.toLocaleString('en-IN')} units
+            </span>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            -{stats.totalDispatched.toLocaleString()}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Units fulfilled and shipped
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Adjustments & Transfers
+          <div className="space-y-1">
+            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
+              RELOCATIONS & AUDITS
             </span>
-            <ArrowLeftRight className="text-accent" size={20} />
+            <span className="text-base font-bold text-secondary">
+              {stats.adjustmentsAndTransfers} events
+            </span>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {stats.adjustmentsAndTransfers}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Reconciliations and relocations
-          </div>
-        </Card>
+        </div>
       </div>
 
       {/* Filter and Control Bar */}
@@ -604,7 +590,7 @@ export function StockTransactionsPage() {
                               {sourceWh?.name ?? tx.sourceWarehouseId}
                             </span>
                             <span className="text-text-muted">➔</span>
-                            <span className="text-accent font-medium">
+                            <span className="text-secondary font-medium">
                               {destWh?.name ?? tx.destinationWarehouseId}
                             </span>
                           </div>
@@ -862,7 +848,7 @@ function TransactionTypeBadge({ type }: { type: TransactionType }) {
       )
     case 'Transfer':
       return (
-        <span className="inline-flex items-center gap-1 rounded-md border border-accent/30 bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
+        <span className="inline-flex items-center gap-1 rounded-md border border-secondary/30 bg-secondary/10 px-2 py-0.5 text-xs font-medium text-secondary">
           <ArrowLeftRight size={12} />
           Transfer
         </span>
@@ -893,7 +879,7 @@ function MovementIndicator({
   }
   if (type === 'Transfer') {
     return (
-      <span className="font-mono font-medium text-accent">
+      <span className="font-mono font-medium text-secondary">
         ⇄ {quantity} units
       </span>
     )
@@ -1091,7 +1077,7 @@ function TransactionDetailsDrawer({
                 </div>
                 <div className="flex items-start gap-2 text-text-secondary">
                   <Building2
-                    className="text-accent shrink-0 mt-0.5"
+                    className="text-secondary shrink-0 mt-0.5"
                     size={14}
                   />
                   <div>

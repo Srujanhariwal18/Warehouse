@@ -57,8 +57,8 @@ import {
 import { useTransactionStore } from '@/lib/transactionStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
 
-const CATEGORY_COLORS = ['#14b8a6', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899']
-const WAREHOUSE_COLORS = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6']
+const CATEGORY_COLORS = ['#22D3C5', '#55B9F3', '#34D399', '#38BDF8', '#64748B']
+const WAREHOUSE_COLORS = ['#22D3C5', '#55B9F3', '#34D399', '#38BDF8', '#94A3B8']
 
 export function ReportsPage() {
   const { products } = useInventoryStore()
@@ -222,92 +222,84 @@ export function ReportsPage() {
         title="Reports & Analytics"
       />
 
-      {/* Primary KPI Overview Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Total Inventory Value
-            </span>
-            <span className="rounded-lg bg-primary/10 p-2 text-primary">
-              <IndianRupee aria-hidden="true" size={18} />
-            </span>
+      {/* Primary BI Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // CATALOGUE VALUE
+              </span>
+              <IndianRupee className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {formatInr(valuationSummary.totalValue)}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Current active valuation
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-text-primary">
-            {formatInr(valuationSummary.totalValue)}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Est. based on current unit prices
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Total Units in Stock
-            </span>
-            <span className="rounded-lg bg-teal-500/10 p-2 text-teal-400">
-              <Boxes aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // PHYSICAL UNITS
+              </span>
+              <Boxes className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {valuationSummary.totalUnits.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Monitored facility stock
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-text-primary">
-            {valuationSummary.totalUnits.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Units across selected facilities
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Catalog Products
-            </span>
-            <span className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
-              <Package aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ACTIVE SKUS
+              </span>
+              <Package className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {valuationSummary.totalProducts.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Active catalog lines
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-text-primary">
-            {valuationSummary.totalProducts.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Total active catalog lines
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Low Stock Items
-            </span>
-            <span className="rounded-lg bg-amber-500/10 p-2 text-amber-400">
-              <AlertTriangle aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // LOW THRESHOLD
+              </span>
+              <AlertTriangle className="text-warning" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-warning sm:text-3xl">
+              {valuationSummary.lowStockCount.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Reorder threshold flagged
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-amber-400">
-            {valuationSummary.lowStockCount.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            At or below reorder threshold
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Stockout Items
-            </span>
-            <span className="rounded-lg bg-danger/10 p-2 text-danger">
-              <XCircle aria-hidden="true" size={18} />
-            </span>
+          <div className="col-span-2 p-4 sm:col-span-1 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ZERO STOCKOUTS
+              </span>
+              <XCircle className="text-danger" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-danger sm:text-3xl">
+              {valuationSummary.outOfStockCount.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Zero physical inventory
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-danger">
-            {valuationSummary.outOfStockCount.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Zero available physical stock
-          </p>
-        </Card>
+        </div>
       </div>
 
       {/* Global Filter Bar */}
@@ -813,92 +805,80 @@ export function ReportsPage() {
       {/* ===================================================================== */}
       {activeTab === 'movement' && (
         <div className="space-y-8">
-          {/* Movement Summary Cards Row */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card className="p-5">
-              <div className="flex items-center justify-between text-text-muted">
-                <span className="text-xs font-medium uppercase tracking-wider">
-                  Total Received (Stock In)
-                </span>
-                <span className="rounded-lg bg-teal-500/10 p-2 text-teal-400">
-                  <ArrowDownLeft aria-hidden="true" size={18} />
-                </span>
+          {/* Movement Velocity Telemetry Strip */}
+          <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+            <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                    // STOCK INBOUND
+                  </span>
+                  <ArrowDownLeft className="text-primary" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-primary sm:text-3xl">
+                  +{movementSummary.stockInUnits.toLocaleString('en-IN')}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  {movementSummary.stockInCount} receipt batches
+                </div>
               </div>
-              <p className="mt-4 font-display text-2xl font-bold tracking-tight text-teal-400">
-                +{movementSummary.stockInUnits.toLocaleString('en-IN')}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                {movementSummary.stockInCount} receipt batches
-              </p>
-            </Card>
 
-            <Card className="p-5">
-              <div className="flex items-center justify-between text-text-muted">
-                <span className="text-xs font-medium uppercase tracking-wider">
-                  Total Dispatched (Stock Out)
-                </span>
-                <span className="rounded-lg bg-amber-500/10 p-2 text-amber-400">
-                  <ArrowUpRight aria-hidden="true" size={18} />
-                </span>
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                    // STOCK OUTBOUND
+                  </span>
+                  <ArrowUpRight className="text-warning" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-warning sm:text-3xl">
+                  -{movementSummary.stockOutUnits.toLocaleString('en-IN')}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  {movementSummary.stockOutCount} outbound dispatches
+                </div>
               </div>
-              <p className="mt-4 font-display text-2xl font-bold tracking-tight text-amber-400">
-                -{movementSummary.stockOutUnits.toLocaleString('en-IN')}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                {movementSummary.stockOutCount} outbound dispatches
-              </p>
-            </Card>
 
-            <Card className="p-5">
-              <div className="flex items-center justify-between text-text-muted">
-                <span className="text-xs font-medium uppercase tracking-wider">
-                  Org Net Movement
-                </span>
-                <span
-                  className={`rounded-lg p-2 ${
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                    // NET DELTA
+                  </span>
+                  {movementSummary.netMovementUnits >= 0 ? (
+                    <TrendingUp className="text-primary" size={16} />
+                  ) : (
+                    <TrendingDown className="text-danger" size={16} />
+                  )}
+                </div>
+                <div
+                  className={`mt-2 font-mono text-2xl font-bold tracking-tight sm:text-3xl ${
                     movementSummary.netMovementUnits >= 0
-                      ? 'bg-teal-500/10 text-teal-400'
-                      : 'bg-danger/10 text-danger'
+                      ? 'text-primary'
+                      : 'text-danger'
                   }`}
                 >
-                  {movementSummary.netMovementUnits >= 0 ? (
-                    <TrendingUp aria-hidden="true" size={18} />
-                  ) : (
-                    <TrendingDown aria-hidden="true" size={18} />
-                  )}
-                </span>
+                  {movementSummary.netMovementUnits > 0 ? '+' : ''}
+                  {movementSummary.netMovementUnits.toLocaleString('en-IN')}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  Net stock delta
+                </div>
               </div>
-              <p
-                className={`mt-4 font-display text-2xl font-bold tracking-tight ${
-                  movementSummary.netMovementUnits >= 0
-                    ? 'text-teal-400'
-                    : 'text-danger'
-                }`}
-              >
-                {movementSummary.netMovementUnits > 0 ? '+' : ''}
-                {movementSummary.netMovementUnits.toLocaleString('en-IN')}
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                Net stock delta (Transfers net 0)
-              </p>
-            </Card>
 
-            <Card className="p-5">
-              <div className="flex items-center justify-between text-text-muted">
-                <span className="text-xs font-medium uppercase tracking-wider">
-                  Inter-Facility Transfers
-                </span>
-                <span className="rounded-lg bg-blue-500/10 p-2 text-blue-400">
-                  <ArrowLeftRight aria-hidden="true" size={18} />
-                </span>
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                    // TRANSFERS
+                  </span>
+                  <ArrowLeftRight className="text-secondary" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-secondary sm:text-3xl">
+                  {movementSummary.transferUnits.toLocaleString('en-IN')}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  {movementSummary.transferCount} location rebalances
+                </div>
               </div>
-              <p className="mt-4 font-display text-2xl font-bold tracking-tight text-blue-400">
-                {movementSummary.transferUnits.toLocaleString('en-IN')} units
-              </p>
-              <p className="mt-1 text-xs text-text-muted">
-                {movementSummary.transferCount} location rebalances
-              </p>
-            </Card>
+            </div>
           </div>
 
           {/* Movement Trends Chart */}
@@ -983,12 +963,12 @@ export function ReportsPage() {
                       <linearGradient id="trfGrad" x1="0" x2="0" y1="0" y2="1">
                         <stop
                           offset="5%"
-                          stopColor="#6366f1"
+                          stopColor="#55B9F3"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#6366f1"
+                          stopColor="#55B9F3"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
@@ -1012,10 +992,10 @@ export function ReportsPage() {
                     />
                     <Tooltip
                       contentStyle={{
-                        background: '#242e2b',
-                        border: '1px solid #2c3734',
+                        background: '#1C262D',
+                        border: '1px solid #2D3A44',
                         borderRadius: 12,
-                        color: '#edf3f0',
+                        color: '#EDF4F7',
                         fontSize: 12,
                       }}
                     />
@@ -1023,7 +1003,7 @@ export function ReportsPage() {
                       dataKey="inbound"
                       fill="url(#inboundGrad)"
                       name="Inbound (+)"
-                      stroke="#14b8a6"
+                      stroke="#22D3C5"
                       strokeWidth={2}
                       type="monotone"
                     />
@@ -1039,7 +1019,7 @@ export function ReportsPage() {
                       dataKey="transfers"
                       fill="url(#trfGrad)"
                       name="Transfers (0)"
-                      stroke="#6366f1"
+                      stroke="#55B9F3"
                       strokeWidth={2}
                       type="monotone"
                     />
@@ -1118,7 +1098,7 @@ export function ReportsPage() {
                           <span className="block text-[10px] text-text-muted">
                             Transfer Out
                           </span>
-                          <span className="font-mono font-semibold text-purple-400">
+                          <span className="font-mono font-semibold text-secondary">
                             -{wh.transferOutUnits}
                           </span>
                         </div>

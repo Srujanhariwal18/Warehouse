@@ -1,17 +1,48 @@
-import type { InputHTMLAttributes } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
 
 type TextInputProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string
+  icon?: ReactNode
+  helperText?: string
+  error?: string
 }
 
-export function TextInput({ className = '', label, ...props }: TextInputProps) {
+export function TextInput({
+  className = '',
+  error,
+  helperText,
+  icon,
+  label,
+  ...props
+}: TextInputProps) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-text-secondary">
-      {label}
-      <input
-        className={`h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${className}`}
-        {...props}
-      />
+    <label className="grid gap-1.5 text-xs font-medium text-text-secondary">
+      <span className="flex items-center justify-between">
+        <span>{label}</span>
+        {error && (
+          <span className="font-mono text-[11px] text-danger">{error}</span>
+        )}
+      </span>
+      <div className="relative flex items-center">
+        {icon && (
+          <span className="pointer-events-none absolute left-3 text-text-muted">
+            {icon}
+          </span>
+        )}
+        <input
+          className={`h-10 w-full rounded-lg border bg-[#141b20] text-sm text-text-primary placeholder:text-text-muted transition-colors focus:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${
+            icon ? 'pl-9 pr-3' : 'px-3'
+          } ${
+            error
+              ? 'border-danger/60 focus:border-danger focus-visible:ring-danger'
+              : 'border-surface-3'
+          } ${className}`}
+          {...props}
+        />
+      </div>
+      {helperText && !error && (
+        <span className="text-[11px] text-text-muted">{helperText}</span>
+      )}
     </label>
   )
 }

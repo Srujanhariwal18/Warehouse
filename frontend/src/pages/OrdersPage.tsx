@@ -270,72 +270,84 @@ export function OrdersPage() {
         </div>
       )}
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-sm">Total orders</span>
-            <span className="rounded-lg bg-primary/10 p-2 text-primary">
-              <Package aria-hidden="true" size={17} />
-            </span>
+      {/* Fulfillment Pipeline Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // TOTAL ORDERS
+              </span>
+              <Package className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {summary.total.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              All registered orders
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-semibold tracking-tight text-text-primary">
-            {summary.total.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">All registered orders</p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-sm">Pending orders</span>
-            <span className="rounded-lg bg-warning/10 p-2 text-warning">
-              <Clock aria-hidden="true" size={17} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // PENDING QUEUE
+              </span>
+              <Clock className="text-warning" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-warning sm:text-3xl">
+              {summary.pending.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Awaiting fulfillment
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-semibold tracking-tight text-warning">
-            {summary.pending.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">Awaiting fulfillment</p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-sm">Processing</span>
-            <span className="rounded-lg bg-secondary/10 p-2 text-secondary">
-              <RefreshCw aria-hidden="true" size={17} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // PROCESSING
+              </span>
+              <RefreshCw className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-secondary sm:text-3xl">
+              {summary.processing.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              In warehouse queue
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-semibold tracking-tight text-secondary">
-            {summary.processing.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">In warehouse queue</p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-sm">Completed</span>
-            <span className="rounded-lg bg-success/10 p-2 text-success">
-              <CheckCircle2 aria-hidden="true" size={17} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // FULFILLED
+              </span>
+              <CheckCircle2 className="text-success" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-success sm:text-3xl">
+              {summary.completed.toLocaleString('en-IN')}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Dispatched & closed
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-semibold tracking-tight text-success">
-            {summary.completed.toLocaleString('en-IN')}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">Fulfilled & dispatched</p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-sm">Mock order value</span>
-            <span className="rounded-lg bg-primary/10 p-2 text-primary">
-              <IndianRupee aria-hidden="true" size={17} />
-            </span>
+          <div className="col-span-2 p-4 sm:col-span-1 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // DEMAND VALUE
+              </span>
+              <IndianRupee className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {formatInr(summary.totalValue)}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Total catalogue demand
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-semibold tracking-tight text-text-primary">
-            {formatInr(summary.totalValue)}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">Total catalogue demand</p>
-        </Card>
+        </div>
       </div>
 
       {/* Filters and Search */}

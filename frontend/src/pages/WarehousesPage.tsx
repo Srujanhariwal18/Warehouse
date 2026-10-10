@@ -420,73 +420,75 @@ function WarehousesRootView({
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Warehouses
-            </span>
-            <WarehouseIcon className="text-primary" size={20} />
+      {/* Logistics Facility Network Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // FACILITIES
+              </span>
+              <WarehouseIcon className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {overallStats.totalWarehouses}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Registered logistics facilities
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {overallStats.totalWarehouses}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Registered logistics facilities
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Active Warehouses
-            </span>
-            <Building2 className="text-success" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // OPERATIONAL
+              </span>
+              <Building2 className="text-success" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {overallStats.activeWarehouses}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              {overallStats.totalWarehouses > 0
+                ? `${Math.round(
+                    (overallStats.activeWarehouses /
+                      overallStats.totalWarehouses) *
+                      100,
+                  )}% operational readiness`
+                : 'No facilities active'}
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {overallStats.activeWarehouses}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            {overallStats.totalWarehouses > 0
-              ? `${Math.round(
-                  (overallStats.activeWarehouses /
-                    overallStats.totalWarehouses) *
-                    100,
-                )}% operational readiness`
-              : 'No facilities active'}
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Storage Zones
-            </span>
-            <Layers className="text-accent" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // STORAGE ZONES
+              </span>
+              <Layers className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {overallStats.totalZones}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Segregated inventory areas
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {overallStats.totalZones}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Segregated inventory areas
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Bin & Pallet Racks
-            </span>
-            <Server className="text-warning" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // RACK STRUCTURES
+              </span>
+              <Server className="text-warning" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {overallStats.totalRacks}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Configured storage structures
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {overallStats.totalRacks}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Configured storage structures
-          </div>
-        </Card>
+        </div>
       </div>
 
       {/* Filter and Control Bar */}
@@ -1238,52 +1240,54 @@ function WarehouseZonesView({
         </div>
       </Card>
 
-      {/* KPI Cards for Zones */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Facility Zones
-            </span>
-            <Layers className="text-primary" size={20} />
+      {/* Zone Level Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // FACILITY ZONES
+              </span>
+              <Layers className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {zones.length}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Configured functional areas
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {zones.length}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Configured functional areas
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Active Zones
-            </span>
-            <CheckCircle2 className="text-success" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ACTIVE ZONES
+              </span>
+              <CheckCircle2 className="text-success" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {activeZonesCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Operational receiving & storage
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {activeZonesCount}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Operational receiving and storage
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Racks in Facility
-            </span>
-            <Server className="text-warning" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // RACKS IN FACILITY
+              </span>
+              <Server className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {warehouseRackCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Distributed across functional zones
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {warehouseRackCount}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Distributed across zones
-          </div>
-        </Card>
+        </div>
       </div>
 
       {/* Controls Bar */}
@@ -1904,7 +1908,7 @@ function ZoneRacksView({
       <Card className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-accent/10 text-accent">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-secondary/10 text-secondary">
               <Server size={24} />
             </div>
             <div>
@@ -1950,52 +1954,54 @@ function ZoneRacksView({
         </div>
       </Card>
 
-      {/* KPI Cards for Racks */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Total Racks in Zone
-            </span>
-            <Server className="text-primary" size={20} />
+      {/* Rack Level Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // RACKS IN ZONE
+              </span>
+              <Server className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {racks.length}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Configured shelving structures
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {racks.length}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Configured shelving structures
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Active Racks
-            </span>
-            <CheckCircle2 className="text-success" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ACTIVE RACKS
+              </span>
+              <CheckCircle2 className="text-success" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {activeRacksCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Available for bin placement
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {activeRacksCount}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Available for bin placement
-          </div>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-semibold uppercase tracking-wider">
-              Combined Unit Capacity
-            </span>
-            <Database className="text-accent" size={20} />
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // BIN CAPACITY
+              </span>
+              <Database className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {totalBinCapacity > 0 ? totalBinCapacity.toLocaleString() : '—'}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Storage bin slots rated
+            </div>
           </div>
-          <div className="mt-3 font-mono text-3xl font-bold text-text-primary">
-            {totalBinCapacity > 0 ? totalBinCapacity.toLocaleString() : '—'}
-          </div>
-          <div className="mt-1 text-xs text-text-muted">
-            Storage bin slots rated
-          </div>
-        </Card>
+        </div>
       </div>
 
       {/* Filter and Control Bar */}

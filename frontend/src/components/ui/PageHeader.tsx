@@ -5,30 +5,39 @@ type PageHeaderProps = {
   title: string
   description: string
   action?: ReactNode
+  badge?: ReactNode
 }
 
 export function PageHeader({
   action,
+  badge,
   description,
   eyebrow,
   title,
 }: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-5 border-b border-surface-3/70 pb-7 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        {eyebrow && (
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">
-            {eyebrow}
-          </p>
-        )}
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+    <header className="flex flex-col gap-4 border-b border-surface-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {eyebrow && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary font-medium">
+              // {eyebrow}
+            </span>
+          )}
+          {badge}
+        </div>
+        <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
           {title}
         </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
+        <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">
           {description}
         </p>
       </div>
-      {action}
+      {action && (
+        <div className="shrink-0 flex items-center gap-3 pt-2 sm:pt-0">
+          {action}
+        </div>
+      )}
     </header>
   )
 }

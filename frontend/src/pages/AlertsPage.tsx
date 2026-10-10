@@ -158,75 +158,69 @@ export function AlertsPage() {
         </span>
       </div>
 
-      {/* KPI Overview Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Total Active Alerts
-            </span>
-            <span className="rounded-lg bg-surface-3 p-2 text-text-primary">
-              <AlertCircle aria-hidden="true" size={18} />
-            </span>
+      {/* Incident Command Telemetry Strip */}
+      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+        <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ACTIVE EXCEPTIONS
+              </span>
+              <AlertCircle className="text-primary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+              {alertCounts.total}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Across monitored facilities
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-text-primary">
-            {alertCounts.total}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Across all monitored facilities
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Critical (Out of Stock)
-            </span>
-            <span className="rounded-lg bg-danger/10 p-2 text-danger">
-              <XCircle aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // ZERO STOCKOUTS
+              </span>
+              <XCircle className="text-danger" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-danger sm:text-3xl">
+              {alertCounts.oosCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Zero available inventory
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-danger">
-            {alertCounts.oosCount}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Items with zero available inventory
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Warnings (Low Stock)
-            </span>
-            <span className="rounded-lg bg-amber-500/10 p-2 text-amber-400">
-              <AlertTriangle aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // LOW THRESHOLDS
+              </span>
+              <AlertTriangle className="text-warning" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-warning sm:text-3xl">
+              {alertCounts.lowStockCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              At or below reorder level
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-amber-400">
-            {alertCounts.lowStockCount}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Stock at or below reorder threshold
-          </p>
-        </Card>
 
-        <Card className="p-5">
-          <div className="flex items-center justify-between text-text-muted">
-            <span className="text-xs font-medium uppercase tracking-wider">
-              Exceptions & Adjustments
-            </span>
-            <span className="rounded-lg bg-primary/10 p-2 text-primary">
-              <Info aria-hidden="true" size={18} />
-            </span>
+          <div className="p-4 sm:p-5">
+            <div className="flex items-center justify-between text-text-muted">
+              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
+                // VELOCITY FLAGS
+              </span>
+              <Info className="text-secondary" size={16} />
+            </div>
+            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-secondary sm:text-3xl">
+              {alertCounts.unusualCount + alertCounts.adjustmentCount}
+            </div>
+            <div className="mt-1 text-xs text-text-muted">
+              Audits & velocity spikes
+            </div>
           </div>
-          <p className="mt-4 font-display text-2xl font-bold tracking-tight text-primary">
-            {alertCounts.unusualCount + alertCounts.adjustmentCount}
-          </p>
-          <p className="mt-1 text-xs text-text-muted">
-            Audits & large movements flagged
-          </p>
-        </Card>
+        </div>
       </div>
 
       {/* Filter & Search Bar */}
