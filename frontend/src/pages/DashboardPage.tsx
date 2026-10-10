@@ -26,15 +26,9 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
-import {
-  lowStockProducts,
-  orders,
-  products,
-  stockHistory,
-  stockTransactions,
-  warehouses,
-} from '@/mocks/inventoryData'
+import { orders, stockHistory, warehouses } from '@/mocks/inventoryData'
 import { formatDate, formatInr } from '@/lib/formatters'
+import { useInventoryStore } from '@/lib/inventoryStore'
 
 type ChartRange = '7D' | '30D' | '12M'
 
@@ -51,6 +45,11 @@ const rangeMultipliers: Record<ChartRange, number> = {
 }
 
 export function DashboardPage() {
+  const {
+    lowStockProducts,
+    products,
+    transactions: stockTransactions,
+  } = useInventoryStore()
   const [range, setRange] = useState<ChartRange>('12M')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState(new Date())
