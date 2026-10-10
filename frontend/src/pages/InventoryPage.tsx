@@ -15,7 +15,6 @@ import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
-import { PageHeader } from '@/components/ui/PageHeader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { TextInput } from '@/components/ui/TextInput'
 import {
@@ -164,8 +163,8 @@ export function InventoryPage() {
     setNotice({
       type: 'success',
       message: input.id
-        ? 'Product updated in the mock catalogue.'
-        : 'Product added to the mock catalogue.',
+        ? 'Product updated in catalogue.'
+        : 'Product added to catalogue.',
     })
     setDialog(null)
     return { ok: true }
@@ -184,7 +183,7 @@ export function InventoryPage() {
     }
     setNotice({
       type: 'success',
-      message: `${operation} recorded in the mock transaction history.`,
+      message: `${operation} recorded in transactions.`,
     })
     setDialog(null)
     return { ok: true }
@@ -195,175 +194,202 @@ export function InventoryPage() {
     : null
 
   return (
-    <div className="grid gap-8">
-      <PageHeader
-        action={
+    <div className="space-y-3.5">
+      {/* 1. Compact Integrated Workspace Header (Title + Key Metrics + Action) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-surface-border pb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-primary">
+              Warehouse Catalog
+            </span>
+            <span className="text-surface-border text-xs">•</span>
+            <span className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-text-muted border border-surface-border">
+              Session Preview
+            </span>
+          </div>
+          <div className="flex flex-wrap items-baseline gap-3 mt-0.5">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-text-primary">
+              Inventory Catalogue
+            </h1>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="rounded-md border border-surface-border bg-surface-2 px-2 py-0.5 font-mono text-text-secondary">
+                {products.length} SKUs
+              </span>
+              <span className="rounded-md border border-surface-border bg-surface-2 px-2 py-0.5 font-mono text-primary font-semibold">
+                Valuation: {formatInr(inventoryValue)}
+              </span>
+              {outOfStock > 0 && (
+                <span className="rounded-md border border-danger/30 bg-danger/10 px-2 py-0.5 font-mono text-danger font-semibold">
+                  {outOfStock} Stockout
+                </span>
+              )}
+              {lowStockProducts.length > 0 && (
+                <span className="rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 font-mono text-warning font-semibold">
+                  {lowStockProducts.length} Low Buffer
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
           <Button
             onClick={() => {
               setNotice(null)
               setDialog('add')
             }}
+            size="sm"
+            variant="primary"
           >
-            <Plus aria-hidden="true" size={17} />
-            Add product
+            <Plus aria-hidden="true" size={15} />
+            <span>Add Product</span>
           </Button>
-        }
-        description="Search, review and adjust the local product catalogue across all warehouse locations."
-        eyebrow="Workspace"
-        title="Inventory"
-      />
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-xs text-text-secondary">
-        <span className="h-2 w-2 rounded-full bg-secondary" />
-        Mock data preview — changes stay in this browser session and do not
-        update real warehouse stock.
+        </div>
       </div>
+
       {notice && !dialog && (
         <div
-          className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-success/30 bg-success/5 text-success' : 'border-danger/30 bg-danger/5 text-danger'}`}
+          className={`flex items-center justify-between rounded-lg border px-3.5 py-2 text-xs ${
+            notice.type === 'success'
+              ? 'border-success/30 bg-success/10 text-success'
+              : 'border-danger/30 bg-danger/10 text-danger'
+          }`}
           role={notice.type === 'error' ? 'alert' : 'status'}
         >
-          {notice.message}
+          <span>{notice.message}</span>
           <button
             aria-label="Dismiss message"
+            className="text-current hover:opacity-75"
             onClick={() => setNotice(null)}
             type="button"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
         </div>
       )}
-      {/* Unified Catalogue Telemetry Strip */}
-      <div className="rounded-xl border border-surface-border bg-gradient-to-r from-surface via-surface to-[#162027] p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="space-y-1">
-          <span className="font-mono text-[10px] uppercase text-primary tracking-widest font-semibold flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            TOTAL MATERIALS VALUATION
-          </span>
-          <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
-            {formatInr(inventoryValue)}
-          </p>
-          <p className="text-xs text-text-muted">
-            Aggregated valuation based on active catalog pricing across all
-            warehouse hubs
-          </p>
+
+      {/* 2. Integrated Data Table Card with Natural Toolbar (Starts immediately!) */}
+      <Card className="overflow-hidden border border-surface-border bg-surface shadow-xs">
+        {/* Integrated Natural Filter Command Bar (Single Compact Row) */}
+        <div className="border-b border-surface-border bg-surface-1/60 p-3">
+          <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
+            {/* Search Input */}
+            <div className="relative flex-1 lg:max-w-xs">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                size={14}
+              />
+              <input
+                aria-label="Search products by name or SKU"
+                className="h-9 w-full rounded-lg border border-surface-border bg-surface-2 pl-8 pr-3 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                onChange={(event) => setFilter(setSearch, event.target.value)}
+                placeholder="Search name, SKU..."
+                value={search}
+              />
+              {search && (
+                <button
+                  aria-label="Clear search"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                  onClick={() => setFilter(setSearch, '')}
+                  type="button"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Natural Filter Controls Row */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {/* Category Pills */}
+              <div className="flex items-center rounded-lg border border-surface-border bg-surface-2 p-0.5">
+                {['All categories', ...categories].map((cat) => (
+                  <button
+                    key={cat}
+                    className={`rounded-md px-2 py-1 text-[11px] font-medium transition-all ${
+                      category === cat
+                        ? 'bg-surface text-primary border border-primary/20 shadow-xs'
+                        : 'text-text-muted hover:text-text-primary'
+                    }`}
+                    onClick={() => setFilter(setCategory, cat)}
+                    type="button"
+                  >
+                    {cat === 'All categories' ? 'All' : cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Warehouse Dropdown */}
+              <select
+                aria-label="Filter by warehouse"
+                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2.5 text-xs text-text-secondary outline-none focus:border-primary"
+                onChange={(event) =>
+                  setFilter(setWarehouse, event.target.value)
+                }
+                value={warehouse}
+              >
+                <option value="All warehouses">All Hubs</option>
+                {warehouses.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Dropdown */}
+              <select
+                aria-label="Filter by stock status"
+                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2.5 text-xs text-text-secondary outline-none focus:border-primary"
+                onChange={(event) => setFilter(setStatus, event.target.value)}
+                value={status}
+              >
+                <option value="All statuses">All Statuses</option>
+                <option value="In Stock">
+                  In Stock (
+                  {products.filter((p) => p.stock > p.reorderThreshold).length})
+                </option>
+                <option value="Low Stock">
+                  Low Stock ({lowStockProducts.length})
+                </option>
+                <option value="Out of Stock">
+                  Out of Stock ({outOfStock})
+                </option>
+              </select>
+
+              {/* Rows per page */}
+              <select
+                aria-label="Rows per page"
+                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2 font-mono text-[11px] text-text-muted outline-none focus:border-primary"
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value))
+                  setPage(1)
+                }}
+                value={pageSize}
+              >
+                {pageSizes.map((size) => (
+                  <option key={size} value={size}>
+                    {size} / page
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-6 font-mono text-xs">
-          <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              TOTAL ITEMS
-            </span>
-            <span className="text-base font-bold text-text-primary">
-              {products.length} SKUs
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              LOW BUFFER
-            </span>
-            <span
-              className={`text-base font-bold ${lowStockProducts.length > 0 ? 'text-amber-400' : 'text-text-muted'}`}
-            >
-              {lowStockProducts.length}
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              OUT OF STOCK
-            </span>
-            <span
-              className={`text-base font-bold ${outOfStock > 0 ? 'text-rose-400' : 'text-text-muted'}`}
-            >
-              {outOfStock}
-            </span>
-          </div>
-        </div>
-      </div>
-      <Card className="p-4">
-        <div className="grid gap-3 md:grid-cols-[1.5fr_repeat(3,1fr)_auto]">
-          <label className="relative">
-            <span className="sr-only">Search products</span>
-            <Search
-              aria-hidden="true"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-              size={16}
-            />
-            <input
-              aria-label="Search products by name or SKU"
-              className="h-11 w-full rounded-xl border border-surface-3 bg-sidebar pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
-              onChange={(event) => setFilter(setSearch, event.target.value)}
-              placeholder="Search product or SKU"
-              value={search}
-            />
-          </label>
-          <FilterSelect
-            ariaLabel="Filter by category"
-            onChange={(value) => setFilter(setCategory, value)}
-            options={['All categories', ...categories]}
-            value={category}
-          />
-          <FilterSelect
-            ariaLabel="Filter by warehouse"
-            onChange={(value) => setFilter(setWarehouse, value)}
-            options={['All warehouses', ...warehouses.map((item) => item.id)]}
-            labels={Object.fromEntries(
-              warehouses.map((item) => [item.id, item.name]),
-            )}
-            value={warehouse}
-          />
-          <FilterSelect
-            ariaLabel="Filter by stock status"
-            onChange={(value) => setFilter(setStatus, value)}
-            options={['All statuses', 'In Stock', 'Low Stock', 'Out of Stock']}
-            value={status}
-          />
-          <select
-            aria-label="Rows per page"
-            className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
-            onChange={(event) => {
-              setPageSize(Number(event.target.value))
-              setPage(1)
-            }}
-            value={pageSize}
-          >
-            {pageSizes.map((size) => (
-              <option key={size} value={size}>
-                {size} / page
-              </option>
-            ))}
-          </select>
-        </div>
-      </Card>
-      <Card className="overflow-hidden">
-        <div className="flex items-center justify-between border-b border-surface-3/70 px-5 py-5">
-          <div>
-            <h2 className="font-display text-lg font-semibold text-text-primary">
-              Product catalogue
-            </h2>
-            <p className="mt-1 text-sm text-text-secondary">
-              {filteredProducts.length} result
-              {filteredProducts.length === 1 ? '' : 's'} found
-            </p>
-          </div>
-          <span className="hidden text-xs text-text-muted sm:inline">
-            Select a row to inspect details
-          </span>
-        </div>
+        {/* 3. The Catalogue Table (Immediate Visibility on 1856x810!) */}
         {loading ? (
-          <div className="p-5">
+          <div className="p-8">
             <LoadingState />
           </div>
         ) : hasDataError ? (
-          <div className="p-5">
+          <div className="p-8">
             <ErrorState
               description="The local inventory preview contains corrupted product records."
               title="Inventory data error"
             />
           </div>
         ) : products.length === 0 ? (
-          <div className="p-5">
+          <div className="p-8">
             <EmptyState
               action={
                 <Button
@@ -371,154 +397,199 @@ export function InventoryPage() {
                     setNotice(null)
                     setDialog('add')
                   }}
+                  size="sm"
                 >
-                  <Plus aria-hidden="true" size={17} />
+                  <Plus aria-hidden="true" size={15} />
                   Add product
                 </Button>
               }
-              description="No products exist in the catalogue yet. Add your first product to get started."
+              description="No products exist in the catalogue yet."
               title="Catalogue is empty"
             />
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="p-5">
+          <div className="p-8">
             <EmptyState
-              description="Try clearing a filter or searching for another SKU."
-              title="No products match"
+              description="No products match your current filters. Try resetting search keywords or category filters."
+              title="No products found"
             />
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] text-left text-sm">
-              <thead className="bg-sidebar/60 text-xs uppercase tracking-wide text-text-muted">
+            <table className="w-full min-w-[960px] text-left text-xs">
+              <thead className="border-b border-surface-border bg-surface-2/70 text-[11px] font-medium text-text-muted">
                 <tr>
                   <SortableHeader
-                    label="Product"
                     active={sortKey === 'name'}
                     ascending={sortAscending}
+                    label="Product Name"
                     onClick={() => changeSort('name')}
                   />
-                  <th className="px-4 py-3 font-medium">SKU</th>
-                  <th className="px-4 py-3 font-medium">Category</th>
-                  <th className="px-4 py-3 font-medium">Warehouse</th>
+                  <th className="px-3.5 py-2.5 font-medium">SKU</th>
+                  <th className="px-3.5 py-2.5 font-medium">Category</th>
+                  <th className="px-3.5 py-2.5 font-medium">Facility</th>
                   <SortableHeader
-                    label="Available"
                     active={sortKey === 'stock'}
                     ascending={sortAscending}
+                    label="Available Units"
                     onClick={() => changeSort('stock')}
                   />
                   <SortableHeader
-                    label="Unit price"
                     active={sortKey === 'price'}
                     ascending={sortAscending}
+                    label="Unit Price"
                     onClick={() => changeSort('price')}
                   />
                   <SortableHeader
-                    label="Value"
                     active={sortKey === 'value'}
                     ascending={sortAscending}
+                    label="Total Value"
                     onClick={() => changeSort('value')}
                   />
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+                  <th className="px-3.5 py-2.5 font-medium">Status</th>
+                  <th className="px-3.5 py-2.5 font-medium text-right pr-4">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-3/60">
+              <tbody className="divide-y divide-surface-border/50 font-sans">
                 {visibleProducts.map((product) => {
                   const stockStatus = statusFor(product)
                   const warehouseName =
                     warehouseMap.get(product.warehouseId) ?? 'Unknown'
+                  const isSelected = selected?.id === product.id
+
                   return (
-                    <tr className="text-text-secondary" key={product.id}>
-                      <td className="px-5 py-3.5">
+                    <tr
+                      key={product.id}
+                      className={`text-text-secondary transition-colors cursor-pointer ${
+                        isSelected
+                          ? 'bg-primary/5 text-text-primary'
+                          : 'hover:bg-surface-2/40'
+                      }`}
+                      onClick={() => setSelected(product)}
+                    >
+                      {/* Product Name */}
+                      <td className="px-4 py-3">
                         <button
-                          className="rounded text-left font-medium text-text-primary hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary transition-colors"
-                          onClick={() => setSelected(product)}
+                          className="rounded text-left font-medium text-text-primary hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary transition-colors block"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelected(product)
+                          }}
                           type="button"
                         >
                           {product.name}
                         </button>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <span className="inline-block rounded border border-primary/20 bg-primary/5 px-2 py-0.5 font-mono text-xs font-semibold text-primary">
+
+                      {/* SKU */}
+                      <td className="px-3.5 py-3">
+                        <span className="inline-block rounded bg-surface-2 border border-surface-border px-1.5 py-0.5 font-mono text-[11px] font-bold text-primary">
                           {product.sku}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-text-secondary">
-                        {product.category}
+
+                      {/* Category */}
+                      <td className="px-3.5 py-3 text-text-secondary">
+                        <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] text-text-muted font-medium">
+                          {product.category}
+                        </span>
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-text-secondary">
+
+                      {/* Warehouse Facility */}
+                      <td className="px-3.5 py-3 text-text-secondary text-[11px]">
                         {warehouseName}
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-text-primary">
-                            <span>{product.stock}</span>
-                            <span className="text-[10px] text-text-muted font-normal">
-                              units
-                            </span>
-                          </div>
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-3">
+
+                      {/* Available Units with Subtle Inline Stock-Health Gauge */}
+                      <td className="px-3.5 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-text-primary min-w-[32px]">
+                            {product.stock}
+                          </span>
+                          {/* Inline gauge meter */}
+                          <div
+                            className="w-14 h-1.5 rounded-full bg-surface-3 overflow-hidden"
+                            title={`Reorder at ${product.reorderThreshold}`}
+                          >
                             <div
                               className={`h-full rounded-full transition-all ${
                                 product.stock === 0
-                                  ? 'bg-danger'
+                                  ? 'bg-danger w-full'
                                   : product.stock <= product.reorderThreshold
                                     ? 'bg-warning'
                                     : 'bg-primary'
                               }`}
                               style={{
-                                width: `${
+                                width:
                                   product.stock === 0
-                                    ? 100
-                                    : Math.min(
-                                        100,
-                                        Math.max(
-                                          15,
-                                          (product.stock /
-                                            ((product.reorderThreshold || 10) *
-                                              2.5)) *
-                                            100,
-                                        ),
-                                      )
-                                }%`,
+                                    ? '100%'
+                                    : `${Math.min(100, Math.max(15, (product.stock / ((product.reorderThreshold || 10) * 2.5)) * 100))}%`,
                               }}
-                              title={`Stock: ${product.stock} / Reorder: ${product.reorderThreshold}`}
                             />
                           </div>
+                          <span className="font-mono text-[10px] text-text-muted">
+                            min {product.reorderThreshold}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-xs text-text-secondary">
+
+                      {/* Unit Price */}
+                      <td className="px-3.5 py-3 font-mono text-[11px] text-text-secondary">
                         {formatInr(product.price)}
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-xs font-semibold text-text-primary">
+
+                      {/* Total Value */}
+                      <td className="px-3.5 py-3 font-mono text-[11px] font-semibold text-text-primary">
                         {formatInr(product.stock * product.price)}
                       </td>
-                      <td className="px-5 py-3.5">
-                        <StatusBadge tone={stockStatus.tone}>
+
+                      {/* Status Badge */}
+                      <td className="px-3.5 py-3">
+                        <StatusBadge size="sm" tone={stockStatus.tone}>
                           {stockStatus.label}
                         </StatusBadge>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="flex gap-1">
+
+                      {/* Actions */}
+                      <td className="px-3.5 py-3 text-right pr-4">
+                        <div
+                          className="inline-flex items-center gap-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <Button
-                            aria-label={`View ${product.name}`}
-                            className="px-2"
+                            aria-label={`Inspect ${product.name}`}
+                            className="px-1.5 py-1 text-xs"
                             onClick={() => setSelected(product)}
+                            size="sm"
                             variant="ghost"
                           >
-                            <Eye size={16} />
+                            <Eye size={14} />
+                          </Button>
+                          <Button
+                            aria-label={`Stock In ${product.name}`}
+                            className="px-1.5 py-1 text-xs"
+                            onClick={() => {
+                              setSelected(product)
+                              setDialog('stock-in')
+                            }}
+                            size="sm"
+                            variant="ghost"
+                          >
+                            <PackagePlus size={14} />
                           </Button>
                           <Button
                             aria-label={`Edit ${product.name}`}
-                            className="px-2"
+                            className="px-1.5 py-1 text-xs"
                             onClick={() => {
                               setSelected(product)
                               setDialog('edit')
                             }}
+                            size="sm"
                             variant="ghost"
                           >
-                            <Pencil size={16} />
+                            <Pencil size={14} />
                           </Button>
                         </div>
                       </td>
@@ -529,38 +600,44 @@ export function InventoryPage() {
             </table>
           </div>
         )}
-        <div className="flex flex-col gap-3 border-t border-surface-3/70 px-5 py-4 text-sm text-text-secondary sm:flex-row sm:items-center sm:justify-between">
-          <span>
+
+        {/* 4. Table Pagination Footer */}
+        <div className="flex flex-col gap-2 border-t border-surface-border px-4 py-2.5 text-xs text-text-secondary sm:flex-row sm:items-center sm:justify-between bg-surface-1/40">
+          <span className="text-[11px] text-text-muted">
             Showing{' '}
             {filteredProducts.length === 0 ? 0 : (page - 1) * pageSize + 1}–
             {Math.min(page * pageSize, filteredProducts.length)} of{' '}
-            {filteredProducts.length}
+            {filteredProducts.length} filtered items
           </span>
           <div className="flex items-center gap-2">
             <Button
               aria-label="Previous page"
-              className="px-2"
+              className="px-2 py-1 text-xs"
               disabled={page === 1}
               onClick={() => setPage((current) => current - 1)}
+              size="sm"
               variant="ghost"
             >
-              <ChevronLeft size={17} />
+              <ChevronLeft size={14} />
             </Button>
-            <span className="text-xs">
+            <span className="font-mono text-[11px] text-text-muted">
               Page {page} of {pageCount}
             </span>
             <Button
               aria-label="Next page"
-              className="px-2"
+              className="px-2 py-1 text-xs"
               disabled={page === pageCount || filteredProducts.length === 0}
               onClick={() => setPage((current) => current + 1)}
+              size="sm"
               variant="ghost"
             >
-              <ChevronRight size={17} />
+              <ChevronRight size={14} />
             </Button>
           </div>
         </div>
       </Card>
+
+      {/* 5. Intentional Slide-out Product Inspection Drawer */}
       {selectedCurrent && (
         <ProductDrawer
           onClose={() => setSelected(null)}
@@ -570,6 +647,8 @@ export function InventoryPage() {
           product={selectedCurrent}
         />
       )}
+
+      {/* 6. Product Modals (Add, Edit, Stock Operations) */}
       {dialog && (
         <ProductDialog
           mode={dialog}
@@ -580,35 +659,6 @@ export function InventoryPage() {
         />
       )}
     </div>
-  )
-}
-
-function FilterSelect({
-  ariaLabel,
-  labels = {},
-  onChange,
-  options,
-  value,
-}: {
-  ariaLabel: string
-  labels?: Record<string, string>
-  onChange: (value: string) => void
-  options: string[]
-  value: string
-}) {
-  return (
-    <select
-      aria-label={ariaLabel}
-      className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
-      onChange={(event) => onChange(event.target.value)}
-      value={value}
-    >
-      {options.map((option) => (
-        <option key={option} value={option}>
-          {labels[option] ?? option}
-        </option>
-      ))}
-    </select>
   )
 }
 
@@ -624,14 +674,18 @@ function SortableHeader({
   onClick: () => void
 }) {
   return (
-    <th className="px-4 py-3 font-medium first:pl-5">
+    <th className="px-3.5 py-2.5 font-medium first:pl-4">
       <button
-        className="inline-flex items-center gap-1 hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
+        className="inline-flex items-center gap-1 hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded transition-colors"
         onClick={onClick}
         type="button"
       >
-        {label}
-        {active && (ascending ? ' ↑' : ' ↓')}
+        <span>{label}</span>
+        {active && (
+          <span className="text-primary font-mono">
+            {ascending ? '↑' : '↓'}
+          </span>
+        )}
       </button>
     </th>
   )
@@ -682,65 +736,87 @@ function ProductDrawer({
     <>
       <div
         aria-hidden="true"
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
       <aside
         aria-label="Product details"
         aria-modal="true"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-3 bg-sidebar p-6 shadow-2xl shadow-black/40"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-border bg-sidebar p-6 shadow-2xl flex flex-col justify-between"
         ref={drawerRef}
         role="dialog"
       >
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
-            Product detail
-          </p>
-          <Button
-            aria-label="Close product details"
-            onClick={onClose}
-            variant="ghost"
-          >
-            <X size={18} />
-          </Button>
-        </div>
-        <h2
-          className="mt-8 font-display text-2xl font-semibold text-text-primary"
-          id="drawer-product-title"
-        >
-          {product.name}
-        </h2>
-        <p className="mt-2 font-mono text-xs text-text-muted">{product.sku}</p>
-        <div className="mt-8 grid gap-4">
-          {[
-            ['Category', product.category],
-            ['Warehouse', warehouseName ?? 'Unknown'],
-            ['Available quantity', `${product.stock} units`],
-            ['Unit price', formatInr(product.price)],
-            ['Inventory value', formatInr(product.stock * product.price)],
-            ['Reorder threshold', `${product.reorderThreshold} units`],
-          ].map(([label, value]) => (
-            <div
-              className="flex items-center justify-between border-b border-surface-3/70 py-3 text-sm"
-              key={label}
+        <div>
+          <div className="flex items-center justify-between border-b border-surface-border pb-3">
+            <span className="text-xs font-medium text-primary">
+              Product Inspection
+            </span>
+            <Button
+              aria-label="Close product details"
+              onClick={onClose}
+              size="sm"
+              variant="ghost"
             >
-              <span className="text-text-muted">{label}</span>
-              <span className="font-medium text-text-primary">{value}</span>
+              <X size={16} />
+            </Button>
+          </div>
+
+          <div className="mt-5">
+            <div className="flex items-center gap-2">
+              <span className="rounded bg-surface-2 border border-surface-border px-1.5 py-0.5 font-mono text-xs font-bold text-primary">
+                {product.sku}
+              </span>
+              <StatusBadge size="sm" tone={statusFor(product).tone}>
+                {statusFor(product).label}
+              </StatusBadge>
             </div>
-          ))}
+            <h2
+              className="mt-2 font-display text-xl font-bold text-text-primary"
+              id="drawer-product-title"
+            >
+              {product.name}
+            </h2>
+          </div>
+
+          <div className="mt-6 space-y-2.5 rounded-xl border border-surface-border bg-surface-2/40 p-4">
+            {[
+              ['Category', product.category],
+              ['Storage Facility', warehouseName ?? 'Unknown'],
+              [
+                'Available Quantity',
+                `${product.stock.toLocaleString('en-IN')} units`,
+              ],
+              ['Unit Price', formatInr(product.price)],
+              ['Inventory Valuation', formatInr(product.stock * product.price)],
+              ['Reorder Threshold', `${product.reorderThreshold} units`],
+            ].map(([label, value]) => (
+              <div
+                className="flex items-center justify-between border-b border-surface-border/40 pb-2 text-xs last:border-0 last:pb-0"
+                key={label}
+              >
+                <span className="text-text-muted">{label}</span>
+                <span className="font-semibold text-text-primary font-mono">
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="mt-8 grid gap-3">
-          <Button onClick={onStockIn}>
-            <PackagePlus size={17} />
-            Stock in
-          </Button>
-          <Button onClick={onStockOut} variant="secondary">
-            <PackagePlus size={17} />
-            Stock out
-          </Button>
-          <Button onClick={onEdit} variant="ghost">
-            <Pencil size={16} />
-            Edit product
+
+        <div className="mt-6 pt-4 border-t border-surface-border space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={onStockIn} variant="primary">
+              <PackagePlus size={15} />
+              <span>Stock In</span>
+            </Button>
+            <Button onClick={onStockOut} variant="secondary">
+              <PackagePlus size={15} />
+              <span>Stock Out</span>
+            </Button>
+          </div>
+          <Button className="w-full" onClick={onEdit} variant="outline">
+            <Pencil size={15} />
+            <span>Edit Product Details</span>
           </Button>
         </div>
       </aside>
@@ -805,257 +881,248 @@ function ProductDialog({
     }
   }, [onClose])
 
-  const dialogTitle = isStock
-    ? mode === 'stock-in'
-      ? 'Stock in'
-      : 'Stock out'
-    : product
-      ? 'Edit product'
-      : 'Add product'
-
-  function handleFormSubmit(event: React.FormEvent) {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const trimmedName = name.trim()
-    if (!trimmedName) {
+    setError(null)
+
+    if (isStock) {
+      const parsedQuantity = Number(quantity)
+      if (
+        !quantity.trim() ||
+        !Number.isInteger(parsedQuantity) ||
+        parsedQuantity <= 0
+      ) {
+        setError('Quantity must be a positive integer.')
+        return
+      }
+
+      const operation = mode === 'stock-in' ? 'Stock In' : 'Stock Out'
+      const result = onStock(parsedQuantity, operation)
+      if (!result.ok) {
+        setError(result.message)
+      }
+      return
+    }
+
+    const parsedPrice = Number(price)
+    const parsedStock = Number(stock)
+    const parsedReorder = Number(reorderThreshold)
+
+    if (!name.trim()) {
       setError('Product name is required.')
       return
     }
-
-    const trimmedSku = sku.trim()
-    if (!trimmedSku) {
+    if (!sku.trim()) {
       setError('SKU is required.')
       return
     }
-
-    if (!/^[A-Za-z0-9-]+$/.test(trimmedSku)) {
-      setError('SKU may only contain letters, numbers, and hyphens.')
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
+      setError('Unit price must be a positive number.')
+      return
+    }
+    if (!Number.isInteger(parsedStock) || parsedStock < 0) {
+      setError('Initial stock must be zero or a positive integer.')
+      return
+    }
+    if (!Number.isInteger(parsedReorder) || parsedReorder < 0) {
+      setError('Reorder threshold must be zero or a positive integer.')
       return
     }
 
-    const priceNum = Number(price)
-    if (!Number.isFinite(priceNum) || priceNum <= 0) {
-      setError('Unit price must be a finite positive number.')
-      return
-    }
-
-    const stockNum = Number(stock)
-    if (
-      !Number.isFinite(stockNum) ||
-      !Number.isInteger(stockNum) ||
-      stockNum < 0
-    ) {
-      setError('Available quantity must be a non-negative whole number.')
-      return
-    }
-
-    const thresholdNum = Number(reorderThreshold)
-    if (
-      !Number.isFinite(thresholdNum) ||
-      !Number.isInteger(thresholdNum) ||
-      thresholdNum < 0
-    ) {
-      setError('Reorder threshold must be a non-negative whole number.')
-      return
-    }
-
-    const payload: ProductInput & { id?: string } = {
-      ...(product ? { id: product.id } : {}),
-      name: trimmedName,
-      sku: trimmedSku,
+    const result = onSave({
+      id: product?.id,
+      name: name.trim(),
+      sku: sku.trim(),
       category,
       warehouseId,
-      price: priceNum,
-      stock: stockNum,
-      reorderThreshold: thresholdNum,
-    }
+      price: parsedPrice,
+      stock: parsedStock,
+      reorderThreshold: parsedReorder,
+    })
 
-    const result = onSave(payload)
     if (!result.ok) {
       setError(result.message)
     }
   }
 
-  function handleStockConfirm() {
-    if (!quantity.trim()) {
-      setError('Quantity is required.')
-      return
-    }
-
-    const parsedQty = Number(quantity)
-    if (
-      !Number.isFinite(parsedQty) ||
-      !Number.isInteger(parsedQty) ||
-      parsedQty <= 0
-    ) {
-      setError('Quantity must be a positive whole number.')
-      return
-    }
-
-    if (mode === 'stock-out' && product && parsedQty > product.stock) {
-      setError(
-        `Cannot stock out ${parsedQty} units: only ${product.stock} units are currently available.`,
-      )
-      return
-    }
-
-    const result = onStock(
-      parsedQty,
-      mode === 'stock-in' ? 'Stock In' : 'Stock Out',
-    )
-    if (!result.ok) {
-      setError(result.message)
-    }
-  }
+  const title =
+    mode === 'add'
+      ? 'Add Product'
+      : mode === 'edit'
+        ? `Edit ${product?.name ?? 'Product'}`
+        : mode === 'stock-in'
+          ? `Stock In — ${product?.name ?? 'Product'}`
+          : `Stock Out — ${product?.name ?? 'Product'}`
 
   return (
-    <div
-      aria-labelledby="product-dialog-title"
-      aria-modal="true"
-      className="fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose()
-        }
-      }}
-      role="dialog"
-    >
+    <>
       <div
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-surface-3 bg-surface p-6 shadow-2xl"
-        ref={dialogRef}
+        aria-hidden="true"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      />
+      <div
+        aria-labelledby="dialog-title"
+        aria-modal="true"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        role="dialog"
       >
-        <div className="flex items-center justify-between">
-          <h2
-            className="font-display text-xl font-semibold text-text-primary"
-            id="product-dialog-title"
-          >
-            {dialogTitle}
-          </h2>
-          <Button aria-label="Close dialog" onClick={onClose} variant="ghost">
-            <X size={18} />
-          </Button>
-        </div>
-
-        {error && (
-          <div
-            className="mt-4 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger"
-            role="alert"
-          >
-            <AlertCircle
-              aria-hidden="true"
-              className="mt-0.5 shrink-0"
-              size={16}
-            />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {isStock ? (
-          <div className="mt-6 grid gap-4">
-            <p className="text-sm text-text-secondary">
-              {product?.name} currently has {product?.stock} units available.
-            </p>
-            <TextInput
-              label="Quantity"
-              min="1"
-              onChange={(event) => {
-                setError(null)
-                setQuantity(event.target.value)
-              }}
-              step="1"
-              type="number"
-              value={quantity}
-            />
-            <Button onClick={handleStockConfirm}>
-              Confirm {mode === 'stock-in' ? 'stock in' : 'stock out'}
+        <div
+          className="w-full max-w-lg rounded-xl border border-surface-border bg-sidebar p-6 shadow-2xl"
+          ref={dialogRef}
+        >
+          <div className="flex items-center justify-between border-b border-surface-border pb-3">
+            <h2
+              className="font-display text-lg font-bold text-text-primary"
+              id="dialog-title"
+            >
+              {title}
+            </h2>
+            <Button
+              aria-label="Close dialog"
+              onClick={onClose}
+              size="sm"
+              variant="ghost"
+            >
+              <X size={16} />
             </Button>
           </div>
-        ) : (
-          <form className="mt-6 grid gap-4" onSubmit={handleFormSubmit}>
-            <TextInput
-              label="Product name"
-              onChange={(event) => {
-                setError(null)
-                setName(event.target.value)
-              }}
-              required
-              value={name}
-            />
-            <TextInput
-              label="SKU"
-              onChange={(event) => {
-                setError(null)
-                setSku(event.target.value)
-              }}
-              required
-              value={sku}
-            />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FilterSelect
-                ariaLabel="Category"
-                onChange={(value) => {
-                  setError(null)
-                  setCategory(value)
-                }}
-                options={categories}
-                value={category}
-              />
-              <FilterSelect
-                ariaLabel="Warehouse"
-                onChange={(value) => {
-                  setError(null)
-                  setWarehouseId(value)
-                }}
-                options={warehouses.map((item) => item.id)}
-                labels={Object.fromEntries(
-                  warehouses.map((item) => [item.id, item.name]),
-                )}
-                value={warehouseId}
-              />
+
+          {error && (
+            <div
+              className="mt-4 flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs text-danger"
+              role="alert"
+            >
+              <AlertCircle size={15} />
+              <span>{error}</span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
+          )}
+
+          <form className="mt-4 space-y-3.5" onSubmit={handleSubmit}>
+            {isStock ? (
               <TextInput
-                label="Unit price"
-                min="0.01"
-                onChange={(event) => {
-                  setError(null)
-                  setPrice(event.target.value)
-                }}
-                required
-                step="0.01"
-                type="number"
-                value={price}
-              />
-              <TextInput
-                label="Available quantity"
-                min="0"
-                onChange={(event) => {
-                  setError(null)
-                  setStock(event.target.value)
-                }}
-                required
+                autoFocus
+                id="stock-quantity"
+                label="Quantity"
+                min="1"
+                onChange={(event) => setQuantity(event.target.value)}
+                placeholder="Number of units"
                 step="1"
                 type="number"
-                value={stock}
+                value={quantity}
               />
-              <TextInput
-                label="Reorder threshold"
-                min="0"
-                onChange={(event) => {
-                  setError(null)
-                  setReorderThreshold(event.target.value)
-                }}
-                required
-                step="1"
-                type="number"
-                value={reorderThreshold}
-              />
+            ) : (
+              <>
+                <TextInput
+                  autoFocus
+                  id="product-name"
+                  label="Product Name"
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="e.g. Heavy Duty Pallet"
+                  value={name}
+                />
+                <TextInput
+                  id="product-sku"
+                  label="SKU Code"
+                  onChange={(event) => setSku(event.target.value)}
+                  placeholder="e.g. SKU-PLT-001"
+                  value={sku}
+                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      className="block text-xs font-medium text-text-secondary mb-1"
+                      htmlFor="product-category"
+                    >
+                      Category
+                    </label>
+                    <select
+                      className="h-10 w-full rounded-lg border border-surface-border bg-surface-2 px-3 text-xs text-text-primary outline-none focus:border-primary"
+                      id="product-category"
+                      onChange={(event) => setCategory(event.target.value)}
+                      value={category}
+                    >
+                      {categories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      className="block text-xs font-medium text-text-secondary mb-1"
+                      htmlFor="product-warehouse"
+                    >
+                      Facility
+                    </label>
+                    <select
+                      className="h-10 w-full rounded-lg border border-surface-border bg-surface-2 px-3 text-xs text-text-primary outline-none focus:border-primary"
+                      id="product-warehouse"
+                      onChange={(event) => setWarehouseId(event.target.value)}
+                      value={warehouseId}
+                    >
+                      {warehouses.map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <TextInput
+                    id="product-price"
+                    label="Price (₹)"
+                    min="0.01"
+                    onChange={(event) => setPrice(event.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    type="number"
+                    value={price}
+                  />
+                  <TextInput
+                    id="product-stock"
+                    label="Initial Stock"
+                    min="0"
+                    onChange={(event) => setStock(event.target.value)}
+                    placeholder="0"
+                    step="1"
+                    type="number"
+                    value={stock}
+                  />
+                  <TextInput
+                    id="product-reorder"
+                    label="Reorder Min"
+                    min="0"
+                    onChange={(event) =>
+                      setReorderThreshold(event.target.value)
+                    }
+                    placeholder="10"
+                    step="1"
+                    type="number"
+                    value={reorderThreshold}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2 border-t border-surface-border pt-4">
+              <Button onClick={onClose} size="sm" type="button" variant="ghost">
+                Cancel
+              </Button>
+              <Button size="sm" type="submit" variant="primary">
+                {isStock
+                  ? 'Record Movement'
+                  : mode === 'add'
+                    ? 'Create Product'
+                    : 'Save Changes'}
+              </Button>
             </div>
-            <Button type="submit">
-              {product ? 'Save changes' : 'Add product'}
-            </Button>
           </form>
-        )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

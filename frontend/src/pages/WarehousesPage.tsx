@@ -425,8 +425,8 @@ function WarehousesRootView({
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // FACILITIES
+              <span className="text-xs font-medium text-text-secondary">
+                Facilities
               </span>
               <WarehouseIcon className="text-primary" size={16} />
             </div>
@@ -440,8 +440,8 @@ function WarehousesRootView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // OPERATIONAL
+              <span className="text-xs font-medium text-text-secondary">
+                Operational
               </span>
               <Building2 className="text-success" size={16} />
             </div>
@@ -461,8 +461,8 @@ function WarehousesRootView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // STORAGE ZONES
+              <span className="text-xs font-medium text-text-secondary">
+                Storage Zones
               </span>
               <Layers className="text-secondary" size={16} />
             </div>
@@ -476,8 +476,8 @@ function WarehousesRootView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // RACK STRUCTURES
+              <span className="text-xs font-medium text-text-secondary">
+                Rack Structures
               </span>
               <Server className="text-warning" size={16} />
             </div>
@@ -1245,8 +1245,8 @@ function WarehouseZonesView({
         <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // FACILITY ZONES
+              <span className="text-xs font-medium text-text-secondary">
+                Facility Zones
               </span>
               <Layers className="text-primary" size={16} />
             </div>
@@ -1260,8 +1260,8 @@ function WarehouseZonesView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ACTIVE ZONES
+              <span className="text-xs font-medium text-text-secondary">
+                Active Zones
               </span>
               <CheckCircle2 className="text-success" size={16} />
             </div>
@@ -1275,8 +1275,8 @@ function WarehouseZonesView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // RACKS IN FACILITY
+              <span className="text-xs font-medium text-text-secondary">
+                Racks in Facility
               </span>
               <Server className="text-secondary" size={16} />
             </div>
@@ -1959,8 +1959,8 @@ function ZoneRacksView({
         <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // RACKS IN ZONE
+              <span className="text-xs font-medium text-text-secondary">
+                Racks in Zone
               </span>
               <Server className="text-primary" size={16} />
             </div>
@@ -1974,8 +1974,8 @@ function ZoneRacksView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ACTIVE RACKS
+              <span className="text-xs font-medium text-text-secondary">
+                Active Racks
               </span>
               <CheckCircle2 className="text-success" size={16} />
             </div>
@@ -1989,8 +1989,8 @@ function ZoneRacksView({
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // BIN CAPACITY
+              <span className="text-xs font-medium text-text-secondary">
+                Bin Capacity
               </span>
               <Database className="text-secondary" size={16} />
             </div>

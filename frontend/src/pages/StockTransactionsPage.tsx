@@ -296,9 +296,9 @@ export function StockTransactionsPage() {
       {/* Operational Movement Telemetry Strip */}
       <div className="rounded-xl border border-surface-border bg-gradient-to-r from-surface via-surface to-[#162027] p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1">
-          <span className="font-mono text-[10px] uppercase text-primary tracking-widest font-semibold flex items-center gap-1.5">
+          <span className="text-xs uppercase text-primary tracking-wider font-semibold flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            AUDIT STREAM VELOCITY
+            Audit Stream Velocity
           </span>
           <p className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
             {stats.totalTransactions}{' '}
@@ -312,30 +312,30 @@ export function StockTransactionsPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-6 font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-surface-border pt-4 md:pt-0 md:pl-6 text-xs">
           <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              INFLOW (RECEIPTS)
+            <span className="text-[11px] text-text-muted font-medium block">
+              Inbound Receipts
             </span>
-            <span className="text-base font-bold text-emerald-400">
+            <span className="font-mono text-base font-bold text-emerald-400">
               +{stats.totalReceived.toLocaleString('en-IN')} units
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              OUTFLOW (DISPATCH)
+            <span className="text-[11px] text-text-muted font-medium block">
+              Outbound Dispatches
             </span>
-            <span className="text-base font-bold text-rose-400">
+            <span className="font-mono text-base font-bold text-rose-400">
               -{stats.totalDispatched.toLocaleString('en-IN')} units
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] text-text-muted uppercase tracking-wider block">
-              RELOCATIONS & AUDITS
+            <span className="text-[11px] text-text-muted font-medium block">
+              Relocations & Audits
             </span>
-            <span className="text-base font-bold text-secondary">
+            <span className="font-mono text-base font-bold text-secondary">
               {stats.adjustmentsAndTransfers} events
             </span>
           </div>

@@ -227,8 +227,8 @@ export function ReportsPage() {
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // CATALOGUE VALUE
+              <span className="text-xs font-medium text-text-secondary">
+                Catalogue Valuation
               </span>
               <IndianRupee className="text-primary" size={16} />
             </div>
@@ -242,8 +242,8 @@ export function ReportsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // PHYSICAL UNITS
+              <span className="text-xs font-medium text-text-secondary">
+                Physical Units
               </span>
               <Boxes className="text-secondary" size={16} />
             </div>
@@ -257,8 +257,8 @@ export function ReportsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ACTIVE SKUS
+              <span className="text-xs font-medium text-text-secondary">
+                Active SKUs
               </span>
               <Package className="text-primary" size={16} />
             </div>
@@ -272,8 +272,8 @@ export function ReportsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // LOW THRESHOLD
+              <span className="text-xs font-medium text-text-secondary">
+                Low Stock Thresholds
               </span>
               <AlertTriangle className="text-warning" size={16} />
             </div>
@@ -287,8 +287,8 @@ export function ReportsPage() {
 
           <div className="col-span-2 p-4 sm:col-span-1 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ZERO STOCKOUTS
+              <span className="text-xs font-medium text-text-secondary">
+                Critical Stockouts
               </span>
               <XCircle className="text-danger" size={16} />
             </div>
@@ -810,8 +810,8 @@ export function ReportsPage() {
             <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between text-text-muted">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                    // STOCK INBOUND
+                  <span className="text-xs font-medium text-text-secondary">
+                    Stock Inbound
                   </span>
                   <ArrowDownLeft className="text-primary" size={16} />
                 </div>
@@ -825,8 +825,8 @@ export function ReportsPage() {
 
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between text-text-muted">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                    // STOCK OUTBOUND
+                  <span className="text-xs font-medium text-text-secondary">
+                    Stock Outbound
                   </span>
                   <ArrowUpRight className="text-warning" size={16} />
                 </div>
@@ -840,8 +840,8 @@ export function ReportsPage() {
 
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between text-text-muted">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                    // NET DELTA
+                  <span className="text-xs font-medium text-text-secondary">
+                    Net Delta
                   </span>
                   {movementSummary.netMovementUnits >= 0 ? (
                     <TrendingUp className="text-primary" size={16} />
@@ -866,8 +866,8 @@ export function ReportsPage() {
 
               <div className="p-4 sm:p-5">
                 <div className="flex items-center justify-between text-text-muted">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                    // TRANSFERS
+                  <span className="text-xs font-medium text-text-secondary">
+                    Internal Transfers
                   </span>
                   <ArrowLeftRight className="text-secondary" size={16} />
                 </div>

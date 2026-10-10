@@ -465,11 +465,11 @@ export function AppShell() {
               </button>
               <div className="hidden sm:block">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] tracking-widest uppercase text-primary font-medium">
-                    // {currentMeta.category}
+                  <span className="text-xs font-medium text-primary">
+                    {currentMeta.category}
                   </span>
                   <span className="text-surface-border text-xs">/</span>
-                  <span className="text-xs text-text-muted truncate">
+                  <span className="text-xs text-text-secondary truncate">
                     {currentMeta.title}
                   </span>
                 </div>
@@ -677,8 +677,8 @@ export function AppShell() {
               <div className="p-4 overflow-y-auto space-y-4">
                 {!searchQuery.trim() ? (
                   <div className="py-8 text-center text-xs text-text-muted space-y-1">
-                    <p className="font-mono text-primary">
-                      // GLOBAL OPERATIONAL QUERY
+                    <p className="font-semibold text-text-primary">
+                      Global Operational Search
                     </p>
                     <p>
                       Type to search across Products, SKUs, Customer Orders,

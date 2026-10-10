@@ -163,8 +163,8 @@ export function AlertsPage() {
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ACTIVE EXCEPTIONS
+              <span className="text-xs font-medium text-text-secondary">
+                Active Exceptions
               </span>
               <AlertCircle className="text-primary" size={16} />
             </div>
@@ -178,8 +178,8 @@ export function AlertsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // ZERO STOCKOUTS
+              <span className="text-xs font-medium text-text-secondary">
+                Critical Stockouts
               </span>
               <XCircle className="text-danger" size={16} />
             </div>
@@ -193,8 +193,8 @@ export function AlertsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // LOW THRESHOLDS
+              <span className="text-xs font-medium text-text-secondary">
+                Low Stock Warnings
               </span>
               <AlertTriangle className="text-warning" size={16} />
             </div>
@@ -208,8 +208,8 @@ export function AlertsPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // VELOCITY FLAGS
+              <span className="text-xs font-medium text-text-secondary">
+                Velocity & Audit Flags
               </span>
               <Info className="text-secondary" size={16} />
             </div>

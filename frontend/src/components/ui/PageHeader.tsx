@@ -20,8 +20,8 @@ export function PageHeader({
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-2.5">
           {eyebrow && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-primary font-medium">
-              // {eyebrow}
+            <span className="text-xs font-medium tracking-wide text-primary">
+              {eyebrow}
             </span>
           )}
           {badge}

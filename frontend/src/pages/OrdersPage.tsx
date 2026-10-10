@@ -275,8 +275,8 @@ export function OrdersPage() {
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // TOTAL ORDERS
+              <span className="text-xs font-medium text-text-secondary">
+                Total Orders
               </span>
               <Package className="text-primary" size={16} />
             </div>
@@ -290,8 +290,8 @@ export function OrdersPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // PENDING QUEUE
+              <span className="text-xs font-medium text-text-secondary">
+                Pending Queue
               </span>
               <Clock className="text-warning" size={16} />
             </div>
@@ -305,8 +305,8 @@ export function OrdersPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // PROCESSING
+              <span className="text-xs font-medium text-text-secondary">
+                Processing Orders
               </span>
               <RefreshCw className="text-secondary" size={16} />
             </div>
@@ -320,8 +320,8 @@ export function OrdersPage() {
 
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // FULFILLED
+              <span className="text-xs font-medium text-text-secondary">
+                Fulfilled Orders
               </span>
               <CheckCircle2 className="text-success" size={16} />
             </div>
@@ -335,8 +335,8 @@ export function OrdersPage() {
 
           <div className="col-span-2 p-4 sm:col-span-1 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">
-              <span className="text-[11px] font-semibold uppercase tracking-wider font-mono">
-                // DEMAND VALUE
+              <span className="text-xs font-medium text-text-secondary">
+                Total Order Value
               </span>
               <IndianRupee className="text-primary" size={16} />
             </div>

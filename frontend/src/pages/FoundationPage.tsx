@@ -20,12 +20,12 @@ export function FoundationPage() {
             INVORA
           </span>
           <span className="rounded border border-primary/20 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
-            v2.0 // INDUSTRIAL
+            v2.0 Industrial
           </span>
         </div>
         <div className="mt-16 max-w-xl sm:mt-24">
           <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
-            // OPERATIONS INTELLIGENCE
+            Operations Intelligence
           </p>
           <h1 className="mt-4 font-display text-4xl font-bold leading-tight tracking-tight text-text-primary sm:text-6xl">
             Inventory, in precision control.
