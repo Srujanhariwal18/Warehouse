@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { InventoryProvider } from '@/lib/inventoryStore'
 import { OrdersProvider } from '@/lib/orderStore'
 import { SuppliersProvider } from '@/lib/supplierStore'
+import { WarehouseProvider } from '@/lib/warehouseStore'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')!).render(
       <InventoryProvider>
         <OrdersProvider>
           <SuppliersProvider>
-            <App />
+            <WarehouseProvider>
+              <App />
+            </WarehouseProvider>
           </SuppliersProvider>
         </OrdersProvider>
       </InventoryProvider>

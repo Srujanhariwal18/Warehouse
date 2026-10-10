@@ -1,7 +1,17 @@
+export type WarehouseStatus = 'Active' | 'Inactive'
+
 export type Warehouse = {
   id: string
   name: string
   city: string
+  status?: WarehouseStatus
+  address?: string
+  state?: string
+  postalCode?: string
+  country?: string
+  capacitySqFt?: number
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type Product = {
@@ -15,6 +25,8 @@ export type Product = {
   warehouseId: string
   barcode?: string
   supplierId?: string
+  zoneId?: string
+  rackId?: string
 }
 
 export type StockTransaction = {
@@ -39,9 +51,45 @@ export type StockHistoryPoint = {
 }
 
 export const warehouses: Warehouse[] = [
-  { id: 'wh-mum', name: 'Mumbai Central', city: 'Mumbai' },
-  { id: 'wh-del', name: 'Delhi North', city: 'Delhi' },
-  { id: 'wh-blr', name: 'Bengaluru South', city: 'Bengaluru' },
+  {
+    id: 'wh-mum',
+    name: 'Mumbai Central',
+    city: 'Mumbai',
+    status: 'Active',
+    address: 'Plot 18, Marol Industrial Estate, Andheri East',
+    state: 'Maharashtra',
+    postalCode: '400059',
+    country: 'India',
+    capacitySqFt: 45000,
+    createdAt: '2026-01-10',
+    updatedAt: '2026-09-15',
+  },
+  {
+    id: 'wh-del',
+    name: 'Delhi North',
+    city: 'Delhi',
+    status: 'Active',
+    address: 'Khasra 42/1, GT Karnal Road Industrial Area',
+    state: 'Delhi',
+    postalCode: '110033',
+    country: 'India',
+    capacitySqFt: 60000,
+    createdAt: '2026-01-20',
+    updatedAt: '2026-08-10',
+  },
+  {
+    id: 'wh-blr',
+    name: 'Bengaluru South',
+    city: 'Bengaluru',
+    status: 'Active',
+    address: 'Survey 88, Electronic City Phase II',
+    state: 'Karnataka',
+    postalCode: '560100',
+    country: 'India',
+    capacitySqFt: 38000,
+    createdAt: '2026-02-05',
+    updatedAt: '2026-10-01',
+  },
 ]
 
 const names = [

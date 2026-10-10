@@ -194,8 +194,14 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
                   phone: merged.phone.trim(),
                   address: merged.address.trim(),
                   city: merged.city?.trim() || s.city,
-                  state: merged.state?.trim() || s.state,
-                  postalCode: merged.postalCode?.trim() || s.postalCode,
+                  state:
+                    'state' in input
+                      ? input.state?.trim() || undefined
+                      : s.state,
+                  postalCode:
+                    'postalCode' in input
+                      ? input.postalCode?.trim() || undefined
+                      : s.postalCode,
                   country: merged.country?.trim() || s.country,
                   status: input.status ?? s.status,
                   updatedAt: today,

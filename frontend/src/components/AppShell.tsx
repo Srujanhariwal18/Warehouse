@@ -8,6 +8,7 @@ import {
   Search,
   Settings,
   Truck,
+  Warehouse,
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -20,6 +21,7 @@ const navigation = [
   { label: 'Inventory', icon: Boxes, to: '/app/inventory' },
   { label: 'Orders', icon: Package, to: '/app/orders' },
   { label: 'Suppliers', icon: Truck, to: '/app/suppliers' },
+  { label: 'Warehouses', icon: Warehouse, to: '/app/warehouses' },
 ]
 
 const pageTitles: Record<string, string> = {
@@ -27,6 +29,7 @@ const pageTitles: Record<string, string> = {
   '/app/inventory': 'Inventory',
   '/app/orders': 'Orders',
   '/app/suppliers': 'Suppliers',
+  '/app/warehouses': 'Warehouses',
 }
 
 export function AppShell() {

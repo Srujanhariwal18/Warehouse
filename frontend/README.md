@@ -77,15 +77,45 @@ warehouse and inventory management.
   Deactivating or reactivating a supplier never deletes or alters products, inventory
   stock quantities, or orders.
 
+### Warehouse, zone, and rack management (`/app/warehouses`)
+
+- **Warehouse overview**: Real-time KPI summaries for total warehouses, active facilities,
+  total storage zones, and total bin/pallet racks across the logistics network.
+- **Hierarchical navigation**: Seamless three-tier drill-down hierarchy:
+  - **Warehouse level**: Overview of all distribution centers, locations, floor capacities in sq ft,
+    zone/rack counts, assigned inventory SKUs, and facility status badges.
+  - **Zone level**: Deep-dive into a selected warehouse's segregated sections (cold storage, staging docks,
+    bulk pallet areas, fast-moving pick aisles) with zone-specific KPI metrics and rack counts.
+  - **Rack level**: Detailed view into a zone's storage structures with shelf levels (tiers), rated unit
+    capacities, and assigned stock items.
+  - **Accessible breadcrumbs**: Context-aware breadcrumb navigation (`Warehouses > Mumbai Central > Bulk Pallet Storage A`)
+    enabling instant navigation back to higher levels.
+- **Search, filter, and sort**: Fast client-side filtering by name, identifier, and location across all three tiers,
+  status filtering (`All`, `Active`, `Inactive`), multi-column sorting, configurable pagination (10, 20, 40 per page),
+  and quick filter resets.
+- **Facility inspection drawer**: Slide-out profile drawer displaying facility metadata, address details,
+  floor capacity, zone roster, and live products mapped to the warehouse from the inventory catalogue.
+- **CRUD operations and validation**:
+  - **Warehouse**: Name (required), City (required), case-insensitive unique identifier, optional address/state/postal code,
+    and positive integer floor area capacity.
+  - **Zone**: Name (required), parent warehouse (validated against existing facilities), zone type, optional description,
+    and unique identifier within the warehouse scope.
+  - **Rack**: Label/name (required), parent zone (validated against existing zones), shelf levels, and optional positive integer unit capacity.
+- **Accidental loss & dependency protection**:
+  - Deactivating a warehouse is blocked if it still contains active zones or assigned inventory records, with clear explanatory feedback.
+  - Deactivating a zone is blocked if it contains active child racks or assigned stock items.
+  - Deactivating a rack is blocked if active inventory items are assigned to it.
+  - Deactivating or editing facilities, zones, or racks never deletes or silently alters product records, inventory stock, or orders.
+
 ### Mock data and persistence note
 
-All inventory, warehouse, order, supplier, and transaction data is managed in-memory via
-shared React Context stores (`InventoryProvider`, `OrdersProvider`, and `SuppliersProvider`).
+All inventory, warehouse, zone, rack, order, supplier, and transaction data is managed in-memory via
+shared React Context stores (`InventoryProvider`, `OrdersProvider`, `SuppliersProvider`, and `WarehouseProvider`).
 Updates made during a browser session (such as adding/editing products, performing stock adjustments,
-creating orders, updating order statuses, or adding/editing/deactivating suppliers) update the shared
+creating orders, updating order statuses, adding/editing/deactivating suppliers, or managing warehouses/zones/racks) update the shared
 stores in real time across the workspace.
 **These updates are mock data and are not persisted to a real backend or database.**
-Creating an order does not deduct inventory stock, and deactivating a supplier does not alter inventory stock.
+Creating an order does not deduct inventory stock, and deactivating a facility or supplier does not delete inventory records.
 Refreshing or reloading the page resets the state to initial mock data.
 
 ## Routes
@@ -95,6 +125,7 @@ Refreshing or reloading the page resets the state to initial mock data.
 - `/app/inventory` — Product catalogue, search, filters, adjustments, and management.
 - `/app/orders` — Orders management, status workflows, and order creation.
 - `/app/suppliers` — Suppliers directory, vendor profiles, contact details, and product links.
+- `/app/warehouses` — Warehouse, zone, and rack management with three-tier hierarchical drill-downs.
 
 ## Requirements
 
