@@ -27,7 +27,6 @@ import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import {
-  orders,
   stockHistory7D,
   stockHistory30D,
   stockHistory12M,
@@ -36,6 +35,7 @@ import {
 } from '@/mocks/inventoryData'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useInventoryStore } from '@/lib/inventoryStore'
+import { useOrdersStore } from '@/lib/orderStore'
 
 type ChartRange = '7D' | '30D' | '12M'
 
@@ -57,6 +57,7 @@ export function DashboardPage() {
     products,
     transactions: stockTransactions,
   } = useInventoryStore()
+  const { orders } = useOrdersStore()
   const [range, setRange] = useState<ChartRange>('12M')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState(new Date())
@@ -414,8 +415,8 @@ export function DashboardPage() {
           <Card className="flex flex-col gap-3 border-secondary/20 bg-secondary/5 p-4 text-sm text-text-secondary sm:flex-row sm:items-center">
             <Package aria-hidden="true" className="text-secondary" size={18} />
             <span>
-              {pendingOrders} pending orders in the preview dataset. Order
-              workflows are intentionally not implemented yet.
+              {pendingOrders} pending orders in the preview dataset. Track and
+              process fulfillment in the Orders workspace.
             </span>
           </Card>
         </>

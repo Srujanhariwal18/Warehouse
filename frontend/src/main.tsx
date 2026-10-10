@@ -4,12 +4,15 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import { InventoryProvider } from '@/lib/inventoryStore'
+import { OrdersProvider } from '@/lib/orderStore'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <InventoryProvider>
-        <App />
+        <OrdersProvider>
+          <App />
+        </OrdersProvider>
       </InventoryProvider>
     </BrowserRouter>
   </StrictMode>,

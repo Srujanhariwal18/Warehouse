@@ -37,21 +37,44 @@ warehouse and inventory management.
   available inventory and append records to transaction history. Rejects zero,
   negative, fractional, non-finite quantities, and stock-outs exceeding available inventory.
 
+### Orders management (`/app/orders`)
+
+- **Orders summary**: Real-time KPI summaries for total orders, pending orders,
+  orders in processing, completed orders, and mock total order value formatted in INR.
+- **Orders table**: Comprehensive listing of ~120 orders displaying Order ID,
+  customer name, contact details, creation date, line item count, order total,
+  and status badges.
+- **Search, filter, and sort**: Fast searching by Order ID or customer, filtering
+  by status, date range (7, 30, 90 days, or all time), and warehouse location,
+  multi-column sorting (by date, amount, customer, or ID), configurable pagination,
+  and instant filter reset.
+- **Order inspection drawer**: Slide-out details drawer showing customer contact
+  info, fulfillment warehouse, itemized product list with unit prices and line totals,
+  order notes, timestamped activity timeline, and valid status transition actions.
+- **Order status workflows**: Enforced status transition state machine
+  (Pending → Processing / Cancelled; Processing → Completed / Cancelled).
+  Order cancellation requires explicit confirmation and logs an optional reason.
+- **Create order workflow**: Modal dialog to register customer orders with
+  dynamic line items, live inventory stock ceiling validation, automatic line and
+  order total calculations, and comprehensive input error feedback.
+
 ### Mock data and persistence note
 
-All inventory, warehouse, and transaction data is managed in-memory via a shared
-React Context store (`InventoryProvider`). Updates made during a browser session
-(such as adding products, editing fields, or performing stock in/out operations)
-update the shared store across both the Inventory and Dashboard views in real time.
+All inventory, warehouse, order, and transaction data is managed in-memory via
+shared React Context stores (`InventoryProvider` and `OrdersProvider`). Updates made
+during a browser session (such as adding/editing products, performing stock adjustments,
+creating orders, or updating order statuses) update the shared stores in real time
+across the Dashboard, Inventory, and Orders pages.
 **These updates are mock data and are not persisted to a real backend or database.**
+Creating an order does not deduct inventory stock in this phase.
 Refreshing or reloading the page resets the state to initial mock data.
 
 ## Routes
 
 - `/` — Foundation and landing overview page.
-- `/app/dashboard` — Operational dashboard.
+- `/app/dashboard` — Operational dashboard with real-time inventory and pending orders metrics.
 - `/app/inventory` — Product catalogue, search, filters, adjustments, and management.
-- `/app/orders` — Orders placeholder (reserved for future phases).
+- `/app/orders` — Orders management, status workflows, and order creation.
 
 ## Requirements
 
