@@ -274,3 +274,118 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
+
+## Phase 10: Final Integration, Performance & Security
+
+Phase 10 provides full system integration, cross-module reactive store synchronization, bundle optimization, security hardening, and deployment readiness.
+
+### Performance Optimization & Code Splitting
+
+- **Route-level dynamic imports**: Converted all application routes (`FoundationPage`, `DashboardPage`, `InventoryPage`, `StockTransactionsPage`, `OrdersPage`, `SuppliersPage`, `WarehousesPage`, `ReportsPage`, `AlertsPage`, `NotFoundPage`) to dynamic `React.lazy` chunks with an accessible `Suspense` loading fallback (`<LoadingState />`).
+- **Vendor chunk isolation**: Isolated heavy visualization libraries (`recharts` into `vendor-charts`, `lucide-react` into `vendor-icons`) via Vite Rollup `manualChunks`.
+- **Bundle reduction**:
+  - **Before (Phase 9 monolithic)**: `index.js` was **994.76 kB** (284.14 kB gzip) with a Vite chunk-size warning (> 500 kB).
+  - **After (Phase 10 optimized)**: Main entry bundle shrunk to **300.26 kB** (92.31 kB gzip), `vendor-charts` isolated to **429.96 kB** (121.25 kB gzip), and route pages load on demand (e.g., Dashboard **9.13 kB**, Reports **27.41 kB**, Alerts **10.77 kB**). **Zero bundle warnings**.
+
+### Cross-Module Consistency & Hardening
+
+- **Dynamic warehouse resolution**: Dashboard and Orders modules now consume dynamic warehouses from `useWarehouseStore()` rather than static mocks.
+- **Order line aggregation**: Order creation aggregates duplicate line items by product ID before validating stock ceilings, rejecting orders when combined quantities exceed available stock.
+- **Conservation of stock**: Inter-warehouse transfers strictly enforce zero net change across the entire organization (`sourceNext + destNext === sourcePrev + destPrev`).
+- **CSV formula-injection mitigation**: All exported CSV files sanitize user-controlled fields starting with `=`, `+`, `-`, `@`, `\t`, or `\r` by prefixing a single apostrophe (`'`).
+- **Security review**: Zero secrets or credentials committed; `.gitignore` hardened to exclude local `.env*` files while preserving `.env.example`.
+
+## Deployment Guide
+
+Invora is built as a static Single Page Application (SPA). The compiled artifacts in `dist/` can be served by any modern web server, CDN, or static hosting platform.
+
+### Production Build
+
+Run the production build command:
+
+```bash
+npm run build
+```
+
+The output is generated in `frontend/dist/`.
+
+### Local Preview
+
+Validate the built production assets locally using Vite's built-in preview server:
+
+```bash
+npm run preview
+```
+
+### Static Hosting Configuration
+
+Because Invora uses HTML5 client-side routing (`react-router-dom`), any URL rewrite rule must direct non-asset HTTP GET requests to `index.html`.
+
+#### Nginx Configuration
+
+```nginx
+server {
+    listen 80;
+    server_name invora.example.com;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Cache static assets
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+}
+```
+
+#### Docker Deployment
+
+```dockerfile
+# Build stage
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### Vercel / Netlify
+
+For Netlify, include a `_redirects` file in `public/`:
+
+```text
+/*    /index.html   200
+```
+
+For Vercel, a `vercel.json`:
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+## Environment Configuration
+
+A clean environment template is provided in `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+| Variable            | Description                                                           | Default                        |
+| ------------------- | --------------------------------------------------------------------- | ------------------------------ |
+| `VITE_APP_ENV`      | Application environment mode (`development`, `staging`, `production`) | `development`                  |
+| `VITE_APP_TITLE`    | Browser tab title and application header name                         | `Invora Inventory Management`  |
+| `VITE_API_BASE_URL` | Optional backend API base URL for future REST integration             | `http://localhost:8080/api/v1` |

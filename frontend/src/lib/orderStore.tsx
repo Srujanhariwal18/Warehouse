@@ -12,8 +12,9 @@ import {
   type OrderStatus,
   type OrderTimelineEvent,
 } from '@/mocks/orderData'
-import { warehouses, type Product } from '@/mocks/inventoryData'
+import { warehouses, type Product, type Warehouse } from '@/mocks/inventoryData'
 import { useInventoryStore } from '@/lib/inventoryStore'
+import { useWarehouseStore } from '@/lib/warehouseStore'
 
 export type CreateOrderItemInput = {
   productId: string
@@ -94,6 +95,7 @@ function validateStatusTransition(
 export function validateOrderInput(
   input: CreateOrderInput,
   currentProducts: Product[],
+  currentWarehouses: Warehouse[] = warehouses,
 ):
   | {
       ok: true
@@ -109,7 +111,9 @@ export function validateOrderInput(
     return { ok: false, message: 'Customer name is required.' }
   }
 
-  const validWarehouse = warehouses.some((w) => w.id === input.warehouseId)
+  const validWarehouse = currentWarehouses.some(
+    (w) => w.id === input.warehouseId,
+  )
   if (!validWarehouse) {
     return { ok: false, message: 'Please select a valid warehouse.' }
   }
@@ -191,12 +195,17 @@ export function validateOrderInput(
 export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const { products: liveProducts } = useInventoryStore()
+  const { warehouses: liveWarehouses } = useWarehouseStore()
 
   const store = useMemo<OrdersStore>(() => {
     return {
       orders,
       createOrder: (input) => {
-        const validation = validateOrderInput(input, liveProducts)
+        const validation = validateOrderInput(
+          input,
+          liveProducts,
+          liveWarehouses,
+        )
         if (!validation.ok) {
           return { ok: false, message: validation.message }
         }
@@ -330,7 +339,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         return { ok: true }
       },
     }
-  }, [orders, liveProducts])
+  }, [orders, liveProducts, liveWarehouses])
 
   return (
     <OrdersContext.Provider value={store}>{children}</OrdersContext.Provider>

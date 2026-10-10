@@ -30,12 +30,12 @@ import {
   stockHistory7D,
   stockHistory30D,
   stockHistory12M,
-  warehouses,
   type MovementDataPoint,
 } from '@/mocks/inventoryData'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useInventoryStore } from '@/lib/inventoryStore'
 import { useOrdersStore } from '@/lib/orderStore'
+import { useWarehouseStore } from '@/lib/warehouseStore'
 
 type ChartRange = '7D' | '30D' | '12M'
 
@@ -58,6 +58,7 @@ export function DashboardPage() {
     transactions: stockTransactions,
   } = useInventoryStore()
   const { orders } = useOrdersStore()
+  const { warehouses } = useWarehouseStore()
   const [range, setRange] = useState<ChartRange>('12M')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState(new Date())
@@ -92,7 +93,7 @@ export function DashboardPage() {
     {
       label: 'Total products',
       value: products.length.toLocaleString('en-IN'),
-      detail: 'Across 3 warehouse locations',
+      detail: `Across ${warehouses.length} warehouse locations`,
       icon: Boxes,
     },
     {

@@ -12,17 +12,17 @@ import { TransactionProvider } from '@/lib/transactionStore'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <InventoryProvider>
-        <OrdersProvider>
+      <WarehouseProvider>
+        <InventoryProvider>
           <SuppliersProvider>
-            <WarehouseProvider>
+            <OrdersProvider>
               <TransactionProvider>
                 <App />
               </TransactionProvider>
-            </WarehouseProvider>
+            </OrdersProvider>
           </SuppliersProvider>
-        </OrdersProvider>
-      </InventoryProvider>
+        </InventoryProvider>
+      </WarehouseProvider>
     </BrowserRouter>
   </StrictMode>,
 )

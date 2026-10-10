@@ -26,8 +26,9 @@ import { TextInput } from '@/components/ui/TextInput'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useOrdersStore, type CreateOrderItemInput } from '@/lib/orderStore'
 import { type Order, type OrderStatus } from '@/mocks/orderData'
-import { warehouses, type Product } from '@/mocks/inventoryData'
+import type { Product, Warehouse } from '@/mocks/inventoryData'
 import { useInventoryStore } from '@/lib/inventoryStore'
+import { useWarehouseStore } from '@/lib/warehouseStore'
 
 export type DateFilterOption = 'all' | '7d' | '30d' | '90d'
 export type SortField = 'date' | 'total' | 'id' | 'customer'
@@ -98,6 +99,7 @@ export function OrdersPage() {
   const { createOrder, orders, updateOrderStatus, cancelOrder } =
     useOrdersStore()
   const { products: liveProducts } = useInventoryStore()
+  const { warehouses } = useWarehouseStore()
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<
@@ -120,7 +122,7 @@ export function OrdersPage() {
 
   const warehouseMap = useMemo(
     () => new Map(warehouses.map((w) => [w.id, w])),
-    [],
+    [warehouses],
   )
 
   // Sync selected order reactively with store
@@ -693,6 +695,7 @@ export function OrdersPage() {
             return res
           }}
           products={liveProducts}
+          warehouses={warehouses}
         />
       )}
     </div>
@@ -737,6 +740,7 @@ function OrderDetailsDrawer({
     }
   }, [onClose])
 
+  const { warehouses } = useWarehouseStore()
   const warehouse = warehouses.find((w) => w.id === order.warehouseId)
 
   return (
@@ -1050,6 +1054,7 @@ function CreateOrderDialog({
   onClose,
   onCreate,
   products,
+  warehouses,
 }: {
   onClose: () => void
   onCreate: (input: {
@@ -1061,12 +1066,13 @@ function CreateOrderDialog({
     notes?: string
   }) => { ok: true; id?: string } | { ok: false; message: string }
   products: Product[]
+  warehouses: Warehouse[]
 }) {
   const triggerRef = useRef<HTMLElement | null>(null)
   const [customerName, setCustomerName] = useState('')
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
-  const [warehouseId, setWarehouseId] = useState(warehouses[0].id)
+  const [warehouseId, setWarehouseId] = useState(warehouses[0]?.id || '')
   const [notes, setNotes] = useState('')
   const [error, setError] = useState<string | null>(null)
 

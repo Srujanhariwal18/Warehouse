@@ -24,7 +24,8 @@ import {
   type StoreOperationResult,
 } from '@/lib/inventoryStore'
 import { formatInr } from '@/lib/formatters'
-import { warehouses, type Product } from '@/mocks/inventoryData'
+import type { Product } from '@/mocks/inventoryData'
+import { useWarehouseStore } from '@/lib/warehouseStore'
 
 type DialogMode = 'add' | 'edit' | 'stock-in' | 'stock-out' | null
 type SortKey = 'name' | 'stock' | 'price' | 'value'
@@ -48,6 +49,7 @@ export function InventoryPage() {
     products,
     updateProduct,
   } = useInventoryStore()
+  const { warehouses } = useWarehouseStore()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All categories')
   const [warehouse, setWarehouse] = useState('All warehouses')
@@ -66,7 +68,7 @@ export function InventoryPage() {
 
   const warehouseMap = useMemo(
     () => new Map(warehouses.map((item) => [item.id, item.name])),
-    [],
+    [warehouses],
   )
 
   const hasDataError = useMemo(() => {
@@ -87,7 +89,7 @@ export function InventoryPage() {
           product.reorderThreshold < 0,
       )
     )
-  }, [products])
+  }, [products, warehouses])
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -607,6 +609,7 @@ function ProductDrawer({
     }
   }, [onClose])
 
+  const { warehouses } = useWarehouseStore()
   const warehouseName = warehouses.find(
     (item) => item.id === product.warehouseId,
   )?.name
@@ -700,13 +703,14 @@ function ProductDialog({
   const isStock = mode === 'stock-in' || mode === 'stock-out'
   const triggerRef = useRef<HTMLElement | null>(null)
   const dialogRef = useRef<HTMLDivElement>(null)
+  const { warehouses } = useWarehouseStore()
 
   const [quantity, setQuantity] = useState('')
   const [name, setName] = useState(product?.name ?? '')
   const [sku, setSku] = useState(product?.sku ?? '')
   const [category, setCategory] = useState(product?.category ?? categories[0])
   const [warehouseId, setWarehouseId] = useState(
-    product?.warehouseId ?? warehouses[0].id,
+    product?.warehouseId ?? (warehouses[0]?.id || ''),
   )
   const [price, setPrice] = useState(
     product && product.price > 0 ? String(product.price) : '',

@@ -25,3 +25,9 @@ dist-ssr
 
 # GSD files
 .gsd/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
