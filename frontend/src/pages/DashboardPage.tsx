@@ -26,7 +26,14 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorState } from '@/components/ui/ErrorState'
 import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { orders, stockHistory, warehouses } from '@/mocks/inventoryData'
+import {
+  orders,
+  stockHistory7D,
+  stockHistory30D,
+  stockHistory12M,
+  warehouses,
+  type MovementDataPoint,
+} from '@/mocks/inventoryData'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useInventoryStore } from '@/lib/inventoryStore'
 
@@ -38,10 +45,10 @@ const ranges: { label: string; value: ChartRange }[] = [
   { label: '12 months', value: '12M' },
 ]
 
-const rangeMultipliers: Record<ChartRange, number> = {
-  '7D': 0.16,
-  '30D': 0.48,
-  '12M': 1,
+const movementDataByRange: Record<ChartRange, MovementDataPoint[]> = {
+  '7D': stockHistory7D,
+  '30D': stockHistory30D,
+  '12M': stockHistory12M,
 }
 
 export function DashboardPage() {
@@ -70,11 +77,7 @@ export function DashboardPage() {
   const pendingOrders = orders.filter(
     (order) => order.status === 'Pending',
   ).length
-  const chartData = stockHistory.map((point) => ({
-    ...point,
-    inbound: Math.round(point.inbound * rangeMultipliers[range]),
-    outbound: Math.round(point.outbound * rangeMultipliers[range]),
-  }))
+  const chartData = movementDataByRange[range]
   const productsById = new Map(products.map((product) => [product.id, product]))
   const warehousesById = new Map(
     warehouses.map((warehouse) => [warehouse.id, warehouse]),
@@ -171,7 +174,13 @@ export function DashboardPage() {
                   Stock movement
                 </h2>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Inbound and outbound units across the preview period.
+                  Inbound and outbound units for the{' '}
+                  {range === '7D'
+                    ? 'last 7 days'
+                    : range === '30D'
+                      ? 'last 30 days'
+                      : 'last 12 months'}{' '}
+                  (illustrative mock preview).
                 </p>
               </div>
               <div
@@ -205,7 +214,7 @@ export function DashboardPage() {
                   />
                   <XAxis
                     axisLine={false}
-                    dataKey="month"
+                    dataKey="period"
                     tick={{ fill: '#8a9b95', fontSize: 11 }}
                     tickLine={false}
                   />

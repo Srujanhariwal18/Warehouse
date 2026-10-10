@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -8,7 +9,7 @@ import {
   Search,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -17,7 +18,11 @@ import { LoadingState } from '@/components/ui/LoadingState'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { TextInput } from '@/components/ui/TextInput'
-import { useInventoryStore } from '@/lib/inventoryStore'
+import {
+  useInventoryStore,
+  type ProductInput,
+  type StoreOperationResult,
+} from '@/lib/inventoryStore'
 import { formatInr } from '@/lib/formatters'
 import { warehouses, type Product } from '@/mocks/inventoryData'
 
@@ -57,12 +62,32 @@ export function InventoryPage() {
     type: 'success' | 'error'
     message: string
   } | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading] = useState(false)
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), 250)
-    return () => window.clearTimeout(timer)
-  }, [])
+  const warehouseMap = useMemo(
+    () => new Map(warehouses.map((item) => [item.id, item.name])),
+    [],
+  )
+
+  const hasDataError = useMemo(() => {
+    const warehouseIds = new Set(warehouses.map((w) => w.id))
+    return (
+      !Array.isArray(products) ||
+      products.some(
+        (product) =>
+          !product.id ||
+          !product.name?.trim() ||
+          !product.sku?.trim() ||
+          !warehouseIds.has(product.warehouseId) ||
+          !Number.isFinite(product.price) ||
+          product.price <= 0 ||
+          !Number.isFinite(product.stock) ||
+          product.stock < 0 ||
+          !Number.isFinite(product.reorderThreshold) ||
+          product.reorderThreshold < 0,
+      )
+    )
+  }, [products])
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -127,53 +152,40 @@ export function InventoryPage() {
     }
   }
 
-  function handleSave(input: ProductInput) {
-    const duplicate = products.some(
-      (product) =>
-        product.id !== input.id &&
-        product.sku.toLowerCase() === input.sku.toLowerCase(),
-    )
-    if (duplicate) {
-      setNotice({ type: 'error', message: 'That SKU is already in use.' })
-      return
+  function handleSave(
+    input: ProductInput & { id?: string },
+  ): StoreOperationResult {
+    const result = input.id ? updateProduct(input.id, input) : addProduct(input)
+    if (!result.ok) {
+      return result
     }
-    if (
-      !input.name.trim() ||
-      !/^[A-Za-z0-9-]+$/.test(input.sku) ||
-      input.price <= 0 ||
-      input.stock < 0 ||
-      input.reorderThreshold < 0
-    ) {
-      setNotice({
-        type: 'error',
-        message: 'Complete the required fields with valid values.',
-      })
-      return
-    }
-    if (input.id) updateProduct(input.id, input)
-    else addProduct(input)
     setNotice({
       type: 'success',
       message: input.id
-        ? 'Product updated in the mock dataset.'
-        : 'Product added to the mock dataset.',
+        ? 'Product updated in the mock catalogue.'
+        : 'Product added to the mock catalogue.',
     })
     setDialog(null)
+    return { ok: true }
   }
 
-  function handleStock(quantity: number, operation: 'Stock In' | 'Stock Out') {
-    if (!selected) return
+  function handleStock(
+    quantity: number,
+    operation: 'Stock In' | 'Stock Out',
+  ): StoreOperationResult {
+    if (!selected) {
+      return { ok: false, message: 'No product selected.' }
+    }
     const result = applyStockOperation(selected.id, quantity, operation)
     if (!result.ok) {
-      setNotice({ type: 'error', message: result.message })
-      return
+      return result
     }
     setNotice({
       type: 'success',
       message: `${operation} recorded in the mock transaction history.`,
     })
     setDialog(null)
-    setSelected(null)
+    return { ok: true }
   }
 
   const selectedCurrent = selected
@@ -203,7 +215,7 @@ export function InventoryPage() {
         Mock data preview — changes stay in this browser session and do not
         update real warehouse stock.
       </div>
-      {notice && (
+      {notice && !dialog && (
         <div
           className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-success/30 bg-success/5 text-success' : 'border-danger/30 bg-danger/5 text-danger'}`}
           role={notice.type === 'error' ? 'alert' : 'status'}
@@ -257,7 +269,7 @@ export function InventoryPage() {
             />
             <input
               aria-label="Search products by name or SKU"
-              className="h-11 w-full rounded-xl border border-surface-3 bg-sidebar pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary"
+              className="h-11 w-full rounded-xl border border-surface-3 bg-sidebar pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
               onChange={(event) => setFilter(setSearch, event.target.value)}
               placeholder="Search product or SKU"
               value={search}
@@ -286,7 +298,7 @@ export function InventoryPage() {
           />
           <select
             aria-label="Rows per page"
-            className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary"
+            className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
             onChange={(event) => {
               setPageSize(Number(event.target.value))
               setPage(1)
@@ -319,6 +331,31 @@ export function InventoryPage() {
         {loading ? (
           <div className="p-5">
             <LoadingState />
+          </div>
+        ) : hasDataError ? (
+          <div className="p-5">
+            <ErrorState
+              description="The local inventory preview contains corrupted product records."
+              title="Inventory data error"
+            />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="p-5">
+            <EmptyState
+              action={
+                <Button
+                  onClick={() => {
+                    setNotice(null)
+                    setDialog('add')
+                  }}
+                >
+                  <Plus aria-hidden="true" size={17} />
+                  Add product
+                </Button>
+              }
+              description="No products exist in the catalogue yet. Add your first product to get started."
+              title="Catalogue is empty"
+            />
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="p-5">
@@ -367,13 +404,12 @@ export function InventoryPage() {
                 {visibleProducts.map((product) => {
                   const stockStatus = statusFor(product)
                   const warehouseName =
-                    warehouses.find((item) => item.id === product.warehouseId)
-                      ?.name ?? 'Unknown'
+                    warehouseMap.get(product.warehouseId) ?? 'Unknown'
                   return (
                     <tr className="text-text-secondary" key={product.id}>
                       <td className="px-5 py-4">
                         <button
-                          className="text-left font-medium text-text-primary hover:text-primary"
+                          className="rounded text-left font-medium text-text-primary hover:text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                           onClick={() => setSelected(product)}
                           type="button"
                         >
@@ -450,7 +486,7 @@ export function InventoryPage() {
             <Button
               aria-label="Next page"
               className="px-2"
-              disabled={page === pageCount}
+              disabled={page === pageCount || filteredProducts.length === 0}
               onClick={() => setPage((current) => current + 1)}
               variant="ghost"
             >
@@ -461,33 +497,25 @@ export function InventoryPage() {
       </Card>
       {selectedCurrent && (
         <ProductDrawer
-          product={selectedCurrent}
           onClose={() => setSelected(null)}
           onEdit={() => setDialog('edit')}
           onStockIn={() => setDialog('stock-in')}
           onStockOut={() => setDialog('stock-out')}
+          product={selectedCurrent}
         />
       )}
       {dialog && (
         <ProductDialog
           mode={dialog}
-          product={selectedCurrent}
           onClose={() => setDialog(null)}
           onSave={handleSave}
           onStock={handleStock}
-        />
-      )}
-      {loading && (
-        <ErrorState
-          description="The local inventory preview could not be loaded."
-          title="Inventory unavailable"
+          product={dialog === 'add' ? null : selectedCurrent}
         />
       )}
     </div>
   )
 }
-
-type ProductInput = Omit<Product, 'id'> & { id?: string }
 
 function FilterSelect({
   ariaLabel,
@@ -505,7 +533,7 @@ function FilterSelect({
   return (
     <select
       aria-label={ariaLabel}
-      className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary"
+      className="h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-secondary outline-none focus:border-primary focus-visible:ring-1 focus-visible:ring-primary"
       onChange={(event) => onChange(event.target.value)}
       value={value}
     >
@@ -532,7 +560,7 @@ function SortableHeader({
   return (
     <th className="px-4 py-3 font-medium first:pl-5">
       <button
-        className="inline-flex items-center gap-1 hover:text-text-primary"
+        className="inline-flex items-center gap-1 hover:text-text-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
         onClick={onClick}
         type="button"
       >
@@ -556,63 +584,100 @@ function ProductDrawer({
   onStockOut: () => void
   product: Product
 }) {
+  const triggerRef = useRef<HTMLElement | null>(null)
+  const drawerRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    triggerRef.current = document.activeElement as HTMLElement | null
+    const closeBtn = drawerRef.current?.querySelector<HTMLButtonElement>(
+      'button[aria-label="Close product details"]',
+    )
+    closeBtn?.focus()
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      triggerRef.current?.focus()
+    }
+  }, [onClose])
+
   const warehouseName = warehouses.find(
     (item) => item.id === product.warehouseId,
   )?.name
+
   return (
-    <aside
-      aria-label="Product details"
-      className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-3 bg-sidebar p-6 shadow-2xl shadow-black/40"
-    >
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
-          Product detail
-        </p>
-        <Button
-          aria-label="Close product details"
-          onClick={onClose}
-          variant="ghost"
-        >
-          <X size={18} />
-        </Button>
-      </div>
-      <h2 className="mt-8 font-display text-2xl font-semibold text-text-primary">
-        {product.name}
-      </h2>
-      <p className="mt-2 font-mono text-xs text-text-muted">{product.sku}</p>
-      <div className="mt-8 grid gap-4">
-        {[
-          ['Category', product.category],
-          ['Warehouse', warehouseName ?? 'Unknown'],
-          ['Available quantity', `${product.stock} units`],
-          ['Unit price', formatInr(product.price)],
-          ['Inventory value', formatInr(product.stock * product.price)],
-          ['Reorder threshold', `${product.reorderThreshold} units`],
-        ].map(([label, value]) => (
-          <div
-            className="flex items-center justify-between border-b border-surface-3/70 py-3 text-sm"
-            key={label}
+    <>
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs transition-opacity"
+        onClick={onClose}
+      />
+      <aside
+        aria-label="Product details"
+        aria-modal="true"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-3 bg-sidebar p-6 shadow-2xl shadow-black/40"
+        ref={drawerRef}
+        role="dialog"
+      >
+        <div className="flex items-center justify-between">
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
+            Product detail
+          </p>
+          <Button
+            aria-label="Close product details"
+            onClick={onClose}
+            variant="ghost"
           >
-            <span className="text-text-muted">{label}</span>
-            <span className="font-medium text-text-primary">{value}</span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-8 grid gap-3">
-        <Button onClick={onStockIn}>
-          <PackagePlus size={17} />
-          Stock in
-        </Button>
-        <Button onClick={onStockOut} variant="secondary">
-          <PackagePlus size={17} />
-          Stock out
-        </Button>
-        <Button onClick={onEdit} variant="ghost">
-          <Pencil size={16} />
-          Edit product
-        </Button>
-      </div>
-    </aside>
+            <X size={18} />
+          </Button>
+        </div>
+        <h2
+          className="mt-8 font-display text-2xl font-semibold text-text-primary"
+          id="drawer-product-title"
+        >
+          {product.name}
+        </h2>
+        <p className="mt-2 font-mono text-xs text-text-muted">{product.sku}</p>
+        <div className="mt-8 grid gap-4">
+          {[
+            ['Category', product.category],
+            ['Warehouse', warehouseName ?? 'Unknown'],
+            ['Available quantity', `${product.stock} units`],
+            ['Unit price', formatInr(product.price)],
+            ['Inventory value', formatInr(product.stock * product.price)],
+            ['Reorder threshold', `${product.reorderThreshold} units`],
+          ].map(([label, value]) => (
+            <div
+              className="flex items-center justify-between border-b border-surface-3/70 py-3 text-sm"
+              key={label}
+            >
+              <span className="text-text-muted">{label}</span>
+              <span className="font-medium text-text-primary">{value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 grid gap-3">
+          <Button onClick={onStockIn}>
+            <PackagePlus size={17} />
+            Stock in
+          </Button>
+          <Button onClick={onStockOut} variant="secondary">
+            <PackagePlus size={17} />
+            Stock out
+          </Button>
+          <Button onClick={onEdit} variant="ghost">
+            <Pencil size={16} />
+            Edit product
+          </Button>
+        </div>
+      </aside>
+    </>
   )
 }
 
@@ -625,53 +690,197 @@ function ProductDialog({
 }: {
   mode: Exclude<DialogMode, null>
   onClose: () => void
-  onSave: (input: ProductInput) => void
-  onStock: (quantity: number, operation: 'Stock In' | 'Stock Out') => void
+  onSave: (input: ProductInput & { id?: string }) => StoreOperationResult
+  onStock: (
+    quantity: number,
+    operation: 'Stock In' | 'Stock Out',
+  ) => StoreOperationResult
   product: Product | null
 }) {
   const isStock = mode === 'stock-in' || mode === 'stock-out'
+  const triggerRef = useRef<HTMLElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+
   const [quantity, setQuantity] = useState('')
-  const [form, setForm] = useState<ProductInput>(
-    product
-      ? { ...product }
-      : {
-          name: '',
-          sku: '',
-          category: categories[0],
-          warehouseId: warehouses[0].id,
-          price: 0,
-          stock: 0,
-          reorderThreshold: 10,
-        },
+  const [name, setName] = useState(product?.name ?? '')
+  const [sku, setSku] = useState(product?.sku ?? '')
+  const [category, setCategory] = useState(product?.category ?? categories[0])
+  const [warehouseId, setWarehouseId] = useState(
+    product?.warehouseId ?? warehouses[0].id,
   )
-  const [error, setError] = useState('')
-  function update<K extends keyof ProductInput>(
-    key: K,
-    value: ProductInput[K],
-  ) {
-    setForm((current) => ({ ...current, [key]: value }))
+  const [price, setPrice] = useState(
+    product && product.price > 0 ? String(product.price) : '',
+  )
+  const [stock, setStock] = useState(product ? String(product.stock) : '0')
+  const [reorderThreshold, setReorderThreshold] = useState(
+    product ? String(product.reorderThreshold) : '10',
+  )
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    triggerRef.current = document.activeElement as HTMLElement | null
+    const firstInput = dialogRef.current?.querySelector<
+      HTMLInputElement | HTMLButtonElement
+    >('input, button[aria-label="Close dialog"]')
+    firstInput?.focus()
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      triggerRef.current?.focus()
+    }
+  }, [onClose])
+
+  const dialogTitle = isStock
+    ? mode === 'stock-in'
+      ? 'Stock in'
+      : 'Stock out'
+    : product
+      ? 'Edit product'
+      : 'Add product'
+
+  function handleFormSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setError('Product name is required.')
+      return
+    }
+
+    const trimmedSku = sku.trim()
+    if (!trimmedSku) {
+      setError('SKU is required.')
+      return
+    }
+
+    if (!/^[A-Za-z0-9-]+$/.test(trimmedSku)) {
+      setError('SKU may only contain letters, numbers, and hyphens.')
+      return
+    }
+
+    const priceNum = Number(price)
+    if (!Number.isFinite(priceNum) || priceNum <= 0) {
+      setError('Unit price must be a finite positive number.')
+      return
+    }
+
+    const stockNum = Number(stock)
+    if (
+      !Number.isFinite(stockNum) ||
+      !Number.isInteger(stockNum) ||
+      stockNum < 0
+    ) {
+      setError('Available quantity must be a non-negative whole number.')
+      return
+    }
+
+    const thresholdNum = Number(reorderThreshold)
+    if (
+      !Number.isFinite(thresholdNum) ||
+      !Number.isInteger(thresholdNum) ||
+      thresholdNum < 0
+    ) {
+      setError('Reorder threshold must be a non-negative whole number.')
+      return
+    }
+
+    const payload: ProductInput & { id?: string } = {
+      ...(product ? { id: product.id } : {}),
+      name: trimmedName,
+      sku: trimmedSku,
+      category,
+      warehouseId,
+      price: priceNum,
+      stock: stockNum,
+      reorderThreshold: thresholdNum,
+    }
+
+    const result = onSave(payload)
+    if (!result.ok) {
+      setError(result.message)
+    }
   }
+
+  function handleStockConfirm() {
+    if (!quantity.trim()) {
+      setError('Quantity is required.')
+      return
+    }
+
+    const parsedQty = Number(quantity)
+    if (
+      !Number.isFinite(parsedQty) ||
+      !Number.isInteger(parsedQty) ||
+      parsedQty <= 0
+    ) {
+      setError('Quantity must be a positive whole number.')
+      return
+    }
+
+    if (mode === 'stock-out' && product && parsedQty > product.stock) {
+      setError(
+        `Cannot stock out ${parsedQty} units: only ${product.stock} units are currently available.`,
+      )
+      return
+    }
+
+    const result = onStock(
+      parsedQty,
+      mode === 'stock-in' ? 'Stock In' : 'Stock Out',
+    )
+    if (!result.ok) {
+      setError(result.message)
+    }
+  }
+
   return (
     <div
+      aria-labelledby="product-dialog-title"
       aria-modal="true"
       className="fixed inset-0 z-[60] grid place-items-center bg-black/70 p-4"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose()
+        }
+      }}
       role="dialog"
     >
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-surface-3 bg-surface p-6 shadow-2xl">
+      <div
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-surface-3 bg-surface p-6 shadow-2xl"
+        ref={dialogRef}
+      >
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-semibold text-text-primary">
-            {isStock
-              ? mode === 'stock-in'
-                ? 'Stock in'
-                : 'Stock out'
-              : product
-                ? 'Edit product'
-                : 'Add product'}
+          <h2
+            className="font-display text-xl font-semibold text-text-primary"
+            id="product-dialog-title"
+          >
+            {dialogTitle}
           </h2>
           <Button aria-label="Close dialog" onClick={onClose} variant="ghost">
             <X size={18} />
           </Button>
         </div>
+
+        {error && (
+          <div
+            className="mt-4 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger"
+            role="alert"
+          >
+            <AlertCircle
+              aria-hidden="true"
+              className="mt-0.5 shrink-0"
+              size={16}
+            />
+            <span>{error}</span>
+          </div>
+        )}
+
         {isStock ? (
           <div className="mt-6 grid gap-4">
             <p className="text-sm text-text-secondary">
@@ -680,103 +889,99 @@ function ProductDialog({
             <TextInput
               label="Quantity"
               min="1"
-              onChange={(event) => setQuantity(event.target.value)}
+              onChange={(event) => {
+                setError(null)
+                setQuantity(event.target.value)
+              }}
+              step="1"
               type="number"
               value={quantity}
             />
-            {error && (
-              <p className="text-sm text-danger" role="alert">
-                {error}
-              </p>
-            )}
-            <Button
-              onClick={() => {
-                const value = Number(quantity)
-                if (!Number.isInteger(value) || value <= 0) {
-                  setError('Enter a whole number greater than zero.')
-                  return
-                }
-                onStock(value, mode === 'stock-in' ? 'Stock In' : 'Stock Out')
-              }}
-            >
+            <Button onClick={handleStockConfirm}>
               Confirm {mode === 'stock-in' ? 'stock in' : 'stock out'}
             </Button>
           </div>
         ) : (
-          <form
-            className="mt-6 grid gap-4"
-            onSubmit={(event) => {
-              event.preventDefault()
-              onSave(form)
-            }}
-          >
+          <form className="mt-6 grid gap-4" onSubmit={handleFormSubmit}>
             <TextInput
               label="Product name"
-              onChange={(event) => update('name', event.target.value)}
+              onChange={(event) => {
+                setError(null)
+                setName(event.target.value)
+              }}
               required
-              value={form.name}
+              value={name}
             />
             <TextInput
               label="SKU"
-              onChange={(event) => update('sku', event.target.value)}
+              onChange={(event) => {
+                setError(null)
+                setSku(event.target.value)
+              }}
               required
-              value={form.sku}
+              value={sku}
             />
             <div className="grid gap-4 sm:grid-cols-2">
               <FilterSelect
                 ariaLabel="Category"
-                onChange={(value) => update('category', value)}
+                onChange={(value) => {
+                  setError(null)
+                  setCategory(value)
+                }}
                 options={categories}
-                value={form.category}
+                value={category}
               />
               <FilterSelect
                 ariaLabel="Warehouse"
-                onChange={(value) => update('warehouseId', value)}
+                onChange={(value) => {
+                  setError(null)
+                  setWarehouseId(value)
+                }}
                 options={warehouses.map((item) => item.id)}
                 labels={Object.fromEntries(
                   warehouses.map((item) => [item.id, item.name]),
                 )}
-                value={form.warehouseId}
+                value={warehouseId}
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <TextInput
                 label="Unit price"
                 min="0.01"
-                onChange={(event) =>
-                  update('price', Number(event.target.value))
-                }
+                onChange={(event) => {
+                  setError(null)
+                  setPrice(event.target.value)
+                }}
                 required
                 step="0.01"
                 type="number"
-                value={form.price || ''}
+                value={price}
               />
               <TextInput
                 label="Available quantity"
                 min="0"
-                onChange={(event) =>
-                  update('stock', Number(event.target.value))
-                }
+                onChange={(event) => {
+                  setError(null)
+                  setStock(event.target.value)
+                }}
                 required
+                step="1"
                 type="number"
-                value={form.stock}
+                value={stock}
               />
               <TextInput
                 label="Reorder threshold"
                 min="0"
-                onChange={(event) =>
-                  update('reorderThreshold', Number(event.target.value))
-                }
+                onChange={(event) => {
+                  setError(null)
+                  setReorderThreshold(event.target.value)
+                }}
                 required
+                step="1"
                 type="number"
-                value={form.reorderThreshold}
+                value={reorderThreshold}
               />
             </div>
-            {error && (
-              <p className="text-sm text-danger" role="alert">
-                {error}
-              </p>
-            )}
             <Button type="submit">
               {product ? 'Save changes' : 'Add product'}
             </Button>

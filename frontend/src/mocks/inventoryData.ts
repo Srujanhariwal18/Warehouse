@@ -180,20 +180,52 @@ export const orders: Order[] = [
   { id: 'ORD-1043', status: 'Pending', total: 6450 },
 ]
 
-export const stockHistory: StockHistoryPoint[] = [
-  { month: 'Nov', inbound: 820, outbound: 680 },
-  { month: 'Dec', inbound: 940, outbound: 720 },
-  { month: 'Jan', inbound: 760, outbound: 810 },
-  { month: 'Feb', inbound: 1080, outbound: 900 },
-  { month: 'Mar', inbound: 990, outbound: 860 },
-  { month: 'Apr', inbound: 1160, outbound: 1040 },
-  { month: 'May', inbound: 1040, outbound: 980 },
-  { month: 'Jun', inbound: 1240, outbound: 1110 },
-  { month: 'Jul', inbound: 1180, outbound: 1280 },
-  { month: 'Aug', inbound: 1360, outbound: 1190 },
-  { month: 'Sep', inbound: 1280, outbound: 1240 },
-  { month: 'Oct', inbound: 1420, outbound: 1310 },
+export type MovementDataPoint = {
+  period: string
+  inbound: number
+  outbound: number
+}
+
+export const stockHistory7D: MovementDataPoint[] = [
+  { period: '04 Oct', inbound: 120, outbound: 45 },
+  { period: '05 Oct', inbound: 60, outbound: 80 },
+  { period: '06 Oct', inbound: 140, outbound: 95 },
+  { period: '07 Oct', inbound: 85, outbound: 110 },
+  { period: '08 Oct', inbound: 90, outbound: 65 },
+  { period: '09 Oct', inbound: 130, outbound: 120 },
+  { period: '10 Oct', inbound: 165, outbound: 75 },
 ]
+
+export const stockHistory30D: MovementDataPoint[] = [
+  { period: '12 Sep', inbound: 280, outbound: 240 },
+  { period: '17 Sep', inbound: 310, outbound: 290 },
+  { period: '22 Sep', inbound: 260, outbound: 320 },
+  { period: '27 Sep', inbound: 340, outbound: 270 },
+  { period: '02 Oct', inbound: 390, outbound: 310 },
+  { period: '07 Oct', inbound: 350, outbound: 360 },
+  { period: '10 Oct', inbound: 420, outbound: 330 },
+]
+
+export const stockHistory12M: MovementDataPoint[] = [
+  { period: 'Nov', inbound: 820, outbound: 680 },
+  { period: 'Dec', inbound: 940, outbound: 720 },
+  { period: 'Jan', inbound: 760, outbound: 810 },
+  { period: 'Feb', inbound: 1080, outbound: 900 },
+  { period: 'Mar', inbound: 990, outbound: 860 },
+  { period: 'Apr', inbound: 1160, outbound: 1040 },
+  { period: 'May', inbound: 1040, outbound: 980 },
+  { period: 'Jun', inbound: 1240, outbound: 1110 },
+  { period: 'Jul', inbound: 1180, outbound: 1280 },
+  { period: 'Aug', inbound: 1360, outbound: 1190 },
+  { period: 'Sep', inbound: 1280, outbound: 1240 },
+  { period: 'Oct', inbound: 1420, outbound: 1310 },
+]
+
+export const stockHistory: StockHistoryPoint[] = stockHistory12M.map((p) => ({
+  month: p.period,
+  inbound: p.inbound,
+  outbound: p.outbound,
+}))
 
 export const lowStockProducts = products.filter(
   (product) => product.stock <= product.reorderThreshold,

@@ -9,7 +9,7 @@ import {
   Settings,
   X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { BrandMark } from '@/components/ui/BrandMark'
 import { Button } from '@/components/ui/Button'
@@ -33,6 +33,18 @@ export function AppShell() {
   const [search, setSearch] = useState('')
   const location = useLocation()
   const pageTitle = pageTitles[location.pathname] ?? 'Workspace'
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        if (mobileOpen) setMobileOpen(false)
+        if (notificationsOpen) setNotificationsOpen(false)
+        if (profileOpen) setProfileOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [mobileOpen, notificationsOpen, profileOpen])
 
   return (
     <div className="min-h-screen bg-main text-text-primary">

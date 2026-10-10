@@ -9,7 +9,7 @@ export function TextInput({ className = '', label, ...props }: TextInputProps) {
     <label className="grid gap-2 text-sm font-medium text-text-secondary">
       {label}
       <input
-        className={`h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none ${className}`}
+        className={`h-11 rounded-xl border border-surface-3 bg-sidebar px-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${className}`}
         {...props}
       />
     </label>
