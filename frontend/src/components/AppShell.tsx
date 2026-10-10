@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   Bell,
   Boxes,
   ChevronDown,
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/Button'
 const navigation = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/app/dashboard' },
   { label: 'Inventory', icon: Boxes, to: '/app/inventory' },
+  { label: 'Transactions', icon: ArrowLeftRight, to: '/app/transactions' },
   { label: 'Orders', icon: Package, to: '/app/orders' },
   { label: 'Suppliers', icon: Truck, to: '/app/suppliers' },
   { label: 'Warehouses', icon: Warehouse, to: '/app/warehouses' },
@@ -27,6 +29,7 @@ const navigation = [
 const pageTitles: Record<string, string> = {
   '/app/dashboard': 'Dashboard',
   '/app/inventory': 'Inventory',
+  '/app/transactions': 'Stock Transactions',
   '/app/orders': 'Orders',
   '/app/suppliers': 'Suppliers',
   '/app/warehouses': 'Warehouses',

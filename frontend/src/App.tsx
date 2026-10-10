@@ -5,6 +5,7 @@ import { FoundationPage } from '@/pages/FoundationPage'
 import { InventoryPage } from '@/pages/InventoryPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { OrdersPage } from '@/pages/OrdersPage'
+import { StockTransactionsPage } from '@/pages/StockTransactionsPage'
 import { SuppliersPage } from '@/pages/SuppliersPage'
 import { WarehousesPage } from '@/pages/WarehousesPage'
 
@@ -15,6 +16,7 @@ function App() {
       <Route element={<AppShell />}>
         <Route element={<DashboardPage />} path="/app/dashboard" />
         <Route element={<InventoryPage />} path="/app/inventory" />
+        <Route element={<StockTransactionsPage />} path="/app/transactions" />
         <Route element={<OrdersPage />} path="/app/orders" />
         <Route element={<SuppliersPage />} path="/app/suppliers" />
         <Route element={<WarehousesPage />} path="/app/warehouses" />

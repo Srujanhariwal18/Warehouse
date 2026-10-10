@@ -27,6 +27,7 @@ export type Product = {
   supplierId?: string
   zoneId?: string
   rackId?: string
+  warehouseStock?: Record<string, number>
 }
 
 export type StockTransaction = {

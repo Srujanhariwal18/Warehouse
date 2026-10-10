@@ -107,12 +107,42 @@ warehouse and inventory management.
   - Deactivating a rack is blocked if active inventory items are assigned to it.
   - Deactivating or editing facilities, zones, or racks never deletes or silently alters product records, inventory stock, or orders.
 
+### Stock transactions and movement history (`/app/transactions`)
+
+- **Operational KPI metrics**: Real-time summaries for total audit events, total stock received
+  (inbound units), total stock dispatched (outbound units), and count of adjustments and transfers.
+- **Audit movement log**: Comprehensive transaction table and responsive mobile cards displaying
+  Transaction ID, timestamp, color-coded transaction type badge, product item and SKU, signed
+  movement quantity (+, -, ±, ➔), facility or route, previous-to-resulting stock impact,
+  audit reference number, and status.
+- **Search, filter, and sort**: Fast client-side filtering by transaction ID, product name, SKU, reference
+  number, or reason; filtering by type (`All Types`, `Stock In`, `Stock Out`, `Adjustment`, `Transfer`),
+  date range (`All time`, `Today`, `Last 7 days`, `Last 30 days`, `Last 90 days`), warehouse facility,
+  and status; multi-column sorting (date/time, quantity, type, product); and configurable pagination (10, 20, 40).
+- **Transaction details drawer**: Slide-out audit profile detailing product metadata, unit quantity,
+  previous and resulting stock, granular location stock breakdown for transfers, facility routing,
+  PO/DO/Audit reference numbers, audit notes, and supplier info for receipts.
+- **Create transaction workflows**:
+  - **Stock In**: Increases product inventory at the destination warehouse. Validates positive integer quantity,
+    existing warehouse, and optional supplier.
+  - **Stock Out**: Decreases product inventory from the source warehouse. Rejects if requested quantity
+    exceeds available stock or is non-positive.
+  - **Adjustment**: Reconciles inventory discrepancies. Requires a mandatory audit reason. Supports both
+    quantity delta (+ / -) and target physical count modes, strictly preventing negative inventory.
+  - **Transfer**: Relocates stock between different warehouses without altering total product inventory across all locations.
+    Enforces different source and destination warehouses, verifies sufficient source stock, and records
+    granular source/destination before-and-after stock quantities.
+- **Data consistency and auditability**:
+  - Coordinated directly with `InventoryProvider` as the single source of truth for product stock.
+  - Completed transactions are immutable historical records with stable identifiers.
+  - Deterministic initial seed transactions are distinguishable from transactions recorded during the active session.
+
 ### Mock data and persistence note
 
 All inventory, warehouse, zone, rack, order, supplier, and transaction data is managed in-memory via
-shared React Context stores (`InventoryProvider`, `OrdersProvider`, `SuppliersProvider`, and `WarehouseProvider`).
+shared React Context stores (`InventoryProvider`, `OrdersProvider`, `SuppliersProvider`, `WarehouseProvider`, and `TransactionProvider`).
 Updates made during a browser session (such as adding/editing products, performing stock adjustments,
-creating orders, updating order statuses, adding/editing/deactivating suppliers, or managing warehouses/zones/racks) update the shared
+creating orders, updating order statuses, adding/editing/deactivating suppliers, managing warehouses, or recording stock transactions) update the shared
 stores in real time across the workspace.
 **These updates are mock data and are not persisted to a real backend or database.**
 Creating an order does not deduct inventory stock, and deactivating a facility or supplier does not delete inventory records.
@@ -123,6 +153,7 @@ Refreshing or reloading the page resets the state to initial mock data.
 - `/` — Foundation and landing overview page.
 - `/app/dashboard` — Operational dashboard with real-time inventory and pending orders metrics.
 - `/app/inventory` — Product catalogue, search, filters, adjustments, and management.
+- `/app/transactions` — Stock transactions and movement history audit log, KPI summaries, and transaction creation flow.
 - `/app/orders` — Orders management, status workflows, and order creation.
 - `/app/suppliers` — Suppliers directory, vendor profiles, contact details, and product links.
 - `/app/warehouses` — Warehouse, zone, and rack management with three-tier hierarchical drill-downs.

@@ -7,6 +7,7 @@ import { InventoryProvider } from '@/lib/inventoryStore'
 import { OrdersProvider } from '@/lib/orderStore'
 import { SuppliersProvider } from '@/lib/supplierStore'
 import { WarehouseProvider } from '@/lib/warehouseStore'
+import { TransactionProvider } from '@/lib/transactionStore'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')!).render(
         <OrdersProvider>
           <SuppliersProvider>
             <WarehouseProvider>
-              <App />
+              <TransactionProvider>
+                <App />
+              </TransactionProvider>
             </WarehouseProvider>
           </SuppliersProvider>
         </OrdersProvider>

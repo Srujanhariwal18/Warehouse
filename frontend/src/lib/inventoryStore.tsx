@@ -29,6 +29,15 @@ export type InventoryStore = {
     quantity: number,
     operation: StockOperation,
   ) => StoreOperationResult
+  updateProductStock: (
+    productId: string,
+    newStock: number,
+    locationUpdate?: {
+      warehouseId?: string
+      warehouseStock?: Record<string, number>
+    },
+  ) => void
+  appendTransaction: (transaction: StockTransaction) => void
 }
 
 let uniqueCounter = 0
@@ -212,6 +221,24 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         )
         setTransactions((current) => [transaction, ...current])
         return { ok: true }
+      },
+      updateProductStock: (productId, newStock, locationUpdate) => {
+        setProducts((current) =>
+          current.map((item) =>
+            item.id === productId
+              ? {
+                  ...item,
+                  stock: newStock,
+                  warehouseId: locationUpdate?.warehouseId ?? item.warehouseId,
+                  warehouseStock:
+                    locationUpdate?.warehouseStock ?? item.warehouseStock,
+                }
+              : item,
+          ),
+        )
+      },
+      appendTransaction: (transaction) => {
+        setTransactions((current) => [transaction, ...current])
       },
     }
   }, [products, transactions])
