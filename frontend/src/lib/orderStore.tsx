@@ -12,7 +12,8 @@ import {
   type OrderStatus,
   type OrderTimelineEvent,
 } from '@/mocks/orderData'
-import { products, warehouses } from '@/mocks/inventoryData'
+import { warehouses, type Product } from '@/mocks/inventoryData'
+import { useInventoryStore } from '@/lib/inventoryStore'
 
 export type CreateOrderItemInput = {
   productId: string
@@ -89,70 +90,118 @@ function validateStatusTransition(
   return { valid: false, message: 'Invalid status transition.' }
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function validateOrderInput(
+  input: CreateOrderInput,
+  currentProducts: Product[],
+):
+  | {
+      ok: true
+      resolvedItems: OrderItem[]
+      totalAmount: number
+    }
+  | {
+      ok: false
+      message: string
+    } {
+  const trimmedName = input.customerName.trim()
+  if (!trimmedName) {
+    return { ok: false, message: 'Customer name is required.' }
+  }
+
+  const validWarehouse = warehouses.some((w) => w.id === input.warehouseId)
+  if (!validWarehouse) {
+    return { ok: false, message: 'Please select a valid warehouse.' }
+  }
+
+  if (!input.items || input.items.length === 0) {
+    return {
+      ok: false,
+      message: 'An order must contain at least one line item.',
+    }
+  }
+
+  // 1. Validate line items individually for existence and positive integers
+  for (const item of input.items) {
+    const product = currentProducts.find((p) => p.id === item.productId)
+    if (!product) {
+      return {
+        ok: false,
+        message: 'One or more selected products do not exist.',
+      }
+    }
+
+    if (
+      !Number.isFinite(item.quantity) ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity <= 0
+    ) {
+      return {
+        ok: false,
+        message: `Quantity for "${product.name}" must be a positive whole number.`,
+      }
+    }
+  }
+
+  // 2. Aggregate quantities by productId before validating stock
+  const aggregatedQuantities = new Map<string, number>()
+  for (const item of input.items) {
+    const current = aggregatedQuantities.get(item.productId) ?? 0
+    aggregatedQuantities.set(item.productId, current + item.quantity)
+  }
+
+  // 3. Validate combined quantity against available stock
+  for (const [productId, combinedQty] of aggregatedQuantities.entries()) {
+    const product = currentProducts.find((p) => p.id === productId)!
+    if (combinedQty > product.stock) {
+      const hasDuplicates =
+        input.items.filter((i) => i.productId === productId).length > 1
+      return {
+        ok: false,
+        message: hasDuplicates
+          ? `Combined quantity for "${product.name}" (${combinedQty} units) exceeds available stock (${product.stock} units).`
+          : `Requested quantity for "${product.name}" (${combinedQty}) exceeds available stock (${product.stock} units).`,
+      }
+    }
+  }
+
+  // 4. Resolve items without deducting inventory stock
+  const resolvedItems: OrderItem[] = input.items.map((item) => {
+    const product = currentProducts.find((p) => p.id === item.productId)!
+    const lineTotal = item.quantity * product.price
+    return {
+      productId: product.id,
+      productName: product.name,
+      sku: product.sku,
+      quantity: item.quantity,
+      unitPrice: product.price,
+      total: lineTotal,
+    }
+  })
+
+  const totalAmount = resolvedItems.reduce((sum, item) => sum + item.total, 0)
+
+  return {
+    ok: true,
+    resolvedItems,
+    totalAmount,
+  }
+}
+
 export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const { products: liveProducts } = useInventoryStore()
 
   const store = useMemo<OrdersStore>(() => {
     return {
       orders,
       createOrder: (input) => {
-        const trimmedName = input.customerName.trim()
-        if (!trimmedName) {
-          return { ok: false, message: 'Customer name is required.' }
+        const validation = validateOrderInput(input, liveProducts)
+        if (!validation.ok) {
+          return { ok: false, message: validation.message }
         }
 
-        const validWarehouse = warehouses.some(
-          (w) => w.id === input.warehouseId,
-        )
-        if (!validWarehouse) {
-          return { ok: false, message: 'Please select a valid warehouse.' }
-        }
-
-        if (!input.items || input.items.length === 0) {
-          return {
-            ok: false,
-            message: 'An order must contain at least one line item.',
-          }
-        }
-
-        const resolvedItems: OrderItem[] = []
-        for (const item of input.items) {
-          const product = products.find((p) => p.id === item.productId)
-          if (!product) {
-            return {
-              ok: false,
-              message: 'One or more selected products do not exist.',
-            }
-          }
-
-          if (
-            !Number.isFinite(item.quantity) ||
-            !Number.isInteger(item.quantity) ||
-            item.quantity <= 0
-          ) {
-            return {
-              ok: false,
-              message: `Quantity for "${product.name}" must be a positive whole number.`,
-            }
-          }
-
-          if (item.quantity > product.stock) {
-            return {
-              ok: false,
-              message: `Requested quantity for "${product.name}" (${item.quantity}) exceeds available stock (${product.stock} units).`,
-            }
-          }
-
-          const lineTotal = item.quantity * product.price
-          resolvedItems.push({
-            productId: product.id,
-            productName: product.name,
-            sku: product.sku,
-            quantity: item.quantity,
-            unitPrice: product.price,
-            total: lineTotal,
-          })
-        }
+        const { resolvedItems, totalAmount } = validation
 
         // Generate unique order ID
         const existingNumbers = orders
@@ -166,14 +215,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         const id = `ORD-${nextNumber}`
 
         const today = new Date().toISOString().slice(0, 10)
-        const totalAmount = resolvedItems.reduce(
-          (sum, item) => sum + item.total,
-          0,
-        )
 
         const newOrder: Order = {
           id,
-          customerName: trimmedName,
+          customerName: input.customerName.trim(),
           customerEmail: input.customerEmail.trim(),
           customerPhone: input.customerPhone.trim(),
           createdAt: today,
@@ -187,7 +232,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
               id: `tl-${id}-1`,
               status: 'Pending',
               timestamp: new Date().toISOString(),
-              note: `Order registered via workspace by ${trimmedName}.`,
+              note: `Order registered via workspace by ${input.customerName.trim()}.`,
             },
           ],
         }
@@ -285,7 +330,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
         return { ok: true }
       },
     }
-  }, [orders])
+  }, [orders, liveProducts])
 
   return (
     <OrdersContext.Provider value={store}>{children}</OrdersContext.Provider>

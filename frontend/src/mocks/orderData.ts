@@ -151,7 +151,7 @@ const optionalNotes = [
 // Deterministic generator with 120 orders
 function generateDeterministicOrders(): Order[] {
   const generated: Order[] = []
-  const baseTimestamp = new Date('2026-10-10T12:00:00Z').getTime()
+  const baseTimestamp = Date.now()
   const dayMs = 24 * 60 * 60 * 1000
 
   for (let i = 1; i <= 120; i++) {

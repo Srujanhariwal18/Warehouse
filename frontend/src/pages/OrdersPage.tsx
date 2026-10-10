@@ -26,11 +26,49 @@ import { TextInput } from '@/components/ui/TextInput'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useOrdersStore, type CreateOrderItemInput } from '@/lib/orderStore'
 import { type Order, type OrderStatus } from '@/mocks/orderData'
-import { products, warehouses } from '@/mocks/inventoryData'
+import { warehouses, type Product } from '@/mocks/inventoryData'
+import { useInventoryStore } from '@/lib/inventoryStore'
 
-type DateFilterOption = 'all' | '7d' | '30d' | '90d'
-type SortField = 'date' | 'total' | 'id' | 'customer'
-type SortOrder = 'asc' | 'desc'
+export type DateFilterOption = 'all' | '7d' | '30d' | '90d'
+export type SortField = 'date' | 'total' | 'id' | 'customer'
+export type SortOrder = 'asc' | 'desc'
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function isOrderWithinDateRange(
+  createdAt: string,
+  filter: DateFilterOption,
+  referenceDate: Date = new Date(),
+): boolean {
+  if (filter === 'all') return true
+
+  const parts = createdAt.split('-').map(Number)
+  if (
+    parts.length < 3 ||
+    isNaN(parts[0]) ||
+    isNaN(parts[1]) ||
+    isNaN(parts[2])
+  ) {
+    return false
+  }
+  const [year, month, day] = parts
+
+  const orderDate = new Date(year, month - 1, day)
+  const refDate = new Date(
+    referenceDate.getFullYear(),
+    referenceDate.getMonth(),
+    referenceDate.getDate(),
+  )
+
+  const diffMs = refDate.getTime() - orderDate.getTime()
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000))
+
+  if (diffDays < 0) return false
+  if (filter === '7d') return diffDays <= 7
+  if (filter === '30d') return diffDays <= 30
+  if (filter === '90d') return diffDays <= 90
+
+  return true
+}
 
 const statusOptions: Array<'All statuses' | OrderStatus> = [
   'All statuses',
@@ -59,6 +97,7 @@ function statusToneFor(status: OrderStatus) {
 export function OrdersPage() {
   const { createOrder, orders, updateOrderStatus, cancelOrder } =
     useOrdersStore()
+  const { products: liveProducts } = useInventoryStore()
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<
@@ -104,8 +143,6 @@ export function OrdersPage() {
   // Filter & Sort
   const filteredOrders = useMemo(() => {
     const query = search.trim().toLowerCase()
-    const now = new Date('2026-10-10T23:59:59Z').getTime()
-    const dayMs = 24 * 60 * 60 * 1000
 
     return orders
       .filter((order) => {
@@ -131,12 +168,8 @@ export function OrdersPage() {
         }
 
         // Date range
-        if (dateFilter !== 'all') {
-          const orderTime = new Date(`${order.createdAt}T00:00:00Z`).getTime()
-          const diffDays = (now - orderTime) / dayMs
-          if (dateFilter === '7d' && diffDays > 7) return false
-          if (dateFilter === '30d' && diffDays > 30) return false
-          if (dateFilter === '90d' && diffDays > 90) return false
+        if (!isOrderWithinDateRange(order.createdAt, dateFilter)) {
+          return false
         }
 
         return true
@@ -645,7 +678,6 @@ export function OrdersPage() {
       )}
 
       {/* Create Order Dialog */}
-      {createDialogOpen}
       {createDialogOpen && (
         <CreateOrderDialog
           onClose={() => setCreateDialogOpen(false)}
@@ -660,6 +692,7 @@ export function OrdersPage() {
             }
             return res
           }}
+          products={liveProducts}
         />
       )}
     </div>
@@ -1016,6 +1049,7 @@ type CreateOrderFormLine = {
 function CreateOrderDialog({
   onClose,
   onCreate,
+  products,
 }: {
   onClose: () => void
   onCreate: (input: {
@@ -1026,6 +1060,7 @@ function CreateOrderDialog({
     items: CreateOrderItemInput[]
     notes?: string
   }) => { ok: true; id?: string } | { ok: false; message: string }
+  products: Product[]
 }) {
   const triggerRef = useRef<HTMLElement | null>(null)
   const [customerName, setCustomerName] = useState('')
@@ -1038,7 +1073,7 @@ function CreateOrderDialog({
   // Initial line item: pick first available product
   const defaultProduct = products.find((p) => p.stock > 0) ?? products[0]
   const [lines, setLines] = useState<CreateOrderFormLine[]>([
-    { productId: defaultProduct.id, quantity: '1' },
+    { productId: defaultProduct ? defaultProduct.id : '', quantity: '1' },
   ])
 
   useEffect(() => {
@@ -1072,10 +1107,12 @@ function CreateOrderDialog({
       products.find(
         (p) => p.stock > 0 && !lines.some((l) => l.productId === p.id),
       ) ?? defaultProduct
-    setLines((current) => [
-      ...current,
-      { productId: nextProduct.id, quantity: '1' },
-    ])
+    if (nextProduct) {
+      setLines((current) => [
+        ...current,
+        { productId: nextProduct.id, quantity: '1' },
+      ])
+    }
   }
 
   function removeLine(index: number) {
@@ -1094,7 +1131,7 @@ function CreateOrderDialog({
       }
       return sum
     }, 0)
-  }, [lines])
+  }, [lines, products])
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -1110,7 +1147,7 @@ function CreateOrderDialog({
       return
     }
 
-    const resolvedItems: CreateOrderItemInput[] = []
+    const rawItems: CreateOrderItemInput[] = []
     for (let idx = 0; idx < lines.length; idx++) {
       const line = lines[idx]
       const prod = products.find((p) => p.id === line.productId)
@@ -1132,17 +1169,31 @@ function CreateOrderDialog({
         return
       }
 
-      if (parsedQty > prod.stock) {
-        setError(
-          `Quantity for "${prod.name}" (${parsedQty}) exceeds current available stock (${prod.stock} units).`,
-        )
-        return
-      }
-
-      resolvedItems.push({
+      rawItems.push({
         productId: prod.id,
         quantity: parsedQty,
       })
+    }
+
+    // Aggregate quantities by productId before validating stock
+    const aggregatedQuantities = new Map<string, number>()
+    for (const item of rawItems) {
+      const current = aggregatedQuantities.get(item.productId) ?? 0
+      aggregatedQuantities.set(item.productId, current + item.quantity)
+    }
+
+    for (const [productId, combinedQty] of aggregatedQuantities.entries()) {
+      const prod = products.find((p) => p.id === productId)
+      if (prod && combinedQty > prod.stock) {
+        const hasDuplicates =
+          rawItems.filter((i) => i.productId === productId).length > 1
+        setError(
+          hasDuplicates
+            ? `Combined quantity for "${prod.name}" (${combinedQty} units) exceeds available stock (${prod.stock} units).`
+            : `Quantity for "${prod.name}" (${combinedQty}) exceeds current available stock (${prod.stock} units).`,
+        )
+        return
+      }
     }
 
     const res = onCreate({
@@ -1150,7 +1201,7 @@ function CreateOrderDialog({
       customerEmail: customerEmail.trim(),
       customerPhone: customerPhone.trim(),
       warehouseId,
-      items: resolvedItems,
+      items: rawItems,
       notes: notes.trim() || undefined,
     })
 
