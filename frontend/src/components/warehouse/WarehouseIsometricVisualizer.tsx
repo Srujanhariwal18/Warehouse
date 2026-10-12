@@ -90,33 +90,50 @@ export function WarehouseIsometricVisualizer({
     }, 0)
   }, [facilityProducts, activeWarehouse.id])
 
-  // Compute rich metrics per zone
+  // Compute exact metrics per zone from assigned products and actual rack capacities
   const zoneStats = useMemo(() => {
     return facilityZones.map((zone, index) => {
       const zoneRacks = facilityRacks.filter((r) => r.zoneId === zone.id)
+      const zoneRackIds = new Set(zoneRacks.map((r) => r.id))
       const totalRackCapacity = zoneRacks.reduce(
         (sum, r) => sum + (r.capacity ?? 40),
         0,
       )
-      // Estimate portion of stock in this zone
-      const fraction = facilityZones.length > 0 ? 1 / facilityZones.length : 1
-      const isCold = zone.type === 'Cold Storage'
-      const isPicking = zone.type === 'Picking'
-      const isReceiving = zone.type === 'Receiving'
 
-      const estimatedUnits = Math.round(
-        facilityStockUnits * (isPicking ? 0.38 : isCold ? 0.18 : isReceiving ? 0.15 : fraction),
-      )
-      const estimatedValuation = Math.round(
-        facilityValuation * (isPicking ? 0.38 : isCold ? 0.22 : fraction),
-      )
+      // Direct products assigned to this zone or its racks
+      const zoneAssignedProducts = facilityProducts.filter((p) => {
+        if (p.zoneId === zone.id) return true
+        if (p.rackId && zoneRackIds.has(p.rackId)) return true
+        return false
+      })
 
+      // Exact units stored in this zone
+      const actualUnits = zoneAssignedProducts.reduce((sum, p) => {
+        const stock =
+          p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+            ? p.warehouseStock[activeWarehouse.id]
+            : p.warehouseId === activeWarehouse.id
+              ? p.stock
+              : 0
+        return sum + stock
+      }, 0)
+
+      // Exact valuation stored in this zone
+      const actualValuation = zoneAssignedProducts.reduce((sum, p) => {
+        const stock =
+          p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+            ? p.warehouseStock[activeWarehouse.id]
+            : p.warehouseId === activeWarehouse.id
+              ? p.stock
+              : 0
+        return sum + stock * p.price
+      }, 0)
+
+      // Exact physical occupancy percentage (units / total rack capacity)
       const occupancyPct =
         totalRackCapacity > 0
-          ? Math.min(98, Math.round((estimatedUnits / (totalRackCapacity * 3.5)) * 100))
-          : zone.status === 'Active'
-            ? 65
-            : 0
+          ? Math.min(100, Math.round((actualUnits / totalRackCapacity) * 100))
+          : 0
 
       return {
         ...zone,
@@ -124,12 +141,16 @@ export function WarehouseIsometricVisualizer({
         racks: zoneRacks,
         rackCount: zoneRacks.length,
         totalCapacity: totalRackCapacity,
-        estimatedUnits,
-        estimatedValuation,
-        occupancyPct: Math.max(15, occupancyPct),
+        assignedSkus: zoneAssignedProducts.length,
+        actualUnits,
+        actualValuation,
+        occupancyPct,
+        // Backward compatibility aliases
+        estimatedUnits: actualUnits,
+        estimatedValuation: actualValuation,
       }
     })
-  }, [facilityZones, facilityRacks, facilityStockUnits, facilityValuation])
+  }, [facilityZones, facilityRacks, facilityProducts, activeWarehouse.id])
 
   // Selected or hovered active zone telemetry
   const activeZone = useMemo(() => {
@@ -179,10 +200,10 @@ export function WarehouseIsometricVisualizer({
           }
         case 'Packing':
           return {
-            fill: '#A78BFA',
-            stroke: '#A78BFA',
-            glow: 'rgba(167, 139, 250, 0.35)',
-            text: 'text-purple-400',
+            fill: '#8EA0B2',
+            stroke: '#8EA0B2',
+            glow: 'rgba(142, 160, 178, 0.35)',
+            text: 'text-text-secondary',
           }
         default:
           return {
@@ -195,7 +216,7 @@ export function WarehouseIsometricVisualizer({
     }
 
     if (metric === 'valuation') {
-      if (zone.estimatedValuation > 100000) {
+      if (zone.actualValuation > 100000) {
         return {
           fill: '#43D9E8',
           stroke: '#43D9E8',
@@ -203,7 +224,7 @@ export function WarehouseIsometricVisualizer({
           text: 'text-primary',
         }
       }
-      if (zone.estimatedValuation > 40000) {
+      if (zone.actualValuation > 40000) {
         return {
           fill: '#5AA9FF',
           stroke: '#5AA9FF',
@@ -455,9 +476,10 @@ export function WarehouseIsometricVisualizer({
                   <th className="py-2">ZONE ID</th>
                   <th className="py-2">DESIGNATION</th>
                   <th className="py-2">FUNCTION</th>
-                  <th className="py-2 text-right">RACKS</th>
-                  <th className="py-2 text-right">CAPACITY</th>
-                  <th className="py-2 text-right">OCCUPANCY</th>
+                  <th className="py-2 text-right pr-3">RACKS</th>
+                  <th className="py-2 text-right pr-3">CAPACITY</th>
+                  <th className="py-2 text-right pr-3">STOCK UNITS</th>
+                  <th className="py-2 text-right pr-3">OCCUPANCY</th>
                   <th className="py-2 text-right">VALUATION</th>
                 </tr>
               </thead>
@@ -482,17 +504,20 @@ export function WarehouseIsometricVisualizer({
                         {z.type}
                       </span>
                     </td>
-                    <td className="py-2.5 text-right font-mono text-text-secondary">
+                    <td className="py-2.5 text-right font-mono text-text-secondary pr-3">
                       {z.rackCount}
                     </td>
-                    <td className="py-2.5 text-right font-mono text-text-secondary">
-                      {z.totalCapacity} pallets
+                    <td className="py-2.5 text-right font-mono text-text-secondary pr-3">
+                      {z.totalCapacity} plts
                     </td>
-                    <td className="py-2.5 text-right font-mono font-semibold text-text-primary">
+                    <td className="py-2.5 text-right font-mono text-text-secondary pr-3">
+                      {z.actualUnits}
+                    </td>
+                    <td className="py-2.5 text-right font-mono font-semibold text-text-primary pr-3">
                       {z.occupancyPct}%
                     </td>
                     <td className="py-2.5 text-right font-mono text-text-primary">
-                      {formatInr(z.estimatedValuation)}
+                      {formatInr(z.actualValuation)}
                     </td>
                   </tr>
                 ))}
@@ -1126,7 +1151,19 @@ export function WarehouseIsometricVisualizer({
               </StatusBadge>
             </div>
 
-            <div className="mt-2.5 grid grid-cols-3 gap-2 text-[11px] font-mono">
+            <div className="mt-2.5 grid grid-cols-4 gap-2 text-[11px] font-mono">
+              <div>
+                <span className="text-[10px] text-text-muted block">UNITS</span>
+                <span className="font-bold text-text-primary">
+                  {activeZone.actualUnits}
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-text-muted block">CAPACITY</span>
+                <span className="font-bold text-text-primary">
+                  {activeZone.totalCapacity} plts
+                </span>
+              </div>
               <div>
                 <span className="text-[10px] text-text-muted block">OCCUPANCY</span>
                 <span className="font-bold text-text-primary">
@@ -1134,15 +1171,9 @@ export function WarehouseIsometricVisualizer({
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-text-muted block">CAPACITY</span>
-                <span className="font-bold text-text-primary">
-                  {activeZone.totalCapacity} pallets
-                </span>
-              </div>
-              <div>
                 <span className="text-[10px] text-text-muted block">VALUATION</span>
                 <span className="font-bold text-primary">
-                  {formatInr(activeZone.estimatedValuation)}
+                  {formatInr(activeZone.actualValuation)}
                 </span>
               </div>
             </div>
@@ -1151,7 +1182,7 @@ export function WarehouseIsometricVisualizer({
             <div className="mt-3 pt-2.5 border-t border-surface-border flex items-center justify-between text-[11px]">
               <span className="text-text-muted flex items-center gap-1">
                 <Boxes size={12} className="text-secondary" />
-                <span>{activeZone.rackCount} Configured Racks</span>
+                <span>{activeZone.rackCount} Racks • {activeZone.assignedSkus} SKUs</span>
               </span>
               <Link
                 to="/app/warehouses"
@@ -1186,10 +1217,10 @@ export function WarehouseIsometricVisualizer({
         </div>
         <div className="p-3">
           <span className="text-[10px] font-mono text-text-muted block">
-            ASSIGNED SKUs
+            FACILITY STOCK
           </span>
           <span className="font-semibold text-text-primary text-xs sm:text-sm">
-            {facilityProducts.length} Product SKUs
+            {facilityStockUnits.toLocaleString()} Units ({facilityProducts.length} SKUs)
           </span>
         </div>
         <div className="p-3">

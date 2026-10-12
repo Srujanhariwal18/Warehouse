@@ -140,20 +140,48 @@ const categories = ['Storage', 'Packing', 'Equipment', 'Safety']
 const prices = [1850, 420, 12499, 8750, 6999, 18.5, 3200, 275]
 const stockLevels = [128, 64, 22, 8, 0, 340, 46, 12, 75, 5]
 
-export const products: Product[] = names.map((name, index) => ({
-  id: `product-${index + 1}`,
-  name,
-  sku: `INV-${String(index + 1).padStart(4, '0')}`,
-  category: categories[index % categories.length],
-  price: prices[index % prices.length],
-  stock: stockLevels[index % stockLevels.length],
-  reorderThreshold: index % 5 === 4 ? 10 : 20,
-  warehouseId: warehouses[index % warehouses.length].id,
-  ...(index % 4 === 0
-    ? { barcode: `890100${String(index + 1).padStart(6, '0')}` }
-    : {}),
-  ...(index % 2 === 0 ? { supplierId: `SUP-${101 + ((index / 2) % 8)}` } : {}),
-}))
+const defaultLocationsByWarehouse: Record<string, { zoneId: string; rackId: string }[]> = {
+  'wh-mum': [
+    { zoneId: 'zon-mum-a', rackId: 'rck-mum-a1' },
+    { zoneId: 'zon-mum-a', rackId: 'rck-mum-a2' },
+    { zoneId: 'zon-mum-b', rackId: 'rck-mum-b1' },
+    { zoneId: 'zon-mum-b', rackId: 'rck-mum-b2' },
+  ],
+  'wh-del': [
+    { zoneId: 'zon-del-a', rackId: 'rck-del-a1' },
+    { zoneId: 'zon-del-b', rackId: 'rck-del-b1' },
+    { zoneId: 'zon-del-b', rackId: 'rck-del-b2' },
+  ],
+  'wh-blr': [
+    { zoneId: 'zon-blr-a', rackId: 'rck-blr-a1' },
+    { zoneId: 'zon-blr-b', rackId: 'rck-blr-b1' },
+  ],
+}
+
+export const products: Product[] = names.map((name, index) => {
+  const warehouseId = warehouses[index % warehouses.length].id
+  const locList = defaultLocationsByWarehouse[warehouseId] || []
+  const locIndex = Math.floor(index / warehouses.length) % (locList.length || 1)
+  const assignedLoc = locList[locIndex]
+
+  return {
+    id: `product-${index + 1}`,
+    name,
+    sku: `INV-${String(index + 1).padStart(4, '0')}`,
+    category: categories[index % categories.length],
+    price: prices[index % prices.length],
+    stock: stockLevels[index % stockLevels.length],
+    reorderThreshold: index % 5 === 4 ? 10 : 20,
+    warehouseId,
+    ...(assignedLoc
+      ? { zoneId: assignedLoc.zoneId, rackId: assignedLoc.rackId }
+      : {}),
+    ...(index % 4 === 0
+      ? { barcode: `890100${String(index + 1).padStart(6, '0')}` }
+      : {}),
+    ...(index % 2 === 0 ? { supplierId: `SUP-${101 + ((index / 2) % 8)}` } : {}),
+  }
+})
 
 export const stockTransactions: StockTransaction[] = [
   {
