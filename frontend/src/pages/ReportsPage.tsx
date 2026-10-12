@@ -895,17 +895,17 @@ export function ReportsPage() {
                   and inter-warehouse transfers
                 </p>
               </div>
-              <div className="flex items-center gap-4 text-xs">
-                <span className="flex items-center gap-1.5 text-teal-400">
-                  <span className="h-2 w-2 rounded-full bg-teal-400" />
+              <div className="flex items-center gap-4 text-xs font-medium">
+                <span className="flex items-center gap-1.5 text-primary">
+                  <span className="h-2 w-2 rounded-full bg-primary" />
                   Inbound
                 </span>
-                <span className="flex items-center gap-1.5 text-amber-400">
-                  <span className="h-2 w-2 rounded-full bg-amber-400" />
+                <span className="flex items-center gap-1.5 text-warning">
+                  <span className="h-2 w-2 rounded-full bg-warning" />
                   Outbound
                 </span>
-                <span className="flex items-center gap-1.5 text-blue-400">
-                  <span className="h-2 w-2 rounded-full bg-blue-400" />
+                <span className="flex items-center gap-1.5 text-secondary">
+                  <span className="h-2 w-2 rounded-full bg-secondary" />
                   Transfers
                 </span>
               </div>
