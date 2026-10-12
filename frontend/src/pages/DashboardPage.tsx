@@ -1,7 +1,6 @@
 import {
   AlertTriangle,
   ArrowRight,
-  Building2,
   CheckCircle2,
   Clock,
   Package,
@@ -154,23 +153,24 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-4">
-      {/* 1. Header with Operational Context (Compact, No Wasted Space) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 sm:p-5 shadow-lg shadow-black/10">
+      {/* 1. Header with Operational Context */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-1">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-surface-border/60 bg-surface px-2.5 py-0.5 font-mono text-[11px] font-medium text-primary shadow-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Operational Command
             </span>
-            <span className="text-surface-border text-xs">•</span>
-            <span className="text-xs text-text-muted">
-              Live Mock OS{' '}
+            <span className="text-text-muted text-xs">•</span>
+            <span className="font-mono text-xs text-text-muted">
+              Live Telemetry{' '}
               {refreshedAt.toLocaleTimeString('en-IN', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
             </span>
           </div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-text-primary mt-0.5">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary mt-1.5">
             Operations Intelligence
           </h1>
         </div>
@@ -203,7 +203,7 @@ export function DashboardPage() {
       ) : (
         <>
           {/* 2. Unified High-Density Operations Telemetry Strip (Balanced, Dense, No Bloat) */}
-          <div className="overflow-hidden rounded-xl border border-surface-border bg-surface-1 shadow-xs">
+          <div className="overflow-hidden rounded-xl border border-surface-border bg-surface shadow-md shadow-slate-900/10">
             <div className="grid grid-cols-2 divide-y divide-surface-border sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
               {/* Metric 1: Enterprise Valuation */}
               <div className="p-3.5 sm:p-4">
@@ -314,37 +314,14 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Col 1-7: Signature 3D Warehouse Visualization */}
             <div className="lg:col-span-7 flex flex-col gap-2.5">
-              {/* Hub switcher bar */}
-              <div className="flex items-center justify-between rounded-lg border border-surface-border bg-sidebar/85 backdrop-blur-md px-3 py-1.5 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <Building2 size={15} className="text-primary shrink-0" />
-                  <span className="text-xs font-semibold text-text-primary">
-                    Facility Node: {activeFacility?.name}
-                  </span>
-                </div>
-                <div className="flex rounded-lg border border-surface-border bg-graphite p-0.5">
-                  {facilityTelemetry.map((wh) => (
-                    <button
-                      key={wh.id}
-                      className={`rounded px-2.5 py-0.5 text-xs font-mono font-medium transition-all ${
-                        selectedWarehouseId === wh.id
-                          ? 'bg-surface text-primary border border-primary/30 shadow-xs'
-                          : 'text-text-muted hover:text-text-primary'
-                      }`}
-                      onClick={() => setSelectedWarehouseId(wh.id)}
-                      type="button"
-                    >
-                      {wh.city}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {activeFacility && (
                 <WarehouseIsometricVisualizer
                   activeWarehouse={activeFacility}
+                  facilities={facilityTelemetry}
+                  onSelectFacility={setSelectedWarehouseId}
                   products={products}
                   racks={racks}
+                  selectedFacilityId={selectedWarehouseId}
                   zones={zones}
                 />
               )}

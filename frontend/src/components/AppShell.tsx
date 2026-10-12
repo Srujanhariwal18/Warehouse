@@ -450,48 +450,8 @@ export function AppShell() {
       <div
         className={`relative min-h-screen transition-all duration-200 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
       >
-        {/* Broad Pastel Atmosphere Glows (Behind Workspace) */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none fixed inset-0 overflow-hidden"
-          style={{ zIndex: 0 }}
-        >
-          {/* Upper-right powder blue (#D8EAF3) aura */}
-          <div
-            className="absolute -top-32 -right-32 h-[680px] w-[680px] rounded-full blur-[110px]"
-            style={{
-              background:
-                'radial-gradient(circle, #D8EAF3 0%, #D6EAF0 55%, transparent 80%)',
-            }}
-          />
-          {/* Upper-center blush pink (#F6DDE3) aura */}
-          <div
-            className="absolute -top-24 left-1/4 h-[620px] w-[620px] rounded-full blur-[120px]"
-            style={{
-              background:
-                'radial-gradient(circle, #F6DDE3 0%, rgba(246,221,227,0.7) 50%, transparent 80%)',
-            }}
-          />
-          {/* Mid-workspace warm cream (#FFF0CE) aura */}
-          <div
-            className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[650px] w-[750px] rounded-full blur-[130px]"
-            style={{
-              background:
-                'radial-gradient(circle, #FFF0CE 0%, rgba(255,240,206,0.65) 55%, transparent 80%)',
-            }}
-          />
-          {/* Lower-right pale blue (#D6EAF0) wash */}
-          <div
-            className="absolute -bottom-28 right-1/4 h-[600px] w-[600px] rounded-full blur-[120px]"
-            style={{
-              background:
-                'radial-gradient(circle, #D6EAF0 0%, #D8EAF3 55%, transparent 80%)',
-            }}
-          />
-        </div>
-
         {/* Top Operational Bar */}
-        <header className="sticky top-0 z-30 border-b border-surface-border bg-sidebar/90 backdrop-blur-md">
+        <header className="sticky top-0 z-30 border-b border-surface-border bg-sidebar/95 backdrop-blur-md">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
             {/* Left: Mobile Toggle & Page Context */}
             <div className="flex items-center gap-3">

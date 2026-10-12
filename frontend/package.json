@@ -13,11 +13,15 @@
     "test": "vite-node tests/orderValidation.test.ts && vite-node tests/suppliers.test.ts && vite-node tests/warehouse.test.ts && vite-node tests/transactions.test.ts && vite-node tests/reportsAndAlerts.test.ts && vite-node tests/integrationPhase10.test.ts"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.1",
+    "@types/three": "^0.186.0",
     "lucide-react": "^1.55.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
-    "recharts": "^3.10.1"
+    "recharts": "^3.10.1",
+    "three": "^0.186.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

@@ -16,17 +16,17 @@ export function PageHeader({
   title,
 }: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-4 rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 sm:p-5 shadow-lg shadow-black/10 sm:flex-row sm:items-end sm:justify-between">
-      <div className="space-y-1.5">
+    <header className="flex flex-col gap-3 pb-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="space-y-1">
         <div className="flex flex-wrap items-center gap-2.5">
           {eyebrow && (
-            <span className="text-xs font-medium tracking-wide text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-surface-border/60 bg-surface px-2.5 py-0.5 font-mono text-[11px] font-medium tracking-wide text-primary shadow-xs">
               {eyebrow}
             </span>
           )}
           {badge}
         </div>
-        <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-text-primary">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
           {title}
         </h1>
         <p className="max-w-3xl text-sm leading-relaxed text-text-secondary">

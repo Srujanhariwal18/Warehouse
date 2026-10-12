@@ -195,36 +195,36 @@ export function InventoryPage() {
 
   return (
     <div className="space-y-3.5">
-      {/* 1. Compact Integrated Workspace Header (Title + Key Metrics + Action) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 shadow-lg shadow-black/10">
+      {/* 1. Compact Integrated Workspace Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-1">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-surface-border/60 bg-surface px-2.5 py-0.5 font-mono text-[11px] font-medium text-primary shadow-xs">
               Warehouse Catalog
             </span>
-            <span className="text-surface-border text-xs">•</span>
-            <span className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-text-muted border border-surface-border">
+            <span className="text-text-muted text-xs">•</span>
+            <span className="font-mono text-xs text-text-muted">
               Session Preview
             </span>
           </div>
-          <div className="flex flex-wrap items-baseline gap-3 mt-0.5">
-            <h1 className="font-display text-2xl font-bold tracking-tight text-text-primary">
+          <div className="flex flex-wrap items-baseline gap-3 mt-1.5">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
               Inventory Catalogue
             </h1>
             <div className="flex items-center gap-2 text-xs">
-              <span className="rounded-md border border-surface-border bg-surface-2 px-2 py-0.5 font-mono text-text-secondary">
+              <span className="rounded-md border border-surface-border/60 bg-surface px-2.5 py-1 font-mono text-text-secondary shadow-xs">
                 {products.length} SKUs
               </span>
-              <span className="rounded-md border border-surface-border bg-surface-2 px-2 py-0.5 font-mono text-primary font-semibold">
+              <span className="rounded-md border border-surface-border/60 bg-surface px-2.5 py-1 font-mono text-primary font-semibold shadow-xs">
                 Valuation: {formatInr(inventoryValue)}
               </span>
               {outOfStock > 0 && (
-                <span className="rounded-md border border-danger/30 bg-danger/10 px-2 py-0.5 font-mono text-danger font-semibold">
+                <span className="rounded-md border border-danger/30 bg-danger/10 px-2.5 py-1 font-mono text-danger font-semibold shadow-xs">
                   {outOfStock} Stockout
                 </span>
               )}
               {lowStockProducts.length > 0 && (
-                <span className="rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 font-mono text-warning font-semibold">
+                <span className="rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1 font-mono text-warning font-semibold shadow-xs">
                   {lowStockProducts.length} Low Buffer
                 </span>
               )}
