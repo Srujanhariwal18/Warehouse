@@ -155,7 +155,7 @@ export function DashboardPage() {
   return (
     <div className="space-y-4">
       {/* 1. Header with Operational Context (Compact, No Wasted Space) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-surface-border pb-3.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 sm:p-5 shadow-lg shadow-black/10">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-primary">
@@ -315,7 +315,7 @@ export function DashboardPage() {
             {/* Col 1-7: Signature 3D Warehouse Visualization */}
             <div className="lg:col-span-7 flex flex-col gap-2.5">
               {/* Hub switcher bar */}
-              <div className="flex items-center justify-between px-1">
+              <div className="flex items-center justify-between rounded-lg border border-surface-border bg-sidebar/85 backdrop-blur-md px-3 py-1.5 shadow-sm">
                 <div className="flex items-center gap-2">
                   <Building2 size={15} className="text-primary shrink-0" />
                   <span className="text-xs font-semibold text-text-primary">

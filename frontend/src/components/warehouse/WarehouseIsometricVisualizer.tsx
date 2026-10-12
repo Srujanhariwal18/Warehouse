@@ -543,14 +543,11 @@ export function WarehouseIsometricVisualizer({
           className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage: `
-              radial-gradient(ellipse 65% 55% at 50% 45%, rgba(255, 240, 206, 0.05), transparent 70%),
-              radial-gradient(ellipse 50% 40% at 20% 25%, rgba(246, 221, 227, 0.045), transparent 65%),
-              radial-gradient(ellipse 55% 45% at 80% 30%, rgba(216, 234, 243, 0.055), transparent 65%),
-              linear-gradient(to right, rgba(216, 234, 243, 0.018) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(216, 234, 243, 0.018) 1px, transparent 1px)
+              radial-gradient(ellipse 65% 55% at 50% 45%, rgba(255, 240, 206, 0.08), transparent 70%),
+              radial-gradient(ellipse 50% 40% at 20% 25%, rgba(246, 221, 227, 0.07), transparent 65%),
+              radial-gradient(ellipse 55% 45% at 80% 30%, rgba(216, 234, 243, 0.08), transparent 65%)
             `,
-            backgroundSize:
-              '100% 100%, 100% 100%, 100% 100%, 32px 32px, 32px 32px',
+            backgroundSize: '100% 100%, 100% 100%, 100% 100%',
           }}
         />
 
@@ -951,9 +948,9 @@ export function WarehouseIsometricVisualizer({
                   cy="50%"
                   r="50%"
                 >
-                  <stop offset="0%" stopColor="#FFF0CE" stopOpacity="0.12" />
-                  <stop offset="35%" stopColor="#D8EAF3" stopOpacity="0.08" />
-                  <stop offset="70%" stopColor="#F6DDE3" stopOpacity="0.04" />
+                  <stop offset="0%" stopColor="#FFF0CE" stopOpacity="0.18" />
+                  <stop offset="35%" stopColor="#D8EAF3" stopOpacity="0.12" />
+                  <stop offset="70%" stopColor="#F6DDE3" stopOpacity="0.06" />
                   <stop offset="100%" stopColor="transparent" stopOpacity="0" />
                 </radialGradient>
               </defs>

@@ -196,7 +196,7 @@ export function InventoryPage() {
   return (
     <div className="space-y-3.5">
       {/* 1. Compact Integrated Workspace Header (Title + Key Metrics + Action) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-surface-border pb-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 shadow-lg shadow-black/10">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-primary">

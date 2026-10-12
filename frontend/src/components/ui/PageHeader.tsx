@@ -16,7 +16,7 @@ export function PageHeader({
   title,
 }: PageHeaderProps) {
   return (
-    <header className="flex flex-col gap-4 border-b border-surface-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <header className="flex flex-col gap-4 rounded-xl border border-surface-border bg-sidebar/85 backdrop-blur-md p-4 sm:p-5 shadow-lg shadow-black/10 sm:flex-row sm:items-end sm:justify-between">
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-2.5">
           {eyebrow && (

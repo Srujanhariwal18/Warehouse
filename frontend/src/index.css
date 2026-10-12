@@ -8,6 +8,7 @@
   --color-main: #090d12;
   --color-graphite: #111923;
   --color-sidebar: #111923;
+  --color-surface-1: #111923;
   --color-surface: #1c2935;
   --color-surface-2: #26333f;
   --color-surface-3: #2e3d4b;
@@ -49,49 +50,58 @@
 body {
   min-width: 320px;
   margin: 0;
-  background-color: #090d12;
+  background-color: #f8f8f6;
   background-image:
-    /* Layer 1: Ethereal Blush Pink (#F6DDE3) soft bloom on the upper-left perimeter */
+    /* Layer 1: Upper-left Blush Pink (#F6DDE3) broad field */
     radial-gradient(
-      ellipse 85% 65% at 8% 5%,
-      rgba(246, 221, 227, 0.085),
-      transparent 65%
+      ellipse 75% 60% at 6% 4%,
+      #f6dde3 0%,
+      rgba(246, 221, 227, 0.75) 40%,
+      transparent 75%
     ),
-    /* Layer 2: Powder Blue (#D8EAF3) ambient field on the upper-right */
+    /* Layer 2: Upper-right Powder Blue (#D8EAF3) broad field */
     radial-gradient(
-        ellipse 90% 70% at 92% 10%,
-        rgba(216, 234, 243, 0.095),
-        transparent 68%
+        ellipse 80% 65% at 94% 8%,
+        #d8eaf3 0%,
+        rgba(216, 234, 243, 0.75) 45%,
+        transparent 80%
       ),
-    /* Layer 3: Warm Cream (#FFF0CE) subtle atmospheric warmth centered across the mid-workspace */
+    /* Layer 3: Upper-center Warm Cream (#FFF0CE) glowing warmth */
     radial-gradient(
-        ellipse 100% 60% at 50% 45%,
-        rgba(255, 240, 206, 0.06),
-        transparent 72%
+        ellipse 85% 65% at 50% 28%,
+        #fff0ce 0%,
+        rgba(255, 240, 206, 0.8) 45%,
+        transparent 80%
       ),
-    /* Layer 4: Pale Blue (#D6EAF0) gentle low wash at the bottom-right */
+    /* Layer 4: Lower-right Pale Blue (#D6EAF0) & Powder Blue wash */
     radial-gradient(
-        ellipse 75% 55% at 85% 90%,
-        rgba(214, 234, 240, 0.07),
+        ellipse 80% 65% at 90% 72%,
+        #d6eaf0 0%,
+        rgba(214, 234, 240, 0.75) 50%,
+        transparent 80%
+      ),
+    /* Layer 5: Lower-left Blush Pink (#F6DDE3) soft bloom */
+    radial-gradient(
+        ellipse 75% 60% at 10% 75%,
+        #f6dde3 0%,
+        rgba(246, 221, 227, 0.7) 45%,
+        transparent 75%
+      ),
+    /* Layer 6: Bottom-center Warm Cream (#FFF0CE) */
+    radial-gradient(
+        ellipse 85% 60% at 50% 90%,
+        #fff0ce 0%,
+        rgba(255, 240, 206, 0.75) 50%,
+        transparent 80%
+      ),
+    /* Layer 7: Soft White (#F8F8F6) upper horizon highlight */
+    radial-gradient(
+        ellipse 60% 35% at 50% 0%,
+        #f8f8f6 0%,
+        rgba(248, 248, 246, 0.6) 40%,
         transparent 65%
-      ),
-    /* Layer 5: Soft White (#F8F8F6) delicate highlight along the upper horizon */
-    radial-gradient(
-        ellipse 60% 35% at 50% -5%,
-        rgba(248, 248, 246, 0.05),
-        transparent 55%
-      ),
-    /* Layer 6: Grounding technical orthogonal grid */
-    linear-gradient(to right, rgba(216, 234, 243, 0.015) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(216, 234, 243, 0.015) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    36px 36px,
-    36px 36px;
+      );
+  background-size: 100% 100%;
   background-attachment: fixed;
 }
 
