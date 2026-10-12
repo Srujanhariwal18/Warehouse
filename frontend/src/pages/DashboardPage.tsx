@@ -4,7 +4,6 @@ import {
   Building2,
   CheckCircle2,
   Clock,
-  Layers,
   Package,
   RefreshCw,
   TrendingUp,
@@ -31,6 +30,7 @@ import {
   stockHistory12M,
   type MovementDataPoint,
 } from '@/mocks/inventoryData'
+import { WarehouseIsometricVisualizer } from '@/components/warehouse/WarehouseIsometricVisualizer'
 import { formatDate, formatInr } from '@/lib/formatters'
 import { useInventoryStore } from '@/lib/inventoryStore'
 import { useOrdersStore } from '@/lib/orderStore'
@@ -58,7 +58,7 @@ export function DashboardPage() {
     transactions: stockTransactions,
   } = useInventoryStore()
   const { orders } = useOrdersStore()
-  const { warehouses, zones } = useWarehouseStore()
+  const { warehouses, zones, racks } = useWarehouseStore()
   const { transactions } = useTransactionStore()
 
   const [range, setRange] = useState<ChartRange>('12M')
@@ -312,209 +312,46 @@ export function DashboardPage() {
 
           {/* 3. Main Stage: Asymmetric 2-Column Split (Schematic + Velocity/Exceptions) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Col 1-7: Facility Network Architecture & Zone Schematic (Real Visualization!) */}
-            <div className="lg:col-span-7 rounded-xl border border-surface-border bg-surface p-4 flex flex-col justify-between">
-              <div>
-                {/* Facility Header & Hub Switcher */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-surface-border pb-3">
-                  <div className="flex items-center gap-2">
-                    <Building2 size={16} className="text-secondary shrink-0" />
-                    <div>
-                      <h2 className="text-sm font-semibold text-text-primary">
-                        Facility Network & Zone Schematic
-                      </h2>
-                      <p className="text-[11px] text-text-muted">
-                        Interactive physical layout and zone occupancy
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Hub selector tabs */}
-                  <div className="flex rounded-lg border border-surface-border bg-surface-2 p-0.5 self-start sm:self-auto">
-                    {facilityTelemetry.map((wh) => (
-                      <button
-                        key={wh.id}
-                        className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
-                          selectedWarehouseId === wh.id
-                            ? 'bg-surface text-primary border border-primary/20 shadow-xs'
-                            : 'text-text-muted hover:text-text-primary'
-                        }`}
-                        onClick={() => setSelectedWarehouseId(wh.id)}
-                        type="button"
-                      >
-                        {wh.city}
-                      </button>
-                    ))}
-                  </div>
+            {/* Col 1-7: Signature 3D Warehouse Visualization */}
+            <div className="lg:col-span-7 flex flex-col gap-2.5">
+              {/* Hub switcher bar */}
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  <Building2 size={15} className="text-primary shrink-0" />
+                  <span className="text-xs font-semibold text-text-primary">
+                    Facility Node: {activeFacility?.name}
+                  </span>
                 </div>
-
-                {/* Selected Facility Overview Header */}
-                {activeFacility && (
-                  <div className="mt-3 rounded-lg border border-surface-border bg-surface-2/40 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-xs text-text-primary">
-                            {activeFacility.name}
-                          </span>
-                          <span className="font-mono text-[10px] text-text-muted">
-                            [{activeFacility.id}]
-                          </span>
-                          <StatusBadge
-                            size="sm"
-                            tone={
-                              activeFacility.status === 'Active'
-                                ? 'success'
-                                : 'neutral'
-                            }
-                          >
-                            {activeFacility.status}
-                          </StatusBadge>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-[11px] text-text-muted">
-                          <span>
-                            {activeFacility.capacitySqFt.toLocaleString(
-                              'en-IN',
-                            )}{' '}
-                            sq ft
-                          </span>
-                          <span>•</span>
-                          <span>{activeFacility.skuCount} Assigned SKUs</span>
-                          <span>•</span>
-                          <span>
-                            {activeFacility.stockUnits.toLocaleString('en-IN')}{' '}
-                            Units
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <div className="text-right">
-                          <span className="font-mono text-xs font-bold text-text-primary">
-                            {activeFacility.utilizationPct}%
-                          </span>
-                          <span className="block text-[10px] text-text-muted">
-                            Capacity
-                          </span>
-                        </div>
-                        <div className="w-16 h-2 rounded-full bg-surface-3 overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-secondary to-primary rounded-full"
-                            style={{
-                              width: `${activeFacility.utilizationPct}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Zone Schematic Grid (Physical Layout) */}
-                <div className="mt-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-medium text-text-muted flex items-center gap-1.5">
-                      <Layers size={13} className="text-primary" />
-                      <span>
-                        Configured Zones ({activeFacility?.zones.length || 0})
-                      </span>
-                    </span>
-                    <Link
-                      to="/app/warehouses"
-                      className="text-[11px] text-primary hover:underline flex items-center gap-1"
+                <div className="flex rounded-lg border border-surface-border bg-graphite p-0.5">
+                  {facilityTelemetry.map((wh) => (
+                    <button
+                      key={wh.id}
+                      className={`rounded px-2.5 py-0.5 text-xs font-mono font-medium transition-all ${
+                        selectedWarehouseId === wh.id
+                          ? 'bg-surface text-primary border border-primary/30 shadow-xs'
+                          : 'text-text-muted hover:text-text-primary'
+                      }`}
+                      onClick={() => setSelectedWarehouseId(wh.id)}
+                      type="button"
                     >
-                      <span>Manage Racks</span>
-                      <ArrowRight size={11} />
-                    </Link>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                    {activeFacility?.zones.map((zone) => {
-                      const isCold = zone.type === 'Cold Storage'
-                      const isPicking = zone.type === 'Picking'
-                      const isReceiving = zone.type === 'Receiving'
-                      const occupancy =
-                        zone.status === 'Active'
-                          ? isCold
-                            ? 45
-                            : isPicking
-                              ? 88
-                              : 72
-                          : 0
-
-                      return (
-                        <div
-                          key={zone.id}
-                          className="rounded-lg border border-surface-border bg-surface-2/60 p-2.5 hover:border-surface-3 transition-colors flex flex-col justify-between"
-                        >
-                          <div>
-                            <div className="flex items-center justify-between">
-                              <span className="font-mono text-[10px] text-text-muted">
-                                {zone.id}
-                              </span>
-                              <span
-                                className={`rounded px-1.5 py-0.2 text-[9px] font-medium ${
-                                  isCold
-                                    ? 'bg-secondary/10 text-secondary'
-                                    : isPicking
-                                      ? 'bg-warning/10 text-warning'
-                                      : isReceiving
-                                        ? 'bg-primary/10 text-primary'
-                                        : 'bg-surface-3 text-text-secondary'
-                                }`}
-                              >
-                                {zone.type}
-                              </span>
-                            </div>
-                            <p
-                              className="font-semibold text-xs text-text-primary mt-1 truncate"
-                              title={zone.name}
-                            >
-                              {zone.name}
-                            </p>
-                          </div>
-
-                          <div className="mt-2.5 pt-2 border-t border-surface-border/60">
-                            <div className="flex items-center justify-between text-[10px] font-mono text-text-muted mb-1">
-                              <span>Occupancy</span>
-                              <span
-                                className={
-                                  zone.status === 'Active'
-                                    ? 'text-text-primary font-semibold'
-                                    : 'text-text-muted'
-                                }
-                              >
-                                {occupancy}%
-                              </span>
-                            </div>
-                            <div className="h-1 w-full bg-surface-3 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${
-                                  zone.status === 'Active'
-                                    ? occupancy > 80
-                                      ? 'bg-warning'
-                                      : 'bg-primary'
-                                    : 'bg-surface-border'
-                                }`}
-                                style={{ width: `${occupancy}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
+                      {wh.city}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Bottom Quick Hub Footprint Strip */}
-              <div className="mt-3 pt-2.5 border-t border-surface-border/60 flex items-center justify-between text-[11px] text-text-muted">
-                <span>Network Overview: 3 Multi-Region Hubs</span>
-                <span className="font-mono text-text-secondary">
-                  Valuation: {formatInr(activeFacility?.valuation || 0)}
-                </span>
-              </div>
+              {activeFacility && (
+                <WarehouseIsometricVisualizer
+                  activeWarehouse={activeFacility}
+                  products={products}
+                  racks={racks}
+                  zones={zones}
+                />
+              )}
             </div>
+
+
+
 
             {/* Col 8-12: Movement Velocity & Critical Stockout Exceptions */}
             <div className="lg:col-span-5 space-y-4">
@@ -571,12 +408,12 @@ export function DashboardPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#22d3c5"
-                            stopOpacity={0.25}
+                            stopColor="#43D9E8"
+                            stopOpacity={0.3}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#22d3c5"
+                            stopColor="#43D9E8"
                             stopOpacity={0}
                           />
                         </linearGradient>
@@ -589,18 +426,18 @@ export function DashboardPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#55b9f3"
-                            stopOpacity={0.25}
+                            stopColor="#5AA9FF"
+                            stopOpacity={0.3}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#55b9f3"
+                            stopColor="#5AA9FF"
                             stopOpacity={0}
                           />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
-                        stroke="#26333d"
+                        stroke="#223140"
                         strokeDasharray="2 2"
                         vertical={false}
                       />
@@ -608,7 +445,7 @@ export function DashboardPage() {
                         axisLine={false}
                         dataKey="period"
                         tick={{
-                          fill: '#758792',
+                          fill: '#8EA0B2',
                           fontSize: 10,
                           fontFamily: 'monospace',
                         }}
@@ -617,7 +454,7 @@ export function DashboardPage() {
                       <YAxis
                         axisLine={false}
                         tick={{
-                          fill: '#758792',
+                          fill: '#8EA0B2',
                           fontSize: 10,
                           fontFamily: 'monospace',
                         }}
@@ -637,16 +474,16 @@ export function DashboardPage() {
                               ?.value || 0,
                           )
                           return (
-                            <div className="rounded-lg border border-surface-border bg-surface-2 p-2 shadow-xl text-[11px] font-mono">
+                            <div className="rounded-lg border border-surface-border bg-graphite p-2.5 shadow-2xl text-[11px] font-mono">
                               <p className="font-semibold text-text-primary pb-1 mb-1 border-b border-surface-border">
                                 {label}
                               </p>
                               <p className="text-primary flex justify-between gap-3">
-                                <span>Inbound:</span>
+                                <span>Inbound Flow:</span>
                                 <span>+{inUnits}</span>
                               </p>
                               <p className="text-secondary flex justify-between gap-3">
-                                <span>Outbound:</span>
+                                <span>Outbound Flow:</span>
                                 <span>-{outUnits}</span>
                               </p>
                             </div>
@@ -657,16 +494,16 @@ export function DashboardPage() {
                         dataKey="inbound"
                         fill="url(#tealGradV2)"
                         name="Inbound"
-                        stroke="#22d3c5"
-                        strokeWidth={1.5}
+                        stroke="#43D9E8"
+                        strokeWidth={2}
                         type="monotone"
                       />
                       <Area
                         dataKey="outbound"
                         fill="url(#blueGradV2)"
                         name="Outbound"
-                        stroke="#55b9f3"
-                        strokeWidth={1.5}
+                        stroke="#5AA9FF"
+                        strokeWidth={2}
                         type="monotone"
                       />
                     </AreaChart>

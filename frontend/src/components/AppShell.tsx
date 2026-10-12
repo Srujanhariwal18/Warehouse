@@ -326,8 +326,8 @@ export function AppShell() {
                     className={({ isActive }) =>
                       `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-medium transition-all ${
                         isActive
-                          ? 'bg-primary/10 text-primary font-semibold shadow-[inset_0_0_12px_rgba(34,211,197,0.06)]'
-                          : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
+                          ? 'bg-primary/10 text-primary font-semibold shadow-[inset_0_0_12px_rgba(67,217,232,0.08)]'
+                          : 'text-text-secondary hover:bg-surface hover:text-text-primary'
                       } ${collapsed ? 'justify-center px-0' : ''}`
                     }
                     key={to}
@@ -337,7 +337,7 @@ export function AppShell() {
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary shadow-[0_0_8px_rgba(34,211,197,0.6)]" />
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary shadow-[0_0_10px_rgba(67,217,232,0.7)]" />
                         )}
                         <Icon
                           aria-hidden="true"
@@ -364,10 +364,10 @@ export function AppShell() {
         {/* Bottom Workspace Telemetry Status */}
         <div className="p-3 border-t border-surface-border/60">
           {!collapsed ? (
-            <div className="rounded-xl border border-surface-border bg-surface/50 p-3">
+            <div className="rounded-xl border border-surface-border bg-graphite/60 p-3 shadow-inner">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 font-mono text-[10px] text-primary uppercase tracking-wider font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="flex items-center gap-1.5 font-mono text-[10px] text-primary uppercase tracking-wider font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(67,217,232,0.8)]" />
                   SYS.NORMAL
                 </span>
                 <span className="font-mono text-[10px] text-text-muted">
@@ -375,7 +375,7 @@ export function AppShell() {
                 </span>
               </div>
               <p className="mt-1 font-mono text-[10px] text-text-muted truncate">
-                IN-MEMORY TELEMETRY
+                LIVE TELEMETRY // ACTIVE
               </p>
             </div>
           ) : (
@@ -383,7 +383,7 @@ export function AppShell() {
               className="flex justify-center py-2"
               title="System normal (3 Hubs online)"
             >
-              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(34,211,197,0.8)]" />
+              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_rgba(67,217,232,0.9)]" />
             </div>
           )}
         </div>

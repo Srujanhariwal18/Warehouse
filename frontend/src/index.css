@@ -2,21 +2,22 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-primary: #22d3c5;
-  --color-primary-dark: #12b5a8;
-  --color-secondary: #55b9f3;
-  --color-main: #11171b;
-  --color-sidebar: #171f24;
-  --color-surface: #1c262d;
-  --color-surface-2: #242f37;
-  --color-surface-3: #2d3a44;
-  --color-surface-border: #26333d;
-  --color-text-primary: #edf4f7;
-  --color-text-secondary: #a4b3bc;
-  --color-text-muted: #758792;
-  --color-success: #34d399;
+  --color-primary: #43d9e8;
+  --color-primary-dark: #22b7c6;
+  --color-secondary: #5aa9ff;
+  --color-main: #090d12;
+  --color-graphite: #111923;
+  --color-sidebar: #111923;
+  --color-surface: #1c2935;
+  --color-surface-2: #26333f;
+  --color-surface-3: #2e3d4b;
+  --color-surface-border: #223140;
+  --color-text-primary: #e9f0f7;
+  --color-text-secondary: #8ea0b2;
+  --color-text-muted: #627588;
+  --color-success: #10b981;
   --color-warning: #f59e0b;
-  --color-danger: #f87171;
+  --color-danger: #ef4444;
   --font-display: 'Sora', sans-serif;
   --font-sans: 'Geist', sans-serif;
   --font-mono: 'Geist Mono', monospace;
@@ -40,18 +41,32 @@
 body {
   min-width: 320px;
   margin: 0;
-  background-color: var(--color-main);
+  background-color: #090d12;
   background-image:
+    /* Layer 1: Restrained ambient cyan lighting at top-center */
     radial-gradient(
-      ellipse 80% 50% at 50% -20%,
-      rgba(34, 211, 197, 0.04),
+      ellipse 70% 40% at 50% -10%,
+      rgba(67, 217, 232, 0.045),
       transparent 70%
     ),
+    /* Layer 2: Subtle cool blue lighting at bottom-right */
     radial-gradient(
-      ellipse 60% 40% at 90% 10%,
-      rgba(85, 185, 243, 0.03),
-      transparent 60%
+      ellipse 60% 35% at 95% 85%,
+      rgba(90, 169, 255, 0.03),
+      transparent 65%
+    ),
+    /* Layer 3: Subtle technical orthogonal grid */
+    linear-gradient(
+      to right,
+      rgba(90, 169, 255, 0.018) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(90, 169, 255, 0.018) 1px,
+      transparent 1px
     );
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
   background-attachment: fixed;
 }
 
@@ -67,32 +82,61 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #11171b;
+  background: #090d12;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #242f37;
+  background: #223140;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2d3a44;
+  background: #2e3d4b;
 }
 
-/* Technical grid and subtle gradient utilities */
-.tech-panel {
-  background: #1c262d;
-  border: 1px solid #26333d;
+/* 3D Obsidian & Steel Industrial Depth Utilities */
+.obsidian-card {
+  background: #111923;
+  border: 1px solid #223140;
   border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 0 rgba(233, 240, 247, 0.05),
+    0 8px 24px -4px rgba(0, 0, 0, 0.5);
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.obsidian-card:hover {
+  border-color: rgba(67, 217, 232, 0.22);
+  box-shadow:
+    inset 0 1px 0 0 rgba(67, 217, 232, 0.1),
+    0 12px 32px -4px rgba(0, 0, 0, 0.6),
+    0 0 16px -2px rgba(67, 217, 232, 0.06);
+}
+
+.steel-panel {
+  background: #1c2935;
+  border: 1px solid #26333f;
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 1px 0 0 rgba(233, 240, 247, 0.07),
+    0 12px 32px -4px rgba(0, 0, 0, 0.55);
+}
+
+.tech-panel {
+  background: #1c2935;
+  border: 1px solid #223140;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 0 0 rgba(233, 240, 247, 0.05);
   position: relative;
 }
 
 .tech-panel-header {
-  border-bottom: 1px solid #26333d;
+  border-bottom: 1px solid #223140;
   background: linear-gradient(
     180deg,
-    rgba(36, 47, 55, 0.4) 0%,
-    rgba(28, 38, 45, 0.4) 100%
+    rgba(38, 51, 63, 0.5) 0%,
+    rgba(28, 41, 53, 0.5) 100%
   );
 }
 
@@ -100,6 +144,12 @@ body {
   font-family: var(--font-mono);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+/* Perspective 3D Scene Container */
+.isometric-stage {
+  perspective: 1200px;
+  transform-style: preserve-3d;
 }
 
 @media (prefers-reduced-motion: reduce) {

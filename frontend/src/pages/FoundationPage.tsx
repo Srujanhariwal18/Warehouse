@@ -36,7 +36,7 @@ export function FoundationPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-[#11171B] shadow-sm shadow-primary/20 transition-all hover:bg-primary-hover hover:shadow-primary/30"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-[#090D12] shadow-sm shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-primary/35"
               to="/app/dashboard"
             >
               Enter Operations Console

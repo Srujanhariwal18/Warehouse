@@ -57,8 +57,8 @@ import {
 import { useTransactionStore } from '@/lib/transactionStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
 
-const CATEGORY_COLORS = ['#22D3C5', '#55B9F3', '#34D399', '#38BDF8', '#64748B']
-const WAREHOUSE_COLORS = ['#22D3C5', '#55B9F3', '#34D399', '#38BDF8', '#94A3B8']
+const CATEGORY_COLORS = ['#43D9E8', '#5AA9FF', '#10B981', '#38BDF8', '#8EA0B2']
+const WAREHOUSE_COLORS = ['#43D9E8', '#5AA9FF', '#10B981', '#38BDF8', '#8EA0B2']
 
 export function ReportsPage() {
   const { products } = useInventoryStore()
@@ -933,12 +933,12 @@ export function ReportsPage() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#14b8a6"
+                          stopColor="#43D9E8"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#14b8a6"
+                          stopColor="#43D9E8"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
@@ -963,39 +963,39 @@ export function ReportsPage() {
                       <linearGradient id="trfGrad" x1="0" x2="0" y1="0" y2="1">
                         <stop
                           offset="5%"
-                          stopColor="#55B9F3"
+                          stopColor="#5AA9FF"
                           stopOpacity={0.35}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#55B9F3"
+                          stopColor="#5AA9FF"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="#2c3734"
+                      stroke="#223140"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       axisLine={false}
                       dataKey="period"
-                      tick={{ fill: '#8a9b95', fontSize: 11 }}
+                      tick={{ fill: '#8EA0B2', fontSize: 11 }}
                       tickLine={false}
                     />
                     <YAxis
                       axisLine={false}
-                      tick={{ fill: '#8a9b95', fontSize: 11 }}
+                      tick={{ fill: '#8EA0B2', fontSize: 11 }}
                       tickLine={false}
                       width={40}
                     />
                     <Tooltip
                       contentStyle={{
-                        background: '#1C262D',
-                        border: '1px solid #2D3A44',
+                        background: '#111923',
+                        border: '1px solid #223140',
                         borderRadius: 12,
-                        color: '#EDF4F7',
+                        color: '#E9F0F7',
                         fontSize: 12,
                       }}
                     />
@@ -1003,7 +1003,7 @@ export function ReportsPage() {
                       dataKey="inbound"
                       fill="url(#inboundGrad)"
                       name="Inbound (+)"
-                      stroke="#22D3C5"
+                      stroke="#43D9E8"
                       strokeWidth={2}
                       type="monotone"
                     />
@@ -1019,7 +1019,7 @@ export function ReportsPage() {
                       dataKey="transfers"
                       fill="url(#trfGrad)"
                       name="Transfers (0)"
-                      stroke="#55B9F3"
+                      stroke="#5AA9FF"
                       strokeWidth={2}
                       type="monotone"
                     />

@@ -10,13 +10,13 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary text-[#0d1317] font-semibold hover:bg-primary/90 shadow-[0_0_16px_rgba(34,211,197,0.22)] active:scale-[0.99] disabled:bg-primary/40 disabled:text-[#0d1317]/50',
+    'bg-primary text-[#090D12] font-semibold hover:bg-primary/90 shadow-[0_0_18px_rgba(67,217,232,0.28)] active:scale-[0.99] disabled:bg-primary/30 disabled:text-[#090D12]/40',
   secondary:
-    'border border-surface-3 bg-surface text-text-primary hover:border-primary/50 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50',
+    'border border-surface-border bg-surface text-text-primary hover:border-primary/40 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50',
   ghost:
     'text-text-secondary hover:bg-surface-2 hover:text-text-primary active:scale-[0.99] disabled:opacity-50',
   outline:
-    'border border-surface-3 bg-transparent text-text-primary hover:border-text-secondary hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50',
+    'border border-surface-border bg-transparent text-text-primary hover:border-text-secondary hover:bg-surface active:scale-[0.99] disabled:opacity-50',
   danger:
     'border border-danger/40 bg-danger/10 text-danger hover:bg-danger/20 hover:border-danger active:scale-[0.99] disabled:opacity-50',
 }

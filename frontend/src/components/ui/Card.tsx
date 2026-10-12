@@ -15,14 +15,14 @@ export function Card({
 
   if (variant === 'metric') {
     baseStyles +=
-      ' bg-surface border border-surface-border p-5 relative overflow-hidden'
+      ' bg-graphite border border-surface-border p-5 relative overflow-hidden shadow-lg shadow-black/40'
   } else if (variant === 'subtle') {
-    baseStyles += ' bg-surface/40 border border-surface-border/60'
+    baseStyles += ' bg-graphite/60 border border-surface-border/60'
   } else if (variant === 'ghost') {
     baseStyles += ' bg-transparent'
   } else {
     baseStyles += ` border border-surface-border ${
-      elevated ? 'bg-surface-2 shadow-2xl shadow-black/40' : 'bg-surface'
+      elevated ? 'bg-surface shadow-2xl shadow-black/60' : 'bg-graphite shadow-md shadow-black/30'
     }`
   }
 
