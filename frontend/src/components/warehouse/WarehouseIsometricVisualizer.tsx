@@ -7,6 +7,7 @@ import {
   Table as TableIcon,
   Warehouse as WarehouseIcon,
   AlertCircle,
+  X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -65,6 +66,14 @@ export function WarehouseIsometricVisualizer({
   const [webGLAvailable] = useState<boolean>(() =>
     typeof window !== 'undefined' ? checkWebGLSupport() : true,
   )
+
+  const [prevWarehouseId, setPrevWarehouseId] = useState(activeWarehouse.id)
+  if (prevWarehouseId !== activeWarehouse.id) {
+    setPrevWarehouseId(activeWarehouse.id)
+    setSelectedZoneId(null)
+    setSelectedRackId(null)
+    setHoveredZoneId(null)
+  }
 
   // Filter zones & racks strictly for active warehouse
   const facilityZones = useMemo(
@@ -459,6 +468,8 @@ export function WarehouseIsometricVisualizer({
               setSelectedZoneId(zid)
               if (zid) onSelectZone?.(zid)
             }}
+            products={products}
+            racks={racks}
             selectedRackId={selectedRackId}
             selectedZoneId={selectedZoneId}
             viewMode={viewMode}
@@ -528,12 +539,28 @@ export function WarehouseIsometricVisualizer({
                   </span>
                 </div>
               </div>
-              <StatusBadge
-                size="sm"
-                tone={activeZone.status === 'Active' ? 'success' : 'neutral'}
-              >
-                {activeZone.status}
-              </StatusBadge>
+              <div className="flex items-center gap-1.5">
+                <StatusBadge
+                  size="sm"
+                  tone={activeZone.status === 'Active' ? 'success' : 'neutral'}
+                >
+                  {activeZone.status}
+                </StatusBadge>
+                {(selectedZoneId || selectedRackId) && (
+                  <button
+                    aria-label="Deselect"
+                    className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors"
+                    onClick={() => {
+                      setSelectedZoneId(null)
+                      setSelectedRackId(null)
+                    }}
+                    title="Clear selection"
+                    type="button"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Honest Data Presentation */}

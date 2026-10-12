@@ -1,11 +1,22 @@
 import { OrbitControls, Html } from '@react-three/drei'
 import { Canvas, useThree } from '@react-three/fiber'
-import { type ComponentRef, useEffect, useMemo, useRef, useState } from 'react'
+import { type ComponentRef, useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
+import {
+  EquipmentFixtureModel,
+  PackingWorkstationModel,
+  SafetyFixtureModel,
+  StorageRackModel,
+  WarehouseShell,
+} from './Warehouse3DModels'
 import type {
   HeatmapMetric,
   VisualizationMode,
 } from './WarehouseIsometricVisualizer'
+import {
+  generateWarehouse3DLayout,
+  type PlacedZone,
+} from './warehouseLayoutGenerator'
 import type { Product, Warehouse } from '@/mocks/inventoryData'
 import type { WarehouseRack, WarehouseZone } from '@/mocks/warehouseData'
 import { formatInr } from '@/lib/formatters'
@@ -25,6 +36,8 @@ export type ZoneStatistic = WarehouseZone & {
 type Props = {
   activeWarehouse: Warehouse
   zones: ZoneStatistic[]
+  racks?: WarehouseRack[]
+  products?: Product[]
   viewMode: VisualizationMode
   heatmapMetric: HeatmapMetric
   selectedZoneId: string | null
@@ -36,7 +49,7 @@ type Props = {
   cameraResetTrigger: number
 }
 
-// Camera controller that animates between 3D Perspective, 2D Floor Plan, and Elevation views
+// Camera controller that smoothly transitions between 3D Perspective, 2D Floor Plan, and Elevation cutaway
 function CameraController({
   viewMode,
   cameraResetTrigger,
@@ -51,7 +64,7 @@ function CameraController({
     if (!controlsRef.current) return
 
     if (viewMode === 'isometric') {
-      // 3D Perspective angle
+      // 3D Perspective architectural orbit angle
       camera.position.set(19, 17, 21)
       camera.lookAt(0, 1.5, 0)
       controlsRef.current.target.set(0, 1.2, 0)
@@ -59,20 +72,20 @@ function CameraController({
       controlsRef.current.minPolarAngle = 0.1
       controlsRef.current.enableRotate = true
     } else if (viewMode === 'topdown') {
-      // 2D Floor Plan top-down view
-      camera.position.set(0, 32, 0.01)
+      // 2D Floor Plan: top-down architectural layout
+      camera.position.set(0, 34, 0.001)
       camera.lookAt(0, 0, 0)
       controlsRef.current.target.set(0, 0, 0)
-      controlsRef.current.maxPolarAngle = 0.05
+      controlsRef.current.maxPolarAngle = 0.02
       controlsRef.current.minPolarAngle = 0
       controlsRef.current.enableRotate = false
     } else if (viewMode === 'elevation') {
-      // Elevation side view (front profile)
-      camera.position.set(0, 4.2, 28)
-      camera.lookAt(0, 2.8, 0)
-      controlsRef.current.target.set(0, 2.5, 0)
+      // Elevation: side cutaway profile showing vertical shelf tiers
+      camera.position.set(0, 4.5, 29)
+      camera.lookAt(0, 2.5, 0)
+      controlsRef.current.target.set(0, 2.2, 0)
       controlsRef.current.maxPolarAngle = Math.PI / 2
-      controlsRef.current.minPolarAngle = Math.PI / 2.2
+      controlsRef.current.minPolarAngle = Math.PI / 2.25
       controlsRef.current.enableRotate = true
     }
 
@@ -82,383 +95,61 @@ function CameraController({
 
   return (
     <OrbitControls
-      ref={controlsRef}
       dampingFactor={0.08}
       enableDamping
       enablePan
       enableZoom
-      maxDistance={65}
-      minDistance={6}
+      maxDistance={70}
+      minDistance={5}
+      ref={controlsRef}
     />
   )
 }
 
-// Floor Slab with industrial thickness, concrete finish, safety aisle markings, and loading docks
-function WarehouseFloor() {
-  return (
-    <group position={[0, 0, 0]}>
-      {/* Structural Foundation Slab (thickness 0.6) */}
-      <mesh receiveShadow position={[0, -0.3, 0]}>
-        <boxGeometry args={[30, 0.6, 22]} />
-        <meshStandardMaterial color="#0F1722" metalness={0.2} roughness={0.8} />
-      </mesh>
-
-      {/* Slab Bevel Perimeter Outline */}
-      <lineSegments position={[0, 0.005, 0]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(30, 0.01, 22)]} />
-        <lineBasicMaterial color="#263748" linewidth={1} />
-      </lineSegments>
-
-      {/* Main Transport Cross-Aisle Marking */}
-      <mesh position={[0, 0.01, 0]}>
-        <planeGeometry args={[28, 2.4]} />
-        <meshStandardMaterial color="#141E2B" metalness={0.1} roughness={0.9} />
-      </mesh>
-
-      {/* Aisle Safety Boundary Stripes (Cyan & Amber) */}
-      <mesh position={[0, 0.012, 1.2]}>
-        <planeGeometry args={[28, 0.08]} />
-        <meshBasicMaterial color="#43D9E8" opacity={0.65} transparent />
-      </mesh>
-      <mesh position={[0, 0.012, -1.2]}>
-        <planeGeometry args={[28, 0.08]} />
-        <meshBasicMaterial color="#43D9E8" opacity={0.65} transparent />
-      </mesh>
-
-      {/* Central Pedestrian Safety Walkway */}
-      <mesh position={[0, 0.011, 0]}>
-        <planeGeometry args={[1.6, 20]} />
-        <meshStandardMaterial color="#111B27" />
-      </mesh>
-      <mesh position={[0.8, 0.013, 0]}>
-        <planeGeometry args={[0.06, 20]} />
-        <meshBasicMaterial color="#F5A524" opacity={0.7} transparent />
-      </mesh>
-      <mesh position={[-0.8, 0.013, 0]}>
-        <planeGeometry args={[0.06, 20]} />
-        <meshBasicMaterial color="#F5A524" opacity={0.7} transparent />
-      </mesh>
-
-      {/* Loading Dock Staging Area (Front Bay) */}
-      <mesh position={[0, 0.011, 8.2]}>
-        <planeGeometry args={[12, 3.2]} />
-        <meshStandardMaterial color="#142130" />
-      </mesh>
-      <lineSegments position={[0, 0.014, 8.2]}>
-        <edgesGeometry args={[new THREE.BoxGeometry(12, 0.01, 3.2)]} />
-        <lineBasicMaterial color="#F5A524" opacity={0.8} transparent />
-      </lineSegments>
-
-      {/* Perimeter Structural Steel Columns */}
-      {[-14, 0, 14].map((x) =>
-        [-10, 10].map((z) => (
-          <mesh castShadow key={`col-${x}-${z}`} position={[x, 3, z]}>
-            <boxGeometry args={[0.35, 6, 0.35]} />
-            <meshStandardMaterial
-              color="#1B2837"
-              metalness={0.7}
-              roughness={0.4}
-            />
-          </mesh>
-        )),
-      )}
-
-      {/* Rear Low Enclosure Wall (Industrial Steel/Glass aesthetic) */}
-      <mesh position={[0, 1.2, -10.8]}>
-        <boxGeometry args={[29.8, 2.4, 0.15]} />
-        <meshStandardMaterial
-          color="#121C28"
-          metalness={0.4}
-          roughness={0.7}
-          transparent
-          opacity={0.85}
-        />
-      </mesh>
-      {/* Side Low Walls */}
-      <mesh position={[-14.8, 1.2, 0]}>
-        <boxGeometry args={[0.15, 2.4, 21.8]} />
-        <meshStandardMaterial
-          color="#121C28"
-          metalness={0.4}
-          roughness={0.7}
-          transparent
-          opacity={0.85}
-        />
-      </mesh>
-      <mesh position={[14.8, 1.2, 0]}>
-        <boxGeometry args={[0.15, 2.4, 21.8]} />
-        <meshStandardMaterial
-          color="#121C28"
-          metalness={0.4}
-          roughness={0.7}
-          transparent
-          opacity={0.85}
-        />
-      </mesh>
-    </group>
-  )
-}
-
-// 3D Storage Rack Component with Steel Beams, Wire Decking, Pallets, and Varied Cargo Crates
-function StorageRack3D({
-  rack,
-  zone,
-  position,
-  rotationY = 0,
-  heatmapMetric,
-  isSelected,
-  onSelect,
-}: {
-  rack: WarehouseRack
-  zone?: ZoneStatistic
-  position: [number, number, number]
-  rotationY?: number
-  heatmapMetric: HeatmapMetric
-  isSelected: boolean
-  onSelect: () => void
-}) {
-  const [hovered, setHovered] = useState(false)
-  const levels = rack.levels ?? 4
-  const rackWidth = 4.6
-  const rackDepth = 1.3
-  const levelHeight = 1.05
-  const totalHeight = levels * levelHeight + 0.3
-
-  // Determine box colors based on active heatmap metric
-  const boxColor = useMemo(() => {
-    if (!zone) return '#43D9E8'
-
-    if (heatmapMetric === 'occupancy') {
-      const pct = zone.occupancyPct
-      if (pct >= 75) return '#19C995' // Healthy: Emerald/Cyan
-      if (pct >= 40) return '#5AA9FF' // Active: Cool Blue
-      if (pct > 0) return '#F5A524' // Low Stock: Amber
-      return '#FF5263' // Out of stock: Crimson
-    }
-
-    if (heatmapMetric === 'type') {
-      switch (zone.type) {
-        case 'Picking':
-          return '#43D9E8'
-        case 'Cold Storage':
-          return '#38BDF8'
-        case 'Receiving':
-          return '#F5A524'
-        case 'Packing':
-          return '#2DD4BF'
-        case 'Quarantine':
-          return '#FF5263'
-        default:
-          return '#5AA9FF'
-      }
-    }
-
-    if (heatmapMetric === 'valuation') {
-      if (zone.actualValuation > 500000) return '#43D9E8'
-      if (zone.actualValuation > 100000) return '#5AA9FF'
-      return '#3F556B'
-    }
-
-    return '#43D9E8'
-  }, [zone, heatmapMetric])
-
-  return (
-    <group
-      onClick={(e) => {
-        e.stopPropagation()
-        onSelect()
-      }}
-      onPointerOut={(e) => {
-        e.stopPropagation()
-        setHovered(false)
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation()
-        setHovered(true)
-      }}
-      position={position}
-      rotation={[0, rotationY, 0]}
-    >
-      {/* 4 Steel Corner Uprights */}
-      {[-rackWidth / 2, rackWidth / 2].map((x) =>
-        [-rackDepth / 2, rackDepth / 2].map((z) => (
-          <mesh
-            castShadow
-            key={`upright-${x}-${z}`}
-            position={[x, totalHeight / 2, z]}
-          >
-            <boxGeometry args={[0.07, totalHeight, 0.07]} />
-            <meshStandardMaterial
-              color={isSelected ? '#43D9E8' : hovered ? '#5AA9FF' : '#27384B'}
-              metalness={0.7}
-              roughness={0.3}
-            />
-          </mesh>
-        )),
-      )}
-
-      {/* Horizontal Shelf Beams and Loaded Pallets at each level */}
-      {Array.from({ length: levels }).map((_, lvlIdx) => {
-        const y = (lvlIdx + 1) * levelHeight - 0.15
-        const isLevelOccupied = zone
-          ? zone.occupancyPct >= ((lvlIdx + 1) / levels) * 60
-          : true
-
-        return (
-          <group key={`level-${lvlIdx}`} position={[0, y, 0]}>
-            {/* Front & Back Steel Load Beams (Orange/Steel industrial finish) */}
-            <mesh position={[0, 0, rackDepth / 2]}>
-              <boxGeometry args={[rackWidth + 0.1, 0.08, 0.06]} />
-              <meshStandardMaterial
-                color={isSelected ? '#43D9E8' : '#F5A524'}
-                metalness={0.5}
-                roughness={0.4}
-              />
-            </mesh>
-            <mesh position={[0, 0, -rackDepth / 2]}>
-              <boxGeometry args={[rackWidth + 0.1, 0.08, 0.06]} />
-              <meshStandardMaterial
-                color={isSelected ? '#43D9E8' : '#F5A524'}
-                metalness={0.5}
-                roughness={0.4}
-              />
-            </mesh>
-
-            {/* Wire Decking */}
-            <mesh position={[0, 0.03, 0]}>
-              <boxGeometry args={[rackWidth - 0.1, 0.02, rackDepth - 0.1]} />
-              <meshStandardMaterial
-                color="#1B2836"
-                metalness={0.8}
-                roughness={0.3}
-              />
-            </mesh>
-
-            {/* 2 Pallets per shelf level */}
-            {[-1.15, 1.15].map((palletX, pIdx) => {
-              const showCargo = isLevelOccupied || pIdx === 0
-
-              return (
-                <group key={`pallet-${pIdx}`} position={[palletX, 0.08, 0]}>
-                  {/* Wooden Pallet Base */}
-                  <mesh castShadow receiveShadow position={[0, 0.05, 0]}>
-                    <boxGeometry args={[1.7, 0.1, 1.05]} />
-                    <meshStandardMaterial color="#7A5D3E" roughness={0.9} />
-                  </mesh>
-
-                  {/* Varied Cargo Cartons on Pallet */}
-                  {showCargo && (
-                    <group position={[0, 0.12, 0]}>
-                      {/* Box 1 (Main Carton) */}
-                      <mesh castShadow position={[-0.38, 0.24, -0.16]}>
-                        <boxGeometry args={[0.7, 0.48, 0.6]} />
-                        <meshStandardMaterial
-                          color={boxColor}
-                          metalness={0.2}
-                          roughness={0.6}
-                          emissive={isSelected ? boxColor : '#000000'}
-                          emissiveIntensity={isSelected ? 0.35 : 0}
-                        />
-                      </mesh>
-
-                      {/* Box 2 (Secondary Carton) */}
-                      <mesh castShadow position={[0.38, 0.22, 0.14]}>
-                        <boxGeometry args={[0.65, 0.44, 0.55]} />
-                        <meshStandardMaterial
-                          color={boxColor}
-                          metalness={0.25}
-                          roughness={0.5}
-                          emissive={isSelected ? boxColor : '#000000'}
-                          emissiveIntensity={isSelected ? 0.25 : 0}
-                        />
-                      </mesh>
-
-                      {/* Box 3 (Top Crate) */}
-                      <mesh castShadow position={[-0.15, 0.58, 0.05]}>
-                        <boxGeometry args={[0.5, 0.3, 0.45]} />
-                        <meshStandardMaterial
-                          color={boxColor}
-                          metalness={0.3}
-                          roughness={0.5}
-                          emissive={isSelected ? boxColor : '#000000'}
-                          emissiveIntensity={isSelected ? 0.25 : 0}
-                        />
-                      </mesh>
-                    </group>
-                  )}
-                </group>
-              )
-            })}
-          </group>
-        )
-      })}
-
-      {/* Selected Rack Highlight Cage */}
-      {isSelected && (
-        <lineSegments position={[0, totalHeight / 2, 0]}>
-          <edgesGeometry
-            args={[
-              new THREE.BoxGeometry(
-                rackWidth + 0.3,
-                totalHeight + 0.3,
-                rackDepth + 0.3,
-              ),
-            ]}
-          />
-          <lineBasicMaterial color="#43D9E8" linewidth={2} />
-        </lineSegments>
-      )}
-    </group>
-  )
-}
-
 // Interactive Storage Zone Demarcation with Ground Boundaries & 3D Billboard Labels
-function StorageZone3D({
-  zone,
-  position,
-  size,
+function InteractiveZoneBoundary({
+  placedZone,
   isSelected,
   isHovered,
   heatmapMetric,
   onSelect,
   onHover,
 }: {
-  zone: ZoneStatistic
-  position: [number, number, number]
-  size: [number, number]
+  placedZone: PlacedZone
   isSelected: boolean
   isHovered: boolean
   heatmapMetric: HeatmapMetric
   onSelect: () => void
   onHover: (hovered: boolean) => void
 }) {
-  const [width, depth] = size
+  const [width, depth] = placedZone.size
+  const { zone, actualValuation, occupancyPct } = placedZone
 
   const zoneColor = useMemo(() => {
     if (heatmapMetric === 'occupancy') {
-      if (zone.occupancyPct >= 75) return '#19C995'
-      if (zone.occupancyPct >= 40) return '#5AA9FF'
-      if (zone.occupancyPct > 0) return '#F5A524'
-      return '#FF5263'
+      if (occupancyPct >= 75) return '#059669'
+      if (occupancyPct >= 35) return '#2563EB'
+      if (occupancyPct > 0) return '#D97706'
+      return '#DC2626'
     }
     if (heatmapMetric === 'type') {
       switch (zone.type) {
         case 'Picking':
-          return '#43D9E8'
+          return '#0891B2'
         case 'Cold Storage':
           return '#38BDF8'
         case 'Receiving':
-          return '#F5A524'
+          return '#D97706'
         case 'Packing':
-          return '#2DD4BF'
+          return '#059669'
         case 'Quarantine':
-          return '#FF5263'
+          return '#DC2626'
         default:
-          return '#5AA9FF'
+          return '#2563EB'
       }
     }
-    return zone.actualValuation > 500000 ? '#43D9E8' : '#5AA9FF'
-  }, [zone, heatmapMetric])
+    return actualValuation > 500000 ? '#0891B2' : '#2563EB'
+  }, [heatmapMetric, occupancyPct, zone.type, actualValuation])
 
   return (
     <group
@@ -471,19 +162,19 @@ function StorageZone3D({
         e.stopPropagation()
         onHover(true)
       }}
-      position={position}
+      position={placedZone.position}
     >
-      {/* Zone Floor Perimeter Mesh */}
+      {/* Zone Floor Tint Mesh */}
       <mesh position={[0, 0.008, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshBasicMaterial
           color={isSelected ? '#43D9E8' : isHovered ? zoneColor : '#162434'}
-          opacity={isSelected ? 0.18 : isHovered ? 0.12 : 0.04}
+          opacity={isSelected ? 0.22 : isHovered ? 0.14 : 0.05}
           transparent
         />
       </mesh>
 
-      {/* Zone Boundary Outline */}
+      {/* Zone Boundary Perimeter Line */}
       <lineSegments position={[0, 0.015, 0]}>
         <edgesGeometry args={[new THREE.BoxGeometry(width, 0.01, depth)]} />
         <lineBasicMaterial
@@ -496,7 +187,7 @@ function StorageZone3D({
       <Html
         center
         distanceFactor={28}
-        position={[0, 4.8, 0]}
+        position={[0, 5.0, 0]}
         style={{ pointerEvents: 'auto' }}
       >
         <button
@@ -520,8 +211,8 @@ function StorageZone3D({
           <span className="font-semibold text-[11px]">{zone.name}</span>
           <span className="font-mono text-[10px] text-text-muted">
             {heatmapMetric === 'valuation'
-              ? formatInr(zone.actualValuation)
-              : `${zone.occupancyPct}% Occ`}
+              ? formatInr(actualValuation)
+              : `${occupancyPct}% Occ`}
           </span>
         </button>
       </Html>
@@ -537,79 +228,22 @@ export function Warehouse3DCanvas({
   onHoverZone,
   onSelectRack,
   onSelectZone,
+  products = [],
+  racks,
   selectedRackId,
   selectedZoneId,
   viewMode,
   zones,
 }: Props) {
-  // Facility-specific 3D zone layout coordinates
-  const zoneLayouts = useMemo(() => {
-    const map = new Map<
-      string,
-      {
-        zonePos: [number, number, number]
-        zoneSize: [number, number]
-        rackPositions: [number, number, number][]
-      }
-    >()
-
-    if (activeWarehouse.id === 'wh-mum') {
-      // Mumbai Central Layout (3 Zones)
-      map.set('zon-mum-a', {
-        zonePos: [-7, 0, -4.5],
-        zoneSize: [11.5, 6.5],
-        rackPositions: [
-          [-7, 0, -6],
-          [-7, 0, -3],
-        ],
-      })
-      map.set('zon-mum-b', {
-        zonePos: [7, 0, -4.5],
-        zoneSize: [11.5, 6.5],
-        rackPositions: [
-          [7, 0, -6],
-          [7, 0, -3],
-        ],
-      })
-      map.set('zon-mum-c', {
-        zonePos: [0, 0, -7.5],
-        zoneSize: [9, 3.5],
-        rackPositions: [[0, 0, -7.5]],
-      })
-    } else if (activeWarehouse.id === 'wh-del') {
-      // Delhi North Layout (2 Zones)
-      map.set('zon-del-a', {
-        zonePos: [-6.5, 0, -2.5],
-        zoneSize: [12, 8],
-        rackPositions: [[-6.5, 0, -2.5]],
-      })
-      map.set('zon-del-b', {
-        zonePos: [6.5, 0, -4],
-        zoneSize: [12, 7.5],
-        rackPositions: [
-          [6.5, 0, -5.5],
-          [6.5, 0, -2.5],
-        ],
-      })
-    } else {
-      // Bengaluru South Layout (2 Zones)
-      map.set('zon-blr-a', {
-        zonePos: [-6, 0, -3.5],
-        zoneSize: [11, 7],
-        rackPositions: [[-6, 0, -3.5]],
-      })
-      map.set('zon-blr-b', {
-        zonePos: [6.5, 0, -4.5],
-        zoneSize: [11, 6.5],
-        rackPositions: [[6.5, 0, -4.5]],
-      })
-    }
-
-    return map
-  }, [activeWarehouse.id])
+  // Generate deterministic architectural layout based on actual warehouse data
+  const layout = useMemo(() => {
+    const allRacks =
+      racks && racks.length > 0 ? racks : zones.flatMap((z) => z.racks)
+    return generateWarehouse3DLayout(activeWarehouse, zones, allRacks, products)
+  }, [activeWarehouse, zones, racks, products])
 
   return (
-    <div className="relative w-full h-[520px] bg-[#0A0E15] rounded-xl overflow-hidden select-none">
+    <div className="relative w-full h-[540px] bg-[#0A0E15] rounded-xl overflow-hidden select-none">
       <Canvas
         camera={{ fov: 42, position: [19, 17, 21] }}
         gl={{
@@ -625,11 +259,16 @@ export function Warehouse3DCanvas({
       >
         <color args={['#0A0E15']} attach="background" />
 
-        {/* Technical Grid on Floor */}
-        <WarehouseFloor />
+        {/* 1. Structural Warehouse Shell, Floor Slab & Columns */}
+        <WarehouseShell
+          columns={layout.columns}
+          height={layout.dimensions.height}
+          length={layout.dimensions.length}
+          width={layout.dimensions.width}
+        />
 
-        {/* Architectural Directional Lighting */}
-        <ambientLight color="#1A2634" intensity={1.3} />
+        {/* 2. Directional Industrial Lighting & Ambient Ambiance */}
+        <ambientLight color="#162230" intensity={1.4} />
         <directionalLight
           castShadow
           color="#FFFFFF"
@@ -640,66 +279,61 @@ export function Warehouse3DCanvas({
         />
         <directionalLight
           color="#43D9E8"
-          intensity={0.6}
+          intensity={0.65}
           position={[-16, 14, -12]}
         />
         <pointLight
           color="#5AA9FF"
-          distance={25}
-          intensity={0.8}
-          position={[0, 8, 0]}
+          distance={28}
+          intensity={0.75}
+          position={[0, 9, 0]}
         />
 
-        {/* Storage Zones with Boundary Lines and 3D Labels */}
-        {zones.map((zone) => {
-          const layout = zoneLayouts.get(zone.id)
-          if (!layout) return null
+        {/* 3. Storage Zones with Floor Demarcation & Interactive Billboard Badges */}
+        {layout.zones.map((placedZone) => (
+          <InteractiveZoneBoundary
+            heatmapMetric={heatmapMetric}
+            isHovered={hoveredZoneId === placedZone.zone.id}
+            isSelected={selectedZoneId === placedZone.zone.id}
+            key={placedZone.zone.id}
+            onHover={(hov) => onHoverZone(hov ? placedZone.zone.id : null)}
+            onSelect={() => onSelectZone(placedZone.zone.id)}
+            placedZone={placedZone}
+          />
+        ))}
 
-          return (
-            <StorageZone3D
+        {/* 4. Racks with Frames, Step Beams, Wire Decks, Pallets & Real Stock Cartons */}
+        {layout.zones.flatMap((placedZone) =>
+          placedZone.racks.map((placedRack) => (
+            <StorageRackModel
               heatmapMetric={heatmapMetric}
-              isHovered={hoveredZoneId === zone.id}
-              isSelected={selectedZoneId === zone.id}
-              key={zone.id}
-              onHover={(hov) => onHoverZone(hov ? zone.id : null)}
-              onSelect={() => onSelectZone(zone.id)}
-              position={layout.zonePos}
-              size={layout.zoneSize}
-              zone={zone}
+              isSelected={selectedRackId === placedRack.rack.id}
+              key={placedRack.rack.id}
+              onSelect={() => {
+                onSelectRack(placedRack.rack.id)
+                onSelectZone(placedZone.zone.id)
+              }}
+              placedRack={placedRack}
             />
-          )
-        })}
+          )),
+        )}
 
-        {/* Storage Racks with Steel Structures & Pallet Cargo */}
-        {zones.map((zone) => {
-          const layout = zoneLayouts.get(zone.id)
-          if (!layout) return null
+        {/* 5. Packing Workstations & Flow Conveyors (Packing Category) */}
+        {layout.workstations.map((ws) => (
+          <PackingWorkstationModel fixture={ws} key={ws.id} />
+        ))}
 
-          return zone.racks.map((rack, rIdx) => {
-            const rackPos = layout.rackPositions[rIdx] ?? [
-              layout.zonePos[0],
-              0,
-              layout.zonePos[2],
-            ]
+        {/* 6. Material Handling Equipment: Forklift, Pallet Jacks & Charging Dock (Equipment Category) */}
+        {layout.equipment.map((eq) => (
+          <EquipmentFixtureModel fixture={eq} key={eq.id} />
+        ))}
 
-            return (
-              <StorageRack3D
-                heatmapMetric={heatmapMetric}
-                isSelected={selectedRackId === rack.id}
-                key={rack.id}
-                onSelect={() => {
-                  onSelectRack(rack.id)
-                  onSelectZone(zone.id)
-                }}
-                position={rackPos}
-                rack={rack}
-                zone={zone}
-              />
-            )
-          })
-        })}
+        {/* 7. Safety Fixtures: Flammable Cabinets, Bollards & Hazard Cages (Safety Category) */}
+        {layout.safetyFixtures.map((sf) => (
+          <SafetyFixtureModel fixture={sf} key={sf.id} />
+        ))}
 
-        {/* Camera and View Mode Controller */}
+        {/* 8. Camera and View Mode Controller */}
         <CameraController
           cameraResetTrigger={cameraResetTrigger}
           viewMode={viewMode}
