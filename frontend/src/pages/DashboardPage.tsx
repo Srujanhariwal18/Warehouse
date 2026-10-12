@@ -350,9 +350,6 @@ export function DashboardPage() {
               )}
             </div>
 
-
-
-
             {/* Col 8-12: Movement Velocity & Critical Stockout Exceptions */}
             <div className="lg:col-span-5 space-y-4">
               {/* Top: Stock Movement Velocity AreaChart */}

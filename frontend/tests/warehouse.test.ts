@@ -502,3 +502,207 @@ test('10. Inventory and supplier regression checks', () => {
   )
   assert.equal(orderValidation.ok, true)
 })
+
+test('11. Warehouse and zone inventory reconciliation across all 3 facilities', () => {
+  const warehouseIds = ['wh-mum', 'wh-del', 'wh-blr']
+
+  for (const whId of warehouseIds) {
+    const whZones = initialZones.filter((z) => z.warehouseId === whId)
+    const whRacks = initialRacks.filter((r) => r.warehouseId === whId)
+    const rackToZone = new Map(whRacks.map((r) => [r.id, r.zoneId]))
+    const validZoneIds = new Set(whZones.map((z) => z.id))
+
+    // Products in this warehouse
+    const whProducts = products.filter((p) => {
+      if (p.warehouseStock && p.warehouseStock[whId] !== undefined) {
+        return p.warehouseStock[whId] > 0
+      }
+      return p.warehouseId === whId
+    })
+
+    const whTotalStock = whProducts.reduce((sum, p) => {
+      const stock =
+        p.warehouseStock && p.warehouseStock[whId] !== undefined
+          ? p.warehouseStock[whId]
+          : p.warehouseId === whId
+            ? p.stock
+            : 0
+      return sum + stock
+    }, 0)
+
+    const whTotalValuation = whProducts.reduce((sum, p) => {
+      const stock =
+        p.warehouseStock && p.warehouseStock[whId] !== undefined
+          ? p.warehouseStock[whId]
+          : p.warehouseId === whId
+            ? p.stock
+            : 0
+      return sum + stock * p.price
+    }, 0)
+
+    // Canonical zone partitioning: every record belongs to exactly one bucket
+    const zoneStockMap = new Map<string, number>()
+    const zoneValuationMap = new Map<string, number>()
+    let unassignedStock = 0
+    let unassignedValuation = 0
+
+    for (const p of whProducts) {
+      const stock =
+        p.warehouseStock && p.warehouseStock[whId] !== undefined
+          ? p.warehouseStock[whId]
+          : p.warehouseId === whId
+            ? p.stock
+            : 0
+      const val = stock * p.price
+
+      let targetZoneId: string | undefined
+      if (p.rackId && rackToZone.has(p.rackId)) {
+        targetZoneId = rackToZone.get(p.rackId)
+      } else if (p.zoneId && validZoneIds.has(p.zoneId)) {
+        targetZoneId = p.zoneId
+      }
+
+      if (targetZoneId && validZoneIds.has(targetZoneId)) {
+        zoneStockMap.set(
+          targetZoneId,
+          (zoneStockMap.get(targetZoneId) ?? 0) + stock,
+        )
+        zoneValuationMap.set(
+          targetZoneId,
+          (zoneValuationMap.get(targetZoneId) ?? 0) + val,
+        )
+      } else {
+        unassignedStock += stock
+        unassignedValuation += val
+      }
+    }
+
+    // 11a. Verify sum of zone stock equals warehouse stock total
+    const sumZoneStock =
+      Array.from(zoneStockMap.values()).reduce((sum, s) => sum + s, 0) +
+      unassignedStock
+    assert.equal(
+      sumZoneStock,
+      whTotalStock,
+      `Reconciled stock for ${whId} must match warehouse total exactly (${sumZoneStock} vs ${whTotalStock})`,
+    )
+
+    // 11b. Verify sum of zone valuation equals warehouse valuation total
+    const sumZoneValuation =
+      Array.from(zoneValuationMap.values()).reduce((sum, v) => sum + v, 0) +
+      unassignedValuation
+    assert.equal(
+      sumZoneValuation,
+      whTotalValuation,
+      `Reconciled valuation for ${whId} must match warehouse valuation total exactly`,
+    )
+  }
+})
+
+test('12. Location integrity: seeded zoneId and rackId references', () => {
+  const zoneMap = new Map(initialZones.map((z) => [z.id, z]))
+  const rackMap = new Map(initialRacks.map((r) => [r.id, r]))
+
+  // 12a. Verify all seeded racks reference existing zones and warehouses
+  for (const rack of initialRacks) {
+    const parentZone = zoneMap.get(rack.zoneId)
+    assert.ok(
+      parentZone,
+      `Rack ${rack.id} must reference existing zone ${rack.zoneId}`,
+    )
+    assert.equal(
+      rack.warehouseId,
+      parentZone!.warehouseId,
+      `Rack ${rack.id} warehouse must match parent zone warehouse`,
+    )
+  }
+
+  // 12b. Verify all seeded products with locations reference existing zones and racks
+  for (const product of products) {
+    if (product.zoneId) {
+      const zone = zoneMap.get(product.zoneId)
+      assert.ok(zone, `Product ${product.id} zoneId must exist`)
+      assert.equal(
+        product.warehouseId,
+        zone!.warehouseId,
+        `Product ${product.id} warehouse must match zone warehouse`,
+      )
+    }
+    if (product.rackId) {
+      const rack = rackMap.get(product.rackId)
+      assert.ok(rack, `Product ${product.id} rackId must exist`)
+      assert.equal(
+        product.warehouseId,
+        rack!.warehouseId,
+        `Product ${product.id} warehouse must match rack warehouse`,
+      )
+      if (product.zoneId) {
+        assert.equal(
+          product.zoneId,
+          rack!.zoneId,
+          `Product ${product.id} zoneId must match rack's parent zone`,
+        )
+      }
+    }
+  }
+})
+
+test('13. Duplicate counting prevention and missing location edge cases', () => {
+  const rackMap = new Map([
+    ['rck-1', { id: 'rck-1', zoneId: 'zon-a', warehouseId: 'wh-1' }],
+    ['rck-2', { id: 'rck-2', zoneId: 'zon-b', warehouseId: 'wh-1' }],
+  ])
+  const facilityZoneIds = new Set(['zon-a', 'zon-b'])
+
+  // Helper resolving zone deterministically
+  function resolveProductZone(p: {
+    zoneId?: string
+    rackId?: string
+  }): string | null {
+    if (p.rackId && rackMap.has(p.rackId)) {
+      return rackMap.get(p.rackId)!.zoneId
+    }
+    if (p.zoneId && facilityZoneIds.has(p.zoneId)) {
+      return p.zoneId
+    }
+    return null
+  }
+
+  // 13a. Conflicting zoneId ('zon-a') and rackId (in 'zon-b'): MUST contribute to exactly ONE zone
+  const conflictingProduct = { zoneId: 'zon-a', rackId: 'rck-2' }
+  const resolvedZone = resolveProductZone(conflictingProduct)
+  assert.equal(
+    resolvedZone,
+    'zon-b',
+    'Rack assignment takes deterministic precedence',
+  )
+
+  // 13b. Unassigned product (no zone, no rack)
+  const unassignedProd = { zoneId: undefined, rackId: undefined }
+  assert.equal(resolveProductZone(unassignedProd), null)
+
+  // 13c. Non-existent zone reference
+  const orphanProd = { zoneId: 'zon-unknown', rackId: undefined }
+  assert.equal(resolveProductZone(orphanProd), null)
+})
+
+test('14. Capacity and occupancy boundary constraints', () => {
+  // Safe occupancy function
+  function calculateOccupancy(units: number, capacity: number): number {
+    if (capacity <= 0 || !Number.isFinite(capacity)) return 0
+    return Math.min(100, Math.max(0, Math.round((units / capacity) * 100)))
+  }
+
+  // 14a. Normal occupancy
+  assert.equal(calculateOccupancy(50, 100), 50)
+
+  // 14b. Zero capacity (must safely return 0 without NaN/Infinity)
+  assert.equal(calculateOccupancy(50, 0), 0)
+  assert.equal(calculateOccupancy(0, 0), 0)
+
+  // 14c. Over-capacity (must cap strictly at 100%)
+  assert.equal(calculateOccupancy(250, 100), 100)
+
+  // 14d. Negative stock/units protection (must constrain to 0%)
+  assert.equal(calculateOccupancy(-20, 100), 0)
+})

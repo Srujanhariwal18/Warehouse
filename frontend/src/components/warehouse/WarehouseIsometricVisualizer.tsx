@@ -58,7 +58,10 @@ export function WarehouseIsometricVisualizer({
   // Assigned products in this warehouse
   const facilityProducts = useMemo(() => {
     return products.filter((p) => {
-      if (p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined) {
+      if (
+        p.warehouseStock &&
+        p.warehouseStock[activeWarehouse.id] !== undefined
+      ) {
         return p.warehouseStock[activeWarehouse.id] > 0
       }
       return p.warehouseId === activeWarehouse.id
@@ -90,22 +93,102 @@ export function WarehouseIsometricVisualizer({
     }, 0)
   }, [facilityProducts, activeWarehouse.id])
 
-  // Compute exact metrics per zone from assigned products and actual rack capacities
+  // Map of rackId -> parent zoneId for active facility
+  const rackToZoneMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const r of facilityRacks) {
+      map.set(r.id, r.zoneId)
+    }
+    return map
+  }, [facilityRacks])
+
+  const facilityZoneIds = useMemo(() => {
+    return new Set(facilityZones.map((z) => z.id))
+  }, [facilityZones])
+
+  // Partition products strictly into distinct zone buckets and an unassigned bucket
+  // Guarantees: every inventory record contributes exactly once
+  const {
+    productsByZone,
+    unassignedProducts,
+    unassignedUnits,
+    unassignedValuation,
+  } = useMemo(() => {
+    const byZone = new Map<string, Product[]>()
+    const unassigned: Product[] = []
+
+    for (const p of facilityProducts) {
+      let targetZoneId: string | undefined
+      if (p.rackId && rackToZoneMap.has(p.rackId)) {
+        targetZoneId = rackToZoneMap.get(p.rackId)
+      } else if (p.zoneId && facilityZoneIds.has(p.zoneId)) {
+        targetZoneId = p.zoneId
+      }
+
+      if (targetZoneId && facilityZoneIds.has(targetZoneId)) {
+        const list = byZone.get(targetZoneId) ?? []
+        list.push(p)
+        byZone.set(targetZoneId, list)
+      } else {
+        unassigned.push(p)
+      }
+    }
+
+    const unassignedUnits = unassigned.reduce((sum, p) => {
+      const stock =
+        p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+          ? p.warehouseStock[activeWarehouse.id]
+          : p.warehouseId === activeWarehouse.id
+            ? p.stock
+            : 0
+      return sum + stock
+    }, 0)
+
+    const unassignedValuation = unassigned.reduce((sum, p) => {
+      const stock =
+        p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+          ? p.warehouseStock[activeWarehouse.id]
+          : p.warehouseId === activeWarehouse.id
+            ? p.stock
+            : 0
+      return sum + stock * p.price
+    }, 0)
+
+    return {
+      productsByZone: byZone,
+      unassignedProducts: unassigned,
+      unassignedUnits,
+      unassignedValuation,
+    }
+  }, [facilityProducts, facilityZoneIds, rackToZoneMap, activeWarehouse.id])
+
+  // Total capacity across all configured facility racks
+  const totalFacilityCapacity = useMemo(() => {
+    return facilityRacks.reduce((sum, r) => sum + (r.capacity ?? 0), 0)
+  }, [facilityRacks])
+
+  const facilityOverallOccupancy = useMemo(() => {
+    if (totalFacilityCapacity <= 0) return 0
+    return Math.min(
+      100,
+      Math.max(
+        0,
+        Math.round((facilityStockUnits / totalFacilityCapacity) * 100),
+      ),
+    )
+  }, [facilityStockUnits, totalFacilityCapacity])
+
+  // Compute exact metrics per zone from partitioned products and actual rack capacities
   const zoneStats = useMemo(() => {
     return facilityZones.map((zone, index) => {
       const zoneRacks = facilityRacks.filter((r) => r.zoneId === zone.id)
-      const zoneRackIds = new Set(zoneRacks.map((r) => r.id))
       const totalRackCapacity = zoneRacks.reduce(
-        (sum, r) => sum + (r.capacity ?? 40),
+        (sum, r) => sum + (r.capacity ?? 0),
         0,
       )
 
-      // Direct products assigned to this zone or its racks
-      const zoneAssignedProducts = facilityProducts.filter((p) => {
-        if (p.zoneId === zone.id) return true
-        if (p.rackId && zoneRackIds.has(p.rackId)) return true
-        return false
-      })
+      // Direct products assigned strictly to this zone
+      const zoneAssignedProducts = productsByZone.get(zone.id) ?? []
 
       // Exact units stored in this zone
       const actualUnits = zoneAssignedProducts.reduce((sum, p) => {
@@ -129,10 +212,13 @@ export function WarehouseIsometricVisualizer({
         return sum + stock * p.price
       }, 0)
 
-      // Exact physical occupancy percentage (units / total rack capacity)
+      // Exact physical occupancy proxy percentage (units / total rack capacity, safely bounded 0-100%)
       const occupancyPct =
         totalRackCapacity > 0
-          ? Math.min(100, Math.round((actualUnits / totalRackCapacity) * 100))
+          ? Math.min(
+              100,
+              Math.max(0, Math.round((actualUnits / totalRackCapacity) * 100)),
+            )
           : 0
 
       return {
@@ -150,7 +236,7 @@ export function WarehouseIsometricVisualizer({
         estimatedValuation: actualValuation,
       }
     })
-  }, [facilityZones, facilityRacks, facilityProducts, activeWarehouse.id])
+  }, [facilityZones, facilityRacks, productsByZone, activeWarehouse.id])
 
   // Selected or hovered active zone telemetry
   const activeZone = useMemo(() => {
@@ -293,7 +379,9 @@ export function WarehouseIsometricVisualizer({
               </span>
               <StatusBadge
                 size="sm"
-                tone={activeWarehouse.status === 'Active' ? 'success' : 'neutral'}
+                tone={
+                  activeWarehouse.status === 'Active' ? 'success' : 'neutral'
+                }
               >
                 {activeWarehouse.status}
               </StatusBadge>
@@ -464,7 +552,8 @@ export function WarehouseIsometricVisualizer({
           <div className="relative z-10 w-full h-full max-h-[380px] overflow-y-auto rounded-lg border border-surface-border bg-graphite p-4">
             <div className="flex items-center justify-between border-b border-surface-border pb-2.5 mb-3">
               <span className="font-mono text-xs font-semibold text-primary uppercase">
-                Accessible Facility Ledger // {facilityZones.length} Zones // {facilityRacks.length} Racks
+                Accessible Facility Ledger // {facilityZones.length} Zones //{' '}
+                {facilityRacks.length} Racks
               </span>
               <span className="text-[11px] text-text-muted">
                 {activeWarehouse.city} Logistics Node
@@ -479,7 +568,7 @@ export function WarehouseIsometricVisualizer({
                   <th className="py-2 text-right pr-3">RACKS</th>
                   <th className="py-2 text-right pr-3">CAPACITY</th>
                   <th className="py-2 text-right pr-3">STOCK UNITS</th>
-                  <th className="py-2 text-right pr-3">OCCUPANCY</th>
+                  <th className="py-2 text-right pr-3">OCCUPANCY (PROXY)</th>
                   <th className="py-2 text-right">VALUATION</th>
                 </tr>
               </thead>
@@ -521,7 +610,62 @@ export function WarehouseIsometricVisualizer({
                     </td>
                   </tr>
                 ))}
+                {unassignedProducts.length > 0 && (
+                  <tr className="bg-surface/20 border-t border-dashed border-surface-border text-text-muted">
+                    <td className="py-2.5 font-mono text-[11px] text-warning">
+                      [STAGING]
+                    </td>
+                    <td className="py-2.5 font-medium text-text-secondary">
+                      Unassigned / Staging Buffer
+                    </td>
+                    <td className="py-2.5">
+                      <span className="rounded bg-surface px-1.5 py-0.5 font-mono text-[10px] text-warning border border-warning/30">
+                        Staging
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-text-muted pr-3">
+                      0
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-text-muted pr-3">
+                      --
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-warning pr-3">
+                      {unassignedUnits}
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-text-muted pr-3">
+                      N/A
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-text-secondary">
+                      {formatInr(unassignedValuation)}
+                    </td>
+                  </tr>
+                )}
               </tbody>
+              <tfoot className="border-t-2 border-surface-border bg-surface/30 font-mono text-xs">
+                <tr>
+                  <td
+                    className="py-2.5 pl-1 font-bold text-text-primary"
+                    colSpan={3}
+                  >
+                    FACILITY RECONCILED TOTAL
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-text-secondary pr-3">
+                    {facilityRacks.length}
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-text-secondary pr-3">
+                    {totalFacilityCapacity} plts
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-primary pr-3">
+                    {facilityStockUnits}
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-text-primary pr-3">
+                    {facilityOverallOccupancy}%
+                  </td>
+                  <td className="py-2.5 text-right font-bold text-primary">
+                    {formatInr(facilityValuation)}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         ) : viewMode === 'elevation' ? (
@@ -546,7 +690,12 @@ export function WarehouseIsometricVisualizer({
                 const capacity = rack.capacity ?? 40
                 const currentFill = Math.min(
                   levels,
-                  Math.max(1, Math.round((levels * (activeZone?.occupancyPct ?? 65)) / 100)),
+                  Math.max(
+                    1,
+                    Math.round(
+                      (levels * (activeZone?.occupancyPct ?? 65)) / 100,
+                    ),
+                  ),
                 )
 
                 return (
@@ -591,7 +740,9 @@ export function WarehouseIsometricVisualizer({
                                   : 'border-surface-border bg-surface/50 text-text-muted'
                             }`}
                           >
-                            <span className="text-[8px] opacity-75">T{levelNumber}</span>
+                            <span className="text-[8px] opacity-75">
+                              T{levelNumber}
+                            </span>
                             <span className="font-bold self-end text-[10px]">
                               {isAvailableTier
                                 ? isOccupied
@@ -716,33 +867,69 @@ export function WarehouseIsometricVisualizer({
             >
               <defs>
                 {/* 3D Shading Gradients */}
-                <linearGradient id="isoFloor" x1="0%" x2="100%" y1="0%" y2="100%">
+                <linearGradient
+                  id="isoFloor"
+                  x1="0%"
+                  x2="100%"
+                  y1="0%"
+                  y2="100%"
+                >
                   <stop offset="0%" stopColor="#141E2A" />
                   <stop offset="100%" stopColor="#0D141C" />
                 </linearGradient>
 
-                <linearGradient id="isoSlabEdge" x1="0%" x2="0%" y1="0%" y2="100%">
+                <linearGradient
+                  id="isoSlabEdge"
+                  x1="0%"
+                  x2="0%"
+                  y1="0%"
+                  y2="100%"
+                >
                   <stop offset="0%" stopColor="#223140" />
                   <stop offset="100%" stopColor="#0B1017" />
                 </linearGradient>
 
-                <linearGradient id="rackTopCyan" x1="0%" x2="100%" y1="0%" y2="100%">
+                <linearGradient
+                  id="rackTopCyan"
+                  x1="0%"
+                  x2="100%"
+                  y1="0%"
+                  y2="100%"
+                >
                   <stop offset="0%" stopColor="#5AE5F3" />
                   <stop offset="100%" stopColor="#43D9E8" />
                 </linearGradient>
 
-                <linearGradient id="rackLeftCyan" x1="0%" x2="100%" y1="0%" y2="0%">
+                <linearGradient
+                  id="rackLeftCyan"
+                  x1="0%"
+                  x2="100%"
+                  y1="0%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="#2198A6" />
                   <stop offset="100%" stopColor="#1B7E8A" />
                 </linearGradient>
 
-                <linearGradient id="rackRightCyan" x1="0%" x2="100%" y1="0%" y2="0%">
+                <linearGradient
+                  id="rackRightCyan"
+                  x1="0%"
+                  x2="100%"
+                  y1="0%"
+                  y2="0%"
+                >
                   <stop offset="0%" stopColor="#166770" />
                   <stop offset="100%" stopColor="#124E55" />
                 </linearGradient>
 
                 {/* Filter for glowing vertex beacon pins */}
-                <filter id="cyanGlow" x="-30%" y="-30%" width="160%" height="160%">
+                <filter
+                  id="cyanGlow"
+                  x="-30%"
+                  y="-30%"
+                  width="160%"
+                  height="160%"
+                >
                   <feGaussianBlur stdDeviation="3.5" result="blur" />
                   <feMerge>
                     <feMergeNode in="blur" />
@@ -753,38 +940,38 @@ export function WarehouseIsometricVisualizer({
 
               {/* 1. Base 3D Isometric Foundation Slab (Extruded Concrete Foundation) */}
               <g transform="translate(400, 215) scale(0.82) translate(-400, -215)">
-              {/* Floor Shadow */}
-              <polygon
-                fill="rgba(0,0,0,0.45)"
-                points="400,60 740,240 400,420 60,240"
-                transform="translate(0, 16)"
-              />
+                {/* Floor Shadow */}
+                <polygon
+                  fill="rgba(0,0,0,0.45)"
+                  points="400,60 740,240 400,420 60,240"
+                  transform="translate(0, 16)"
+                />
 
-              {/* Slab Side Edges (Depth extrusion) */}
-              <polygon
-                fill="url(#isoSlabEdge)"
-                points="60,240 400,420 400,432 60,252"
-                stroke="#243342"
-                strokeWidth="1"
-              />
-              <polygon
-                fill="#0A1017"
-                points="400,420 740,240 740,252 400,432"
-                stroke="#243342"
-                strokeWidth="1"
-              />
+                {/* Slab Side Edges (Depth extrusion) */}
+                <polygon
+                  fill="url(#isoSlabEdge)"
+                  points="60,240 400,420 400,432 60,252"
+                  stroke="#243342"
+                  strokeWidth="1"
+                />
+                <polygon
+                  fill="#0A1017"
+                  points="400,420 740,240 740,252 400,432"
+                  stroke="#243342"
+                  strokeWidth="1"
+                />
 
-              {/* Slab Top Floor */}
-              <polygon
-                fill="url(#isoFloor)"
-                points="400,60 740,240 400,420 60,240"
-                stroke="#2A3C4E"
-                strokeWidth="1.5"
-              />
+                {/* Slab Top Floor */}
+                <polygon
+                  fill="url(#isoFloor)"
+                  points="400,60 740,240 400,420 60,240"
+                  stroke="#2A3C4E"
+                  strokeWidth="1.5"
+                />
 
-              {/* Precision Isometric Floor Grid Lines */}
-              <path
-                d="
+                {/* Precision Isometric Floor Grid Lines */}
+                <path
+                  d="
                   M145,285 L485,105
                   M230,330 L570,150
                   M315,375 L655,195
@@ -792,331 +979,356 @@ export function WarehouseIsometricVisualizer({
                   M315,105 L655,285
                   M145,195 L485,375
                 "
-                stroke="#223140"
-                strokeDasharray="4 4"
-                strokeWidth="1"
-              />
-
-              {/* Inbound / Outbound Bay Markings on Perimeter */}
-              <g opacity="0.85">
-                <polygon
-                  fill="#1C2935"
-                  points="160,190 200,170 230,185 190,205"
-                  stroke="#43D9E8"
-                  strokeDasharray="2 2"
+                  stroke="#223140"
+                  strokeDasharray="4 4"
                   strokeWidth="1"
                 />
-                <text
-                  className="font-mono text-[9px] fill-[#43D9E8]"
-                  x="172"
-                  y="192"
-                >
-                  BAY 01
-                </text>
 
-                <polygon
-                  fill="#1C2935"
-                  points="610,300 650,280 680,295 640,315"
-                  stroke="#5AA9FF"
-                  strokeDasharray="2 2"
-                  strokeWidth="1"
-                />
-                <text
-                  className="font-mono text-[9px] fill-[#5AA9FF]"
-                  x="622"
-                  y="302"
-                >
-                  BAY 02
-                </text>
-              </g>
-
-              {/* 2. Interactive 3D Isometric Zones & Racks */}
-              {/* Zone A: Bulk Pallet High-Density (Back Left) */}
-              <g
-                className="cursor-pointer transition-opacity"
-                onClick={() => {
-                  const z = zoneStats[0]
-                  if (z) {
-                    setSelectedZoneId(z.id)
-                    onSelectZone?.(z.id)
-                  }
-                }}
-                onMouseEnter={() => zoneStats[0] && setHoveredZoneId(zoneStats[0].id)}
-                onMouseLeave={() => setHoveredZoneId(null)}
-              >
-                {/* Zone Pad Floor Boundary */}
-                <polygon
-                  className="transition-all duration-200"
-                  fill={
-                    selectedZoneId === zoneStats[0]?.id
-                      ? 'rgba(67, 217, 232, 0.22)'
-                      : hoveredZoneId === zoneStats[0]?.id
-                        ? 'rgba(67, 217, 232, 0.15)'
-                        : 'rgba(28, 41, 53, 0.8)'
-                  }
-                  points="320,110 440,170 330,230 210,170"
-                  stroke={
-                    selectedZoneId === zoneStats[0]?.id ? '#43D9E8' : '#2C3E50'
-                  }
-                  strokeWidth={selectedZoneId === zoneStats[0]?.id ? '2' : '1.2'}
-                />
-
-                {/* 3D Extruded Racks in Zone A */}
-                {/* Rack 1 */}
-                <g transform="translate(255, 135)">
-                  {/* Top Face */}
+                {/* Inbound / Outbound Bay Markings on Perimeter */}
+                <g opacity="0.85">
                   <polygon
-                    fill={
-                      selectedZoneId === zoneStats[0]?.id
-                        ? '#5AE5F3'
-                        : '#354859'
-                    }
-                    points="35,0 70,18 35,36 0,18"
+                    fill="#1C2935"
+                    points="160,190 200,170 230,185 190,205"
                     stroke="#43D9E8"
-                    strokeWidth="0.8"
+                    strokeDasharray="2 2"
+                    strokeWidth="1"
                   />
-                  {/* Left Face */}
+                  <text
+                    className="font-mono text-[9px] fill-[#43D9E8]"
+                    x="172"
+                    y="192"
+                  >
+                    BAY 01
+                  </text>
+
                   <polygon
-                    fill="#1F2E3C"
-                    points="0,18 35,36 35,76 0,58"
-                    stroke="#223140"
-                    strokeWidth="0.8"
+                    fill="#1C2935"
+                    points="610,300 650,280 680,295 640,315"
+                    stroke="#5AA9FF"
+                    strokeDasharray="2 2"
+                    strokeWidth="1"
                   />
-                  {/* Right Face */}
-                  <polygon
-                    fill="#15212C"
-                    points="35,36 70,18 70,58 35,76"
-                    stroke="#223140"
-                    strokeWidth="0.8"
-                  />
-                  {/* Shelf tier lines */}
-                  <line stroke="#43D9E8" strokeOpacity="0.6" x1="0" x2="35" y1="38" y2="56" />
-                  <line stroke="#43D9E8" strokeOpacity="0.6" x1="0" x2="35" y1="48" y2="66" />
-                  <line stroke="#43D9E8" strokeOpacity="0.4" x1="35" x2="70" y1="56" y2="38" />
-                  <line stroke="#43D9E8" strokeOpacity="0.4" x1="35" x2="70" y1="66" y2="48" />
+                  <text
+                    className="font-mono text-[9px] fill-[#5AA9FF]"
+                    x="622"
+                    y="302"
+                  >
+                    BAY 02
+                  </text>
                 </g>
 
-                {/* Rack 2 */}
-                <g transform="translate(325, 140)">
+                {/* 2. Interactive 3D Isometric Zones & Racks */}
+                {/* Zone A: Bulk Pallet High-Density (Back Left) */}
+                <g
+                  className="cursor-pointer transition-opacity"
+                  onClick={() => {
+                    const z = zoneStats[0]
+                    if (z) {
+                      setSelectedZoneId(z.id)
+                      onSelectZone?.(z.id)
+                    }
+                  }}
+                  onMouseEnter={() =>
+                    zoneStats[0] && setHoveredZoneId(zoneStats[0].id)
+                  }
+                  onMouseLeave={() => setHoveredZoneId(null)}
+                >
+                  {/* Zone Pad Floor Boundary */}
                   <polygon
+                    className="transition-all duration-200"
                     fill={
                       selectedZoneId === zoneStats[0]?.id
-                        ? '#5AE5F3'
-                        : '#354859'
+                        ? 'rgba(67, 217, 232, 0.22)'
+                        : hoveredZoneId === zoneStats[0]?.id
+                          ? 'rgba(67, 217, 232, 0.15)'
+                          : 'rgba(28, 41, 53, 0.8)'
                     }
-                    points="30,0 60,15 30,30 0,15"
-                    stroke="#43D9E8"
-                    strokeWidth="0.8"
+                    points="320,110 440,170 330,230 210,170"
+                    stroke={
+                      selectedZoneId === zoneStats[0]?.id
+                        ? '#43D9E8'
+                        : '#2C3E50'
+                    }
+                    strokeWidth={
+                      selectedZoneId === zoneStats[0]?.id ? '2' : '1.2'
+                    }
                   />
-                  <polygon
-                    fill="#1F2E3C"
-                    points="0,15 30,30 30,65 0,50"
-                    stroke="#223140"
-                    strokeWidth="0.8"
+
+                  {/* 3D Extruded Racks in Zone A */}
+                  {/* Rack 1 */}
+                  <g transform="translate(255, 135)">
+                    {/* Top Face */}
+                    <polygon
+                      fill={
+                        selectedZoneId === zoneStats[0]?.id
+                          ? '#5AE5F3'
+                          : '#354859'
+                      }
+                      points="35,0 70,18 35,36 0,18"
+                      stroke="#43D9E8"
+                      strokeWidth="0.8"
+                    />
+                    {/* Left Face */}
+                    <polygon
+                      fill="#1F2E3C"
+                      points="0,18 35,36 35,76 0,58"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                    {/* Right Face */}
+                    <polygon
+                      fill="#15212C"
+                      points="35,36 70,18 70,58 35,76"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                    {/* Shelf tier lines */}
+                    <line
+                      stroke="#43D9E8"
+                      strokeOpacity="0.6"
+                      x1="0"
+                      x2="35"
+                      y1="38"
+                      y2="56"
+                    />
+                    <line
+                      stroke="#43D9E8"
+                      strokeOpacity="0.6"
+                      x1="0"
+                      x2="35"
+                      y1="48"
+                      y2="66"
+                    />
+                    <line
+                      stroke="#43D9E8"
+                      strokeOpacity="0.4"
+                      x1="35"
+                      x2="70"
+                      y1="56"
+                      y2="38"
+                    />
+                    <line
+                      stroke="#43D9E8"
+                      strokeOpacity="0.4"
+                      x1="35"
+                      x2="70"
+                      y1="66"
+                      y2="48"
+                    />
+                  </g>
+
+                  {/* Rack 2 */}
+                  <g transform="translate(325, 140)">
+                    <polygon
+                      fill={
+                        selectedZoneId === zoneStats[0]?.id
+                          ? '#5AE5F3'
+                          : '#354859'
+                      }
+                      points="30,0 60,15 30,30 0,15"
+                      stroke="#43D9E8"
+                      strokeWidth="0.8"
+                    />
+                    <polygon
+                      fill="#1F2E3C"
+                      points="0,15 30,30 30,65 0,50"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                    <polygon
+                      fill="#15212C"
+                      points="30,30 60,15 60,50 30,65"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                  </g>
+
+                  {/* Beacon Pin */}
+                  <circle
+                    cx="325"
+                    cy="170"
+                    fill="#43D9E8"
+                    filter="url(#cyanGlow)"
+                    r="3.5"
                   />
-                  <polygon
-                    fill="#15212C"
-                    points="30,30 60,15 60,50 30,65"
-                    stroke="#223140"
-                    strokeWidth="0.8"
-                  />
+                  <text
+                    className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
+                    x="260"
+                    y="125"
+                  >
+                    {zoneStats[0]?.name.split(' ')[0] || 'ZONE A'}
+                  </text>
                 </g>
 
-                {/* Beacon Pin */}
-                <circle
-                  cx="325"
-                  cy="170"
-                  fill="#43D9E8"
-                  filter="url(#cyanGlow)"
-                  r="3.5"
-                />
-                <text
-                  className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
-                  x="260"
-                  y="125"
+                {/* Zone B: Fast Picking Bay (Center Right) */}
+                <g
+                  className="cursor-pointer transition-opacity"
+                  onClick={() => {
+                    const z = zoneStats[1]
+                    if (z) {
+                      setSelectedZoneId(z.id)
+                      onSelectZone?.(z.id)
+                    }
+                  }}
+                  onMouseEnter={() =>
+                    zoneStats[1] && setHoveredZoneId(zoneStats[1].id)
+                  }
+                  onMouseLeave={() => setHoveredZoneId(null)}
                 >
-                  {zoneStats[0]?.name.split(' ')[0] || 'ZONE A'}
-                </text>
-              </g>
-
-              {/* Zone B: Fast Picking Bay (Center Right) */}
-              <g
-                className="cursor-pointer transition-opacity"
-                onClick={() => {
-                  const z = zoneStats[1]
-                  if (z) {
-                    setSelectedZoneId(z.id)
-                    onSelectZone?.(z.id)
-                  }
-                }}
-                onMouseEnter={() => zoneStats[1] && setHoveredZoneId(zoneStats[1].id)}
-                onMouseLeave={() => setHoveredZoneId(null)}
-              >
-                {/* Zone Pad Floor */}
-                <polygon
-                  fill={
-                    selectedZoneId === zoneStats[1]?.id
-                      ? 'rgba(90, 169, 255, 0.25)'
-                      : hoveredZoneId === zoneStats[1]?.id
-                        ? 'rgba(90, 169, 255, 0.16)'
-                        : 'rgba(28, 41, 53, 0.8)'
-                  }
-                  points="450,180 570,240 460,300 340,240"
-                  stroke={
-                    selectedZoneId === zoneStats[1]?.id ? '#5AA9FF' : '#2C3E50'
-                  }
-                  strokeWidth={selectedZoneId === zoneStats[1]?.id ? '2' : '1.2'}
-                />
-
-                {/* 3D Extruded Picking Flow Racks */}
-                <g transform="translate(390, 205)">
+                  {/* Zone Pad Floor */}
                   <polygon
                     fill={
                       selectedZoneId === zoneStats[1]?.id
-                        ? '#5AA9FF'
-                        : '#354859'
+                        ? 'rgba(90, 169, 255, 0.25)'
+                        : hoveredZoneId === zoneStats[1]?.id
+                          ? 'rgba(90, 169, 255, 0.16)'
+                          : 'rgba(28, 41, 53, 0.8)'
                     }
-                    points="40,0 80,20 40,40 0,20"
-                    stroke="#5AA9FF"
-                    strokeWidth="0.8"
+                    points="450,180 570,240 460,300 340,240"
+                    stroke={
+                      selectedZoneId === zoneStats[1]?.id
+                        ? '#5AA9FF'
+                        : '#2C3E50'
+                    }
+                    strokeWidth={
+                      selectedZoneId === zoneStats[1]?.id ? '2' : '1.2'
+                    }
                   />
-                  <polygon
-                    fill="#1F2E3C"
-                    points="0,20 40,40 40,75 0,55"
-                    stroke="#223140"
-                    strokeWidth="0.8"
+
+                  {/* 3D Extruded Picking Flow Racks */}
+                  <g transform="translate(390, 205)">
+                    <polygon
+                      fill={
+                        selectedZoneId === zoneStats[1]?.id
+                          ? '#5AA9FF'
+                          : '#354859'
+                      }
+                      points="40,0 80,20 40,40 0,20"
+                      stroke="#5AA9FF"
+                      strokeWidth="0.8"
+                    />
+                    <polygon
+                      fill="#1F2E3C"
+                      points="0,20 40,40 40,75 0,55"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                    <polygon
+                      fill="#15212C"
+                      points="40,40 80,20 80,55 40,75"
+                      stroke="#223140"
+                      strokeWidth="0.8"
+                    />
+                    {/* Pick indicator pallets */}
+                    <circle cx="20" cy="30" fill="#43D9E8" r="2.5" />
+                    <circle cx="40" cy="20" fill="#F59E0B" r="2.5" />
+                    <circle cx="60" cy="30" fill="#10B981" r="2.5" />
+                  </g>
+
+                  <circle
+                    cx="455"
+                    cy="240"
+                    fill="#5AA9FF"
+                    filter="url(#cyanGlow)"
+                    r="3.5"
                   />
-                  <polygon
-                    fill="#15212C"
-                    points="40,40 80,20 80,55 40,75"
-                    stroke="#223140"
-                    strokeWidth="0.8"
-                  />
-                  {/* Pick indicator pallets */}
-                  <circle cx="20" cy="30" fill="#43D9E8" r="2.5" />
-                  <circle cx="40" cy="20" fill="#F59E0B" r="2.5" />
-                  <circle cx="60" cy="30" fill="#10B981" r="2.5" />
+                  <text
+                    className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
+                    x="485"
+                    y="215"
+                  >
+                    {zoneStats[1]?.name.split(' ')[0] || 'ZONE B'}
+                  </text>
                 </g>
 
-                <circle
-                  cx="455"
-                  cy="240"
-                  fill="#5AA9FF"
-                  filter="url(#cyanGlow)"
-                  r="3.5"
-                />
-                <text
-                  className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
-                  x="485"
-                  y="215"
+                {/* Zone C: Climate / Receiving Chamber (Front Left) */}
+                <g
+                  className="cursor-pointer transition-opacity"
+                  onClick={() => {
+                    const z = zoneStats[2] || zoneStats[0]
+                    if (z) {
+                      setSelectedZoneId(z.id)
+                      onSelectZone?.(z.id)
+                    }
+                  }}
+                  onMouseEnter={() => {
+                    const z = zoneStats[2] || zoneStats[0]
+                    if (z) setHoveredZoneId(z.id)
+                  }}
+                  onMouseLeave={() => setHoveredZoneId(null)}
                 >
-                  {zoneStats[1]?.name.split(' ')[0] || 'ZONE B'}
-                </text>
-              </g>
-
-              {/* Zone C: Climate / Receiving Chamber (Front Left) */}
-              <g
-                className="cursor-pointer transition-opacity"
-                onClick={() => {
-                  const z = zoneStats[2] || zoneStats[0]
-                  if (z) {
-                    setSelectedZoneId(z.id)
-                    onSelectZone?.(z.id)
-                  }
-                }}
-                onMouseEnter={() => {
-                  const z = zoneStats[2] || zoneStats[0]
-                  if (z) setHoveredZoneId(z.id)
-                }}
-                onMouseLeave={() => setHoveredZoneId(null)}
-              >
-                {/* Zone Pad Floor */}
-                <polygon
-                  fill={
-                    selectedZoneId === (zoneStats[2]?.id || '')
-                      ? 'rgba(245, 158, 11, 0.25)'
-                      : hoveredZoneId === (zoneStats[2]?.id || '')
-                        ? 'rgba(245, 158, 11, 0.16)'
-                        : 'rgba(28, 41, 53, 0.8)'
-                  }
-                  points="220,245 340,305 230,365 110,305"
-                  stroke={
-                    selectedZoneId === (zoneStats[2]?.id || '')
-                      ? '#F59E0B'
-                      : '#2C3E50'
-                  }
-                  strokeWidth="1.2"
-                />
-
-                {/* Staging pallets on ground */}
-                <g transform="translate(160, 275)">
+                  {/* Zone Pad Floor */}
                   <polygon
+                    fill={
+                      selectedZoneId === (zoneStats[2]?.id || '')
+                        ? 'rgba(245, 158, 11, 0.25)'
+                        : hoveredZoneId === (zoneStats[2]?.id || '')
+                          ? 'rgba(245, 158, 11, 0.16)'
+                          : 'rgba(28, 41, 53, 0.8)'
+                    }
+                    points="220,245 340,305 230,365 110,305"
+                    stroke={
+                      selectedZoneId === (zoneStats[2]?.id || '')
+                        ? '#F59E0B'
+                        : '#2C3E50'
+                    }
+                    strokeWidth="1.2"
+                  />
+
+                  {/* Staging pallets on ground */}
+                  <g transform="translate(160, 275)">
+                    <polygon
+                      fill="#F59E0B"
+                      opacity="0.8"
+                      points="25,0 50,12 25,24 0,12"
+                      stroke="#D97706"
+                      strokeWidth="0.8"
+                    />
+                    <polygon fill="#B45309" points="0,12 25,24 25,36 0,24" />
+                    <polygon fill="#78350F" points="25,24 50,12 50,24 25,36" />
+                  </g>
+
+                  <g transform="translate(225, 305)">
+                    <polygon
+                      fill="#10B981"
+                      opacity="0.8"
+                      points="20,0 40,10 20,20 0,10"
+                      stroke="#059669"
+                      strokeWidth="0.8"
+                    />
+                    <polygon fill="#047857" points="0,10 20,20 20,30 0,20" />
+                    <polygon fill="#065F46" points="20,20 40,10 40,20 20,30" />
+                  </g>
+
+                  <circle
+                    cx="225"
+                    cy="305"
                     fill="#F59E0B"
-                    opacity="0.8"
-                    points="25,0 50,12 25,24 0,12"
-                    stroke="#D97706"
-                    strokeWidth="0.8"
+                    filter="url(#cyanGlow)"
+                    r="3.5"
                   />
-                  <polygon
-                    fill="#B45309"
-                    points="0,12 25,24 25,36 0,24"
-                  />
-                  <polygon
-                    fill="#78350F"
-                    points="25,24 50,12 50,24 25,36"
-                  />
+                  <text
+                    className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
+                    x="140"
+                    y="265"
+                  >
+                    {zoneStats[2]?.name.split(' ')[0] || 'ZONE C'}
+                  </text>
                 </g>
 
-                <g transform="translate(225, 305)">
-                  <polygon
-                    fill="#10B981"
-                    opacity="0.8"
-                    points="20,0 40,10 20,20 0,10"
-                    stroke="#059669"
-                    strokeWidth="0.8"
+                {/* Central Main Forklift Transit Aisle (Cyan Pulsing Arrow) */}
+                <g opacity="0.75">
+                  <line
+                    stroke="#43D9E8"
+                    strokeDasharray="6 6"
+                    strokeWidth="1.5"
+                    x1="280"
+                    x2="520"
+                    y1="210"
+                    y2="330"
                   />
-                  <polygon
-                    fill="#047857"
-                    points="0,10 20,20 20,30 0,20"
-                  />
-                  <polygon
-                    fill="#065F46"
-                    points="20,20 40,10 40,20 20,30"
-                  />
+                  <polygon fill="#43D9E8" points="524,332 512,322 516,334" />
                 </g>
-
-                <circle
-                  cx="225"
-                  cy="305"
-                  fill="#F59E0B"
-                  filter="url(#cyanGlow)"
-                  r="3.5"
-                />
-                <text
-                  className="font-mono text-[10px] font-bold fill-[#E9F0F7]"
-                  x="140"
-                  y="265"
-                >
-                  {zoneStats[2]?.name.split(' ')[0] || 'ZONE C'}
-                </text>
-              </g>
-
-              {/* Central Main Forklift Transit Aisle (Cyan Pulsing Arrow) */}
-              <g opacity="0.75">
-                <line
-                  stroke="#43D9E8"
-                  strokeDasharray="6 6"
-                  strokeWidth="1.5"
-                  x1="280"
-                  x2="520"
-                  y1="210"
-                  y2="330"
-                />
-                <polygon
-                  fill="#43D9E8"
-                  points="524,332 512,322 516,334"
-                />
-              </g>
               </g>
             </svg>
           </div>
@@ -1159,19 +1371,28 @@ export function WarehouseIsometricVisualizer({
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-text-muted block">CAPACITY</span>
+                <span className="text-[10px] text-text-muted block">
+                  CAPACITY
+                </span>
                 <span className="font-bold text-text-primary">
                   {activeZone.totalCapacity} plts
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-text-muted block">OCCUPANCY</span>
+                <span
+                  className="text-[10px] text-text-muted block truncate"
+                  title="Rated slot capacity proxy utilization (0-100%)"
+                >
+                  OCCUPANCY (PROXY)
+                </span>
                 <span className="font-bold text-text-primary">
                   {activeZone.occupancyPct}%
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-text-muted block">VALUATION</span>
+                <span className="text-[10px] text-text-muted block">
+                  VALUATION
+                </span>
                 <span className="font-bold text-primary">
                   {formatInr(activeZone.actualValuation)}
                 </span>
@@ -1182,7 +1403,9 @@ export function WarehouseIsometricVisualizer({
             <div className="mt-3 pt-2.5 border-t border-surface-border flex items-center justify-between text-[11px]">
               <span className="text-text-muted flex items-center gap-1">
                 <Boxes size={12} className="text-secondary" />
-                <span>{activeZone.rackCount} Racks • {activeZone.assignedSkus} SKUs</span>
+                <span>
+                  {activeZone.rackCount} Racks • {activeZone.assignedSkus} SKUs
+                </span>
               </span>
               <Link
                 to="/app/warehouses"
@@ -1203,7 +1426,8 @@ export function WarehouseIsometricVisualizer({
             FACILITY FOOTPRINT
           </span>
           <span className="font-semibold text-text-primary text-xs sm:text-sm">
-            {(activeWarehouse.capacitySqFt ?? 75000).toLocaleString('en-IN')} sq ft
+            {(activeWarehouse.capacitySqFt ?? 75000).toLocaleString('en-IN')} sq
+            ft
           </span>
         </div>
         <div className="p-3">
@@ -1220,7 +1444,8 @@ export function WarehouseIsometricVisualizer({
             FACILITY STOCK
           </span>
           <span className="font-semibold text-text-primary text-xs sm:text-sm">
-            {facilityStockUnits.toLocaleString()} Units ({facilityProducts.length} SKUs)
+            {facilityStockUnits.toLocaleString()} Units (
+            {facilityProducts.length} SKUs)
           </span>
         </div>
         <div className="p-3">

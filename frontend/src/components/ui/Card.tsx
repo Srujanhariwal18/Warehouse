@@ -22,7 +22,9 @@ export function Card({
     baseStyles += ' bg-transparent'
   } else {
     baseStyles += ` border border-surface-border ${
-      elevated ? 'bg-surface shadow-2xl shadow-black/60' : 'bg-graphite shadow-md shadow-black/30'
+      elevated
+        ? 'bg-surface shadow-2xl shadow-black/60'
+        : 'bg-graphite shadow-md shadow-black/30'
     }`
   }
 

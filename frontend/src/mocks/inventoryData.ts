@@ -140,7 +140,10 @@ const categories = ['Storage', 'Packing', 'Equipment', 'Safety']
 const prices = [1850, 420, 12499, 8750, 6999, 18.5, 3200, 275]
 const stockLevels = [128, 64, 22, 8, 0, 340, 46, 12, 75, 5]
 
-const defaultLocationsByWarehouse: Record<string, { zoneId: string; rackId: string }[]> = {
+const defaultLocationsByWarehouse: Record<
+  string,
+  { zoneId: string; rackId: string }[]
+> = {
   'wh-mum': [
     { zoneId: 'zon-mum-a', rackId: 'rck-mum-a1' },
     { zoneId: 'zon-mum-a', rackId: 'rck-mum-a2' },
@@ -179,7 +182,9 @@ export const products: Product[] = names.map((name, index) => {
     ...(index % 4 === 0
       ? { barcode: `890100${String(index + 1).padStart(6, '0')}` }
       : {}),
-    ...(index % 2 === 0 ? { supplierId: `SUP-${101 + ((index / 2) % 8)}` } : {}),
+    ...(index % 2 === 0
+      ? { supplierId: `SUP-${101 + ((index / 2) % 8)}` }
+      : {}),
   }
 })
 
