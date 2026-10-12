@@ -448,8 +448,48 @@ export function AppShell() {
 
       {/* Main Content Area */}
       <div
-        className={`transition-all duration-200 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
+        className={`relative min-h-screen transition-all duration-200 ${collapsed ? 'lg:pl-20' : 'lg:pl-64'}`}
       >
+        {/* Subtle Ambient Pastel Atmosphere Glows (Behind Workspace) */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 overflow-hidden"
+          style={{ zIndex: 0 }}
+        >
+          {/* Upper-right powder blue (#D8EAF3) aura */}
+          <div
+            className="absolute -top-32 -right-32 h-[580px] w-[580px] rounded-full opacity-35 blur-[140px]"
+            style={{
+              background:
+                'radial-gradient(circle, #D8EAF3 0%, #D6EAF0 50%, transparent 75%)',
+            }}
+          />
+          {/* Upper-center blush pink (#F6DDE3) aura */}
+          <div
+            className="absolute -top-24 left-1/3 h-[520px] w-[520px] rounded-full opacity-30 blur-[150px]"
+            style={{
+              background:
+                'radial-gradient(circle, #F6DDE3 0%, rgba(246,221,227,0.3) 50%, transparent 75%)',
+            }}
+          />
+          {/* Mid-workspace warm cream (#FFF0CE) aura */}
+          <div
+            className="absolute top-1/3 left-1/2 -translate-x-1/2 h-[550px] w-[650px] rounded-full opacity-25 blur-[160px]"
+            style={{
+              background:
+                'radial-gradient(circle, #FFF0CE 0%, rgba(255,240,206,0.25) 50%, transparent 75%)',
+            }}
+          />
+          {/* Lower-right pale blue (#D6EAF0) wash */}
+          <div
+            className="absolute -bottom-28 right-1/4 h-[550px] w-[550px] rounded-full opacity-30 blur-[150px]"
+            style={{
+              background:
+                'radial-gradient(circle, #D6EAF0 0%, #D8EAF3 50%, transparent 75%)',
+            }}
+          />
+        </div>
+
         {/* Top Operational Bar */}
         <header className="sticky top-0 z-30 border-b border-surface-border bg-main/90 backdrop-blur-md">
           <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -855,7 +895,7 @@ export function AppShell() {
         )}
 
         {/* Page Content Viewport */}
-        <main className="mx-auto w-full max-w-[1536px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <main className="relative z-10 mx-auto w-full max-w-[1536px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
           <Outlet />
         </main>
       </div>
