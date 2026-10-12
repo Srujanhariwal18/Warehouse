@@ -223,7 +223,7 @@ export function SuppliersPage() {
       {/* Vendor Directory Telemetry Strip */}
       <section
         aria-label="Supplier key performance indicators"
-        className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm"
+        className="overflow-hidden rounded-xl border border-surface-border bg-white shadow-2xs"
       >
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">

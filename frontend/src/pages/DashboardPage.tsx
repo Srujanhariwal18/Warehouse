@@ -203,7 +203,7 @@ export function DashboardPage() {
       ) : (
         <>
           {/* 2. Unified High-Density Operations Telemetry Strip (Balanced, Dense, No Bloat) */}
-          <div className="overflow-hidden rounded-xl border border-surface-border bg-surface shadow-md shadow-slate-900/10">
+          <div className="overflow-hidden rounded-xl border border-surface-border bg-white shadow-2xs">
             <div className="grid grid-cols-2 divide-y divide-surface-border sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
               {/* Metric 1: Enterprise Valuation */}
               <div className="p-3.5 sm:p-4">
@@ -224,28 +224,28 @@ export function DashboardPage() {
                   <span className="text-[11px] font-medium text-text-muted">
                     Catalog Stock Health
                   </span>
-                  <span className="font-mono text-xs font-semibold text-emerald-400">
+                  <span className="font-mono text-xs font-semibold text-emerald-600">
                     {healthRate}%
                   </span>
                 </div>
                 {/* 3-segment health bar */}
-                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3 flex">
+                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 flex">
                   <div
-                    className="h-full bg-primary"
+                    className="h-full bg-emerald-500"
                     style={{
                       width: `${(healthyProductsCount / (products.length || 1)) * 100}%`,
                     }}
                     title={`Healthy: ${healthyProductsCount}`}
                   />
                   <div
-                    className="h-full bg-warning"
+                    className="h-full bg-amber-500"
                     style={{
                       width: `${(lowStockProducts.length / (products.length || 1)) * 100}%`,
                     }}
                     title={`Low Stock: ${lowStockProducts.length}`}
                   />
                   <div
-                    className="h-full bg-danger"
+                    className="h-full bg-rose-500"
                     style={{
                       width: `${(outOfStockProducts.length / (products.length || 1)) * 100}%`,
                     }}
@@ -253,13 +253,13 @@ export function DashboardPage() {
                   />
                 </div>
                 <div className="mt-1.5 flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-primary">
+                  <span className="text-emerald-600 font-medium">
                     {healthyProductsCount} In Stock
                   </span>
-                  <span className="text-warning">
+                  <span className="text-amber-600 font-medium">
                     {lowStockProducts.length} Low
                   </span>
-                  <span className="text-danger">
+                  <span className="text-rose-600 font-medium">
                     {outOfStockProducts.length} Out
                   </span>
                 </div>
@@ -330,7 +330,7 @@ export function DashboardPage() {
             {/* Col 8-12: Movement Velocity & Critical Stockout Exceptions */}
             <div className="lg:col-span-5 space-y-4">
               {/* Top: Stock Movement Velocity AreaChart */}
-              <div className="rounded-xl border border-surface-border bg-surface p-4">
+              <div className="rounded-xl border border-surface-border bg-white shadow-2xs p-4">
                 <div className="flex items-center justify-between border-b border-surface-border pb-2.5">
                   <div>
                     <h2 className="text-sm font-semibold text-text-primary">
@@ -344,7 +344,7 @@ export function DashboardPage() {
                   {/* Time Range Selector */}
                   <div
                     aria-label="Stock movement range"
-                    className="flex rounded-md border border-surface-border bg-surface-2 p-0.5"
+                    className="flex rounded-md border border-surface-border bg-surface-secondary p-0.5"
                     role="group"
                   >
                     {ranges.map(({ label, value }) => (
@@ -352,7 +352,7 @@ export function DashboardPage() {
                         aria-pressed={range === value}
                         className={`rounded px-2 py-0.5 font-mono text-[10px] font-medium transition-all ${
                           range === value
-                            ? 'bg-surface text-primary border border-primary/20 shadow-xs'
+                            ? 'bg-white text-primary border border-surface-border shadow-2xs font-semibold'
                             : 'text-text-muted hover:text-text-primary'
                         }`}
                         key={value}
@@ -374,7 +374,7 @@ export function DashboardPage() {
                     >
                       <defs>
                         <linearGradient
-                          id="tealGradV2"
+                          id="primaryGradV3"
                           x1="0"
                           x2="0"
                           y1="0"
@@ -382,17 +382,17 @@ export function DashboardPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#43D9E8"
-                            stopOpacity={0.3}
+                            stopColor="#2563EB"
+                            stopOpacity={0.25}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#43D9E8"
+                            stopColor="#2563EB"
                             stopOpacity={0}
                           />
                         </linearGradient>
                         <linearGradient
-                          id="blueGradV2"
+                          id="cyanGradV3"
                           x1="0"
                           x2="0"
                           y1="0"
@@ -400,18 +400,18 @@ export function DashboardPage() {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#5AA9FF"
-                            stopOpacity={0.3}
+                            stopColor="#0891B2"
+                            stopOpacity={0.25}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#5AA9FF"
+                            stopColor="#0891B2"
                             stopOpacity={0}
                           />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
-                        stroke="#223140"
+                        stroke="#E2E8F0"
                         strokeDasharray="2 2"
                         vertical={false}
                       />
@@ -419,7 +419,7 @@ export function DashboardPage() {
                         axisLine={false}
                         dataKey="period"
                         tick={{
-                          fill: '#8EA0B2',
+                          fill: '#64748B',
                           fontSize: 10,
                           fontFamily: 'monospace',
                         }}
@@ -428,7 +428,7 @@ export function DashboardPage() {
                       <YAxis
                         axisLine={false}
                         tick={{
-                          fill: '#8EA0B2',
+                          fill: '#64748B',
                           fontSize: 10,
                           fontFamily: 'monospace',
                         }}
@@ -448,15 +448,15 @@ export function DashboardPage() {
                               ?.value || 0,
                           )
                           return (
-                            <div className="rounded-lg border border-surface-border bg-graphite p-2.5 shadow-2xl text-[11px] font-mono">
+                            <div className="rounded-lg border border-surface-border bg-white p-2.5 shadow-xl text-[11px] font-mono">
                               <p className="font-semibold text-text-primary pb-1 mb-1 border-b border-surface-border">
                                 {label}
                               </p>
-                              <p className="text-primary flex justify-between gap-3">
+                              <p className="text-primary flex justify-between gap-3 font-medium">
                                 <span>Inbound Flow:</span>
                                 <span>+{inUnits}</span>
                               </p>
-                              <p className="text-secondary flex justify-between gap-3">
+                              <p className="text-secondary flex justify-between gap-3 font-medium">
                                 <span>Outbound Flow:</span>
                                 <span>-{outUnits}</span>
                               </p>
@@ -466,17 +466,17 @@ export function DashboardPage() {
                       />
                       <Area
                         dataKey="inbound"
-                        fill="url(#tealGradV2)"
+                        fill="url(#primaryGradV3)"
                         name="Inbound"
-                        stroke="#43D9E8"
+                        stroke="#2563EB"
                         strokeWidth={2}
                         type="monotone"
                       />
                       <Area
                         dataKey="outbound"
-                        fill="url(#blueGradV2)"
+                        fill="url(#cyanGradV3)"
                         name="Outbound"
-                        stroke="#5AA9FF"
+                        stroke="#0891B2"
                         strokeWidth={2}
                         type="monotone"
                       />
@@ -485,11 +485,11 @@ export function DashboardPage() {
                 </div>
 
                 <div className="mt-2 flex items-center justify-between font-mono text-[10px] text-text-muted">
-                  <span className="flex items-center gap-1.5 text-text-secondary">
+                  <span className="flex items-center gap-1.5 text-text-secondary font-medium">
                     <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                     Inbound Flow
                   </span>
-                  <span className="flex items-center gap-1.5 text-text-secondary">
+                  <span className="flex items-center gap-1.5 text-text-secondary font-medium">
                     <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
                     Outbound Flow
                   </span>
@@ -497,7 +497,7 @@ export function DashboardPage() {
               </div>
 
               {/* Bottom: Critical Stockout Watchlist (Actionable!) */}
-              <div className="rounded-xl border border-surface-border bg-surface p-4">
+              <div className="rounded-xl border border-surface-border bg-white shadow-2xs p-4">
                 <div className="flex items-center justify-between border-b border-surface-border pb-2.5">
                   <div className="flex items-center gap-2">
                     <AlertTriangle size={15} className="text-danger" />
@@ -507,7 +507,7 @@ export function DashboardPage() {
                   </div>
                   <Link
                     to="/app/alerts"
-                    className="text-[11px] text-primary hover:underline flex items-center gap-1 font-mono"
+                    className="text-[11px] text-primary hover:underline flex items-center gap-1 font-mono font-medium"
                   >
                     <span>
                       View All (
@@ -532,11 +532,11 @@ export function DashboardPage() {
                       {outOfStockProducts.slice(0, 2).map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center justify-between rounded-lg border border-danger/30 bg-danger/5 p-2.5 text-xs"
+                          className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50/60 p-2.5 text-xs"
                         >
                           <div className="min-w-0 pr-2">
                             <div className="flex items-center gap-1.5">
-                              <span className="rounded bg-danger/20 px-1 py-0.2 font-mono text-[9px] font-bold text-danger">
+                              <span className="rounded bg-red-100 px-1 py-0.2 font-mono text-[9px] font-bold text-red-700">
                                 ZERO STOCK
                               </span>
                               <span className="font-mono text-[10px] text-text-muted">
@@ -549,7 +549,7 @@ export function DashboardPage() {
                           </div>
                           <Link
                             to="/app/transactions"
-                            className="shrink-0 rounded-md bg-surface-2 border border-surface-border hover:border-primary/50 px-2 py-1 font-mono text-[10px] text-primary hover:bg-surface-3 transition-colors"
+                            className="shrink-0 rounded-md bg-white border border-red-200 hover:border-red-300 px-2 py-1 font-mono text-[10px] text-red-700 hover:bg-red-50 transition-colors font-medium shadow-2xs"
                           >
                             Restock →
                           </Link>
@@ -560,11 +560,11 @@ export function DashboardPage() {
                       {lowStockProducts.slice(0, 1).map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center justify-between rounded-lg border border-warning/30 bg-warning/5 p-2.5 text-xs"
+                          className="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50/60 p-2.5 text-xs"
                         >
                           <div className="min-w-0 pr-2">
                             <div className="flex items-center gap-1.5">
-                              <span className="rounded bg-warning/20 px-1 py-0.2 font-mono text-[9px] font-bold text-warning">
+                              <span className="rounded bg-amber-100 px-1 py-0.2 font-mono text-[9px] font-bold text-amber-800">
                                 LOW BUFFER
                               </span>
                               <span className="font-mono text-[10px] text-text-muted">
@@ -575,7 +575,7 @@ export function DashboardPage() {
                               {item.name}
                             </p>
                           </div>
-                          <div className="shrink-0 text-right font-mono text-[11px] text-warning">
+                          <div className="shrink-0 text-right font-mono text-[11px] text-amber-800 font-semibold">
                             {item.stock} / {item.reorderThreshold}
                           </div>
                         </div>
@@ -590,7 +590,7 @@ export function DashboardPage() {
           {/* 4. Bottom Operational Execution Zone (Ledger & Orders Queue) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Col 1-7: Recent Movement Ledger (Compact Table) */}
-            <div className="lg:col-span-7 rounded-xl border border-surface-border bg-surface overflow-hidden">
+            <div className="lg:col-span-7 rounded-xl border border-surface-border bg-white shadow-2xs overflow-hidden">
               <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
                 <div className="flex items-center gap-2">
                   <TrendingUp size={15} className="text-primary" />
@@ -605,7 +605,7 @@ export function DashboardPage() {
                 </div>
                 <Link
                   to="/app/transactions"
-                  className="font-mono text-[11px] text-primary hover:underline flex items-center gap-1"
+                  className="font-mono text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
                 >
                   <span>All ({transactions.length})</span>
                   <ArrowRight size={11} />
@@ -629,7 +629,7 @@ export function DashboardPage() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="border-b border-surface-border bg-surface-2 font-mono text-[10px] uppercase text-text-muted">
+                    <thead className="border-b border-surface-border bg-surface-secondary/80 font-mono text-[10px] uppercase text-text-muted">
                       <tr>
                         <th className="px-3.5 py-2">Type</th>
                         <th className="px-3.5 py-2">SKU</th>
@@ -639,7 +639,7 @@ export function DashboardPage() {
                         <th className="px-3.5 py-2">Date</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-surface-border/50 font-mono">
+                    <tbody className="divide-y divide-surface-border font-mono">
                       {stockTransactions.slice(0, 5).map((tx) => {
                         const product = productsById.get(tx.productId)
                         const warehouse = warehousesById.get(tx.warehouseId)
@@ -647,16 +647,16 @@ export function DashboardPage() {
                         return (
                           <tr
                             key={tx.id}
-                            className="text-text-secondary hover:bg-surface-2/40 transition-colors"
+                            className="text-text-secondary hover:bg-surface-secondary/60 transition-colors"
                           >
                             <td className="px-3.5 py-2.5">
                               <span
                                 className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
                                   tx.type === 'Inbound'
-                                    ? 'bg-primary/10 text-primary'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
                                     : tx.type === 'Outbound'
-                                      ? 'bg-rose-500/10 text-rose-400'
-                                      : 'bg-secondary/10 text-secondary'
+                                      ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                      : 'bg-cyan-50 text-cyan-700 border border-cyan-200'
                                 }`}
                               >
                                 {tx.type}
@@ -670,7 +670,7 @@ export function DashboardPage() {
                             </td>
                             <td
                               className={`px-3.5 py-2.5 text-right font-bold ${
-                                isPositive ? 'text-primary' : 'text-rose-400'
+                                isPositive ? 'text-primary' : 'text-rose-600'
                               }`}
                             >
                               {isPositive ? `+${tx.quantity}` : tx.quantity}
@@ -691,7 +691,7 @@ export function DashboardPage() {
             </div>
 
             {/* Col 8-12: High-Priority Dispatch Queue */}
-            <div className="lg:col-span-5 rounded-xl border border-surface-border bg-surface overflow-hidden flex flex-col justify-between">
+            <div className="lg:col-span-5 rounded-xl border border-surface-border bg-white shadow-2xs overflow-hidden flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between border-b border-surface-border px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -707,20 +707,20 @@ export function DashboardPage() {
                   </div>
                   <Link
                     to="/app/orders"
-                    className="font-mono text-[11px] text-primary hover:underline flex items-center gap-1"
+                    className="font-mono text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
                   >
                     <span>Orders ({orders.length})</span>
                     <ArrowRight size={11} />
                   </Link>
                 </div>
 
-                <div className="divide-y divide-surface-border/50">
+                <div className="divide-y divide-surface-border">
                   {pendingOrders.slice(0, 4).map((order) => {
                     const warehouse = warehousesById.get(order.warehouseId)
                     return (
                       <div
                         key={order.id}
-                        className="flex items-center justify-between p-3 hover:bg-surface-2/40 transition-colors text-xs"
+                        className="flex items-center justify-between p-3 hover:bg-surface-secondary/50 transition-colors text-xs"
                       >
                         <div>
                           <div className="flex items-center gap-2">
@@ -754,10 +754,10 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              <div className="p-3 border-t border-surface-border/60 bg-surface-2/30">
+              <div className="p-3 border-t border-surface-border bg-surface-secondary/40">
                 <Link
                   to="/app/orders"
-                  className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg border border-surface-border bg-surface text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
+                  className="flex items-center justify-center gap-1.5 w-full py-1.5 rounded-lg border border-surface-border bg-white text-xs font-medium text-text-secondary hover:text-text-primary hover:border-primary/40 transition-colors shadow-2xs"
                 >
                   <span>Open Full Order Management Workspace</span>
                   <ArrowRight size={12} />

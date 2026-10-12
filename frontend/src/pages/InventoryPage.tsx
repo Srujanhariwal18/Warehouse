@@ -199,7 +199,7 @@ export function InventoryPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-1">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-surface-border/60 bg-surface px-2.5 py-0.5 font-mono text-[11px] font-medium text-primary shadow-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-surface-border bg-white px-2.5 py-0.5 font-mono text-[11px] font-medium text-primary shadow-xs">
               Warehouse Catalog
             </span>
             <span className="text-text-muted text-xs">•</span>
@@ -212,19 +212,19 @@ export function InventoryPage() {
               Inventory Catalogue
             </h1>
             <div className="flex items-center gap-2 text-xs">
-              <span className="rounded-md border border-surface-border/60 bg-surface px-2.5 py-1 font-mono text-text-secondary shadow-xs">
+              <span className="rounded-md border border-surface-border bg-white px-2.5 py-1 font-mono text-text-secondary shadow-2xs">
                 {products.length} SKUs
               </span>
-              <span className="rounded-md border border-surface-border/60 bg-surface px-2.5 py-1 font-mono text-primary font-semibold shadow-xs">
+              <span className="rounded-md border border-surface-border bg-white px-2.5 py-1 font-mono text-primary font-semibold shadow-2xs">
                 Valuation: {formatInr(inventoryValue)}
               </span>
               {outOfStock > 0 && (
-                <span className="rounded-md border border-danger/30 bg-danger/10 px-2.5 py-1 font-mono text-danger font-semibold shadow-xs">
+                <span className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 font-mono text-rose-700 font-semibold shadow-2xs">
                   {outOfStock} Stockout
                 </span>
               )}
               {lowStockProducts.length > 0 && (
-                <span className="rounded-md border border-warning/30 bg-warning/10 px-2.5 py-1 font-mono text-warning font-semibold shadow-xs">
+                <span className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1 font-mono text-amber-800 font-semibold shadow-2xs">
                   {lowStockProducts.length} Low Buffer
                 </span>
               )}
@@ -251,8 +251,8 @@ export function InventoryPage() {
         <div
           className={`flex items-center justify-between rounded-lg border px-3.5 py-2 text-xs ${
             notice.type === 'success'
-              ? 'border-success/30 bg-success/10 text-success'
-              : 'border-danger/30 bg-danger/10 text-danger'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-rose-200 bg-rose-50 text-rose-800'
           }`}
           role={notice.type === 'error' ? 'alert' : 'status'}
         >
@@ -269,9 +269,9 @@ export function InventoryPage() {
       )}
 
       {/* 2. Integrated Data Table Card with Natural Toolbar (Starts immediately!) */}
-      <Card className="overflow-hidden border border-surface-border bg-surface shadow-xs">
+      <Card className="overflow-hidden border border-surface-border bg-white shadow-2xs">
         {/* Integrated Natural Filter Command Bar (Single Compact Row) */}
-        <div className="border-b border-surface-border bg-surface-1/60 p-3">
+        <div className="border-b border-surface-border bg-surface-secondary/70 p-3">
           <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between">
             {/* Search Input */}
             <div className="relative flex-1 lg:max-w-xs">
@@ -282,7 +282,7 @@ export function InventoryPage() {
               />
               <input
                 aria-label="Search products by name or SKU"
-                className="h-9 w-full rounded-lg border border-surface-border bg-surface-2 pl-8 pr-3 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                className="h-9 w-full rounded-lg border border-surface-border bg-white pl-8 pr-3 text-xs text-text-primary placeholder:text-text-muted outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors shadow-2xs"
                 onChange={(event) => setFilter(setSearch, event.target.value)}
                 placeholder="Search name, SKU..."
                 value={search}
@@ -302,13 +302,13 @@ export function InventoryPage() {
             {/* Natural Filter Controls Row */}
             <div className="flex flex-wrap items-center gap-2 text-xs">
               {/* Category Pills */}
-              <div className="flex items-center rounded-lg border border-surface-border bg-surface-2 p-0.5">
+              <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 shadow-2xs">
                 {['All categories', ...categories].map((cat) => (
                   <button
                     key={cat}
                     className={`rounded-md px-2 py-1 text-[11px] font-medium transition-all ${
                       category === cat
-                        ? 'bg-surface text-primary border border-primary/20 shadow-xs'
+                        ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                         : 'text-text-muted hover:text-text-primary'
                     }`}
                     onClick={() => setFilter(setCategory, cat)}
@@ -322,7 +322,7 @@ export function InventoryPage() {
               {/* Warehouse Dropdown */}
               <select
                 aria-label="Filter by warehouse"
-                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2.5 text-xs text-text-secondary outline-none focus:border-primary"
+                className="h-8 rounded-lg border border-surface-border bg-white px-2.5 text-xs text-text-secondary outline-none focus:border-primary shadow-2xs"
                 onChange={(event) =>
                   setFilter(setWarehouse, event.target.value)
                 }
@@ -339,7 +339,7 @@ export function InventoryPage() {
               {/* Status Dropdown */}
               <select
                 aria-label="Filter by stock status"
-                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2.5 text-xs text-text-secondary outline-none focus:border-primary"
+                className="h-8 rounded-lg border border-surface-border bg-white px-2.5 text-xs text-text-secondary outline-none focus:border-primary shadow-2xs"
                 onChange={(event) => setFilter(setStatus, event.target.value)}
                 value={status}
               >
@@ -359,7 +359,7 @@ export function InventoryPage() {
               {/* Rows per page */}
               <select
                 aria-label="Rows per page"
-                className="h-8 rounded-lg border border-surface-border bg-surface-2 px-2 font-mono text-[11px] text-text-muted outline-none focus:border-primary"
+                className="h-8 rounded-lg border border-surface-border bg-white px-2 font-mono text-[11px] text-text-muted outline-none focus:border-primary shadow-2xs"
                 onChange={(event) => {
                   setPageSize(Number(event.target.value))
                   setPage(1)
@@ -417,7 +417,7 @@ export function InventoryPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[960px] text-left text-xs">
-              <thead className="border-b border-surface-border bg-surface-2/70 text-[11px] font-medium text-text-muted">
+              <thead className="border-b border-surface-border bg-surface-secondary/80 text-[11px] font-medium text-text-secondary">
                 <tr>
                   <SortableHeader
                     active={sortKey === 'name'}
@@ -452,7 +452,7 @@ export function InventoryPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-border/50 font-sans">
+              <tbody className="divide-y divide-surface-border font-sans">
                 {visibleProducts.map((product) => {
                   const stockStatus = statusFor(product)
                   const warehouseName =
@@ -464,8 +464,8 @@ export function InventoryPage() {
                       key={product.id}
                       className={`text-text-secondary transition-colors cursor-pointer ${
                         isSelected
-                          ? 'bg-primary/5 text-text-primary'
-                          : 'hover:bg-surface-2/40'
+                          ? 'bg-surface-blue/50 text-text-primary'
+                          : 'hover:bg-surface-secondary/60'
                       }`}
                       onClick={() => setSelected(product)}
                     >
@@ -485,14 +485,14 @@ export function InventoryPage() {
 
                       {/* SKU */}
                       <td className="px-3.5 py-3">
-                        <span className="inline-block rounded bg-surface-2 border border-surface-border px-1.5 py-0.5 font-mono text-[11px] font-bold text-primary">
+                        <span className="inline-block rounded bg-surface-secondary border border-surface-border px-1.5 py-0.5 font-mono text-[11px] font-bold text-primary">
                           {product.sku}
                         </span>
                       </td>
 
                       {/* Category */}
                       <td className="px-3.5 py-3 text-text-secondary">
-                        <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] text-text-muted font-medium">
+                        <span className="rounded bg-surface-secondary px-1.5 py-0.5 text-[10px] text-text-muted font-medium">
                           {product.category}
                         </span>
                       </td>
@@ -510,16 +510,16 @@ export function InventoryPage() {
                           </span>
                           {/* Inline gauge meter */}
                           <div
-                            className="w-14 h-1.5 rounded-full bg-surface-3 overflow-hidden"
+                            className="w-14 h-1.5 rounded-full bg-slate-200 overflow-hidden"
                             title={`Reorder at ${product.reorderThreshold}`}
                           >
                             <div
                               className={`h-full rounded-full transition-all ${
                                 product.stock === 0
-                                  ? 'bg-danger w-full'
+                                  ? 'bg-rose-500 w-full'
                                   : product.stock <= product.reorderThreshold
-                                    ? 'bg-warning'
-                                    : 'bg-primary'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
                               }`}
                               style={{
                                 width:
@@ -602,7 +602,7 @@ export function InventoryPage() {
         )}
 
         {/* 4. Table Pagination Footer */}
-        <div className="flex flex-col gap-2 border-t border-surface-border px-4 py-2.5 text-xs text-text-secondary sm:flex-row sm:items-center sm:justify-between bg-surface-1/40">
+        <div className="flex flex-col gap-2 border-t border-surface-border px-4 py-2.5 text-xs text-text-secondary sm:flex-row sm:items-center sm:justify-between bg-surface-secondary/50">
           <span className="text-[11px] text-text-muted">
             Showing{' '}
             {filteredProducts.length === 0 ? 0 : (page - 1) * pageSize + 1}–
@@ -736,19 +736,19 @@ function ProductDrawer({
     <>
       <div
         aria-hidden="true"
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
       <aside
         aria-label="Product details"
         aria-modal="true"
-        className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-border bg-sidebar p-6 shadow-2xl flex flex-col justify-between"
+        className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto border-l border-surface-border bg-white p-6 shadow-2xl flex flex-col justify-between"
         ref={drawerRef}
         role="dialog"
       >
         <div>
           <div className="flex items-center justify-between border-b border-surface-border pb-3">
-            <span className="text-xs font-medium text-primary">
+            <span className="text-xs font-semibold text-primary">
               Product Inspection
             </span>
             <Button
@@ -763,7 +763,7 @@ function ProductDrawer({
 
           <div className="mt-5">
             <div className="flex items-center gap-2">
-              <span className="rounded bg-surface-2 border border-surface-border px-1.5 py-0.5 font-mono text-xs font-bold text-primary">
+              <span className="rounded bg-surface-secondary border border-surface-border px-1.5 py-0.5 font-mono text-xs font-bold text-primary">
                 {product.sku}
               </span>
               <StatusBadge size="sm" tone={statusFor(product).tone}>
@@ -778,7 +778,7 @@ function ProductDrawer({
             </h2>
           </div>
 
-          <div className="mt-6 space-y-2.5 rounded-xl border border-surface-border bg-surface-2/40 p-4">
+          <div className="mt-6 space-y-2.5 rounded-xl border border-surface-border bg-surface-secondary/60 p-4">
             {[
               ['Category', product.category],
               ['Storage Facility', warehouseName ?? 'Unknown'],
@@ -791,7 +791,7 @@ function ProductDrawer({
               ['Reorder Threshold', `${product.reorderThreshold} units`],
             ].map(([label, value]) => (
               <div
-                className="flex items-center justify-between border-b border-surface-border/40 pb-2 text-xs last:border-0 last:pb-0"
+                className="flex items-center justify-between border-b border-surface-border/50 pb-2 text-xs last:border-0 last:pb-0"
                 key={label}
               >
                 <span className="text-text-muted">{label}</span>
@@ -958,7 +958,7 @@ function ProductDialog({
     <>
       <div
         aria-hidden="true"
-        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity"
         onClick={onClose}
       />
       <div
@@ -968,7 +968,7 @@ function ProductDialog({
         role="dialog"
       >
         <div
-          className="w-full max-w-lg rounded-xl border border-surface-border bg-sidebar p-6 shadow-2xl"
+          className="w-full max-w-lg rounded-xl border border-surface-border bg-white p-6 shadow-2xl"
           ref={dialogRef}
         >
           <div className="flex items-center justify-between border-b border-surface-border pb-3">
@@ -990,7 +990,7 @@ function ProductDialog({
 
           {error && (
             <div
-              className="mt-4 flex items-center gap-2 rounded-lg border border-danger/30 bg-danger/10 p-3 text-xs text-danger"
+              className="mt-4 flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700"
               role="alert"
             >
               <AlertCircle size={15} />
@@ -1037,7 +1037,7 @@ function ProductDialog({
                       Category
                     </label>
                     <select
-                      className="h-10 w-full rounded-lg border border-surface-border bg-surface-2 px-3 text-xs text-text-primary outline-none focus:border-primary"
+                      className="h-10 w-full rounded-lg border border-surface-border bg-white px-3 text-xs text-text-primary outline-none focus:border-primary shadow-2xs"
                       id="product-category"
                       onChange={(event) => setCategory(event.target.value)}
                       value={category}
@@ -1057,7 +1057,7 @@ function ProductDialog({
                       Facility
                     </label>
                     <select
-                      className="h-10 w-full rounded-lg border border-surface-border bg-surface-2 px-3 text-xs text-text-primary outline-none focus:border-primary"
+                      className="h-10 w-full rounded-lg border border-surface-border bg-white px-3 text-xs text-text-primary outline-none focus:border-primary shadow-2xs"
                       id="product-warehouse"
                       onChange={(event) => setWarehouseId(event.target.value)}
                       value={warehouseId}

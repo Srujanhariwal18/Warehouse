@@ -272,15 +272,15 @@ export function WarehouseIsometricVisualizer({
 
   return (
     <div
-      className={`rounded-xl border border-surface-border bg-surface shadow-2xl relative flex flex-col overflow-hidden transition-all duration-300 ${
+      className={`rounded-xl border border-surface-border bg-white shadow-sm relative flex flex-col overflow-hidden transition-all duration-300 ${
         isFullscreen ? 'fixed inset-4 z-50 bg-main' : ''
       } ${className}`}
     >
       {/* 1. Header Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-border bg-surface-2/60 px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-border bg-surface-secondary/80 px-4 py-3">
         {/* Left: Facility identity & Hub Switcher Pills */}
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/30 bg-primary/10 text-primary">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-surface-blue text-primary">
             <WarehouseIcon size={18} />
           </div>
           <div>
@@ -296,12 +296,12 @@ export function WarehouseIsometricVisualizer({
               </StatusBadge>
 
               {facilities && onSelectFacility && (
-                <div className="ml-2 hidden sm:flex items-center gap-1 rounded-lg border border-surface-border bg-sidebar/80 p-0.5">
+                <div className="ml-2 hidden sm:flex items-center gap-1 rounded-lg border border-surface-border bg-white p-0.5 shadow-2xs">
                   {facilities.map((fac) => (
                     <button
                       className={`rounded px-2 py-0.5 font-mono text-[11px] transition-colors ${
                         (selectedFacilityId ?? activeWarehouse.id) === fac.id
-                          ? 'bg-primary/20 text-primary font-semibold'
+                          ? 'bg-surface-blue text-primary font-semibold'
                           : 'text-text-muted hover:text-text-primary'
                       }`}
                       key={fac.id}
@@ -323,11 +323,11 @@ export function WarehouseIsometricVisualizer({
         {/* Right: Working View Modes, Heatmap Filters & Camera Actions */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Heatmap Metric Selector */}
-          <div className="flex items-center rounded-lg border border-surface-border bg-sidebar p-0.5 text-xs">
+          <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 text-xs shadow-2xs">
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'occupancy'
-                  ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                  ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setHeatmapMetric('occupancy')}
@@ -339,7 +339,7 @@ export function WarehouseIsometricVisualizer({
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'type'
-                  ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                  ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setHeatmapMetric('type')}
@@ -351,7 +351,7 @@ export function WarehouseIsometricVisualizer({
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'valuation'
-                  ? 'bg-primary/20 text-primary font-semibold shadow-xs'
+                  ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setHeatmapMetric('valuation')}
@@ -363,11 +363,11 @@ export function WarehouseIsometricVisualizer({
           </div>
 
           {/* View Modes Selector */}
-          <div className="flex items-center rounded-lg border border-surface-border bg-sidebar p-0.5 text-xs">
+          <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 text-xs shadow-2xs">
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 viewMode === 'isometric'
-                  ? 'bg-secondary/20 text-secondary font-semibold shadow-xs'
+                  ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setViewMode('isometric')}
@@ -379,7 +379,7 @@ export function WarehouseIsometricVisualizer({
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 viewMode === 'topdown'
-                  ? 'bg-secondary/20 text-secondary font-semibold shadow-xs'
+                  ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setViewMode('topdown')}
@@ -391,7 +391,7 @@ export function WarehouseIsometricVisualizer({
             <button
               className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
                 viewMode === 'elevation'
-                  ? 'bg-secondary/20 text-secondary font-semibold shadow-xs'
+                  ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
               }`}
               onClick={() => setViewMode('elevation')}
@@ -406,10 +406,10 @@ export function WarehouseIsometricVisualizer({
           <div className="flex items-center gap-1">
             <button
               aria-label="Toggle Data Table View"
-              className={`rounded-lg border p-1.5 transition-colors ${
+              className={`rounded-lg border p-1.5 transition-colors shadow-2xs ${
                 showTableView
-                  ? 'border-primary bg-primary/20 text-primary'
-                  : 'border-surface-border text-text-muted hover:border-surface-3 hover:text-text-primary'
+                  ? 'border-primary/40 bg-surface-blue text-primary'
+                  : 'border-surface-border bg-white text-text-muted hover:border-surface-3 hover:text-text-primary'
               }`}
               onClick={() => setShowTableView((v) => !v)}
               title="Toggle zone audit table"
@@ -420,7 +420,7 @@ export function WarehouseIsometricVisualizer({
 
             <button
               aria-label="Reset Camera Position"
-              className="rounded-lg border border-surface-border p-1.5 text-text-muted hover:border-surface-3 hover:text-text-primary transition-colors"
+              className="rounded-lg border border-surface-border bg-white p-1.5 text-text-muted hover:border-surface-3 hover:text-text-primary transition-colors shadow-2xs"
               onClick={() => {
                 setCameraResetTrigger((c) => c + 1)
                 setSelectedZoneId(null)
@@ -434,7 +434,7 @@ export function WarehouseIsometricVisualizer({
 
             <button
               aria-label="Toggle Fullscreen"
-              className="rounded-lg border border-surface-border p-1.5 text-text-muted hover:border-surface-3 hover:text-text-primary transition-colors hidden sm:block"
+              className="rounded-lg border border-surface-border bg-white p-1.5 text-text-muted hover:border-surface-3 hover:text-text-primary transition-colors hidden sm:block shadow-2xs"
               onClick={() => setIsFullscreen((f) => !f)}
               title={isFullscreen ? 'Exit fullscreen' : 'Expand full view'}
               type="button"
@@ -492,9 +492,9 @@ export function WarehouseIsometricVisualizer({
         )}
 
         {/* View Mode Indicator Overlay */}
-        <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-lg border border-surface-border/80 bg-sidebar/85 px-2.5 py-1 text-[11px] font-mono text-text-secondary backdrop-blur-md">
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-lg border border-surface-border bg-white/95 px-2.5 py-1 text-[11px] font-mono text-text-secondary backdrop-blur-md shadow-xs">
           <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-          <span>
+          <span className="font-medium text-text-primary">
             {viewMode === 'isometric'
               ? '3D PERSPECTIVE // ORBIT ACTIVE'
               : viewMode === 'topdown'
@@ -509,11 +509,11 @@ export function WarehouseIsometricVisualizer({
 
         {/* Floating HUD Telemetry Card (Active Zone Details) */}
         {activeZone && (
-          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-84 rounded-xl border border-surface-border bg-sidebar/95 p-4 shadow-2xl backdrop-blur-md z-20">
+          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-84 rounded-xl border border-surface-border bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md z-20">
             <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2.5">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(67,217,232,0.8)]" />
+                  <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
                   <span className="font-semibold text-xs text-text-primary">
                     {activeRack ? activeRack.name : activeZone.name}
                   </span>
@@ -538,7 +538,7 @@ export function WarehouseIsometricVisualizer({
 
             {/* Honest Data Presentation */}
             {activeZone.assignedSkus === 0 && activeZone.actualUnits === 0 ? (
-              <div className="mt-2.5 py-2 px-3 rounded-lg bg-surface/50 border border-surface-border text-center">
+              <div className="mt-2.5 py-2 px-3 rounded-lg bg-surface-secondary/70 border border-surface-border text-center">
                 <span className="font-mono text-[11px] text-text-muted block">
                   Zone-level data unavailable
                 </span>
@@ -607,7 +607,7 @@ export function WarehouseIsometricVisualizer({
       </div>
 
       {/* 3. Bottom Reconciled Metric Strip */}
-      <div className="grid grid-cols-2 divide-x divide-surface-border border-t border-surface-border bg-surface-2/40 sm:grid-cols-4 text-xs">
+      <div className="grid grid-cols-2 divide-x divide-surface-border border-t border-surface-border bg-surface-secondary/60 sm:grid-cols-4 text-xs">
         <div className="p-3">
           <span className="text-[10px] font-mono text-text-muted block">
             FACILITY FOOTPRINT
@@ -649,11 +649,11 @@ export function WarehouseIsometricVisualizer({
       {showTableView && (
         <div
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs"
           role="dialog"
         >
-          <div className="w-full max-w-4xl max-h-[85vh] rounded-2xl border border-surface-border bg-surface-2 shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between border-b border-surface-border px-6 py-4 bg-surface">
+          <div className="w-full max-w-4xl max-h-[85vh] rounded-2xl border border-surface-border bg-white shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between border-b border-surface-border px-6 py-4 bg-surface-secondary">
               <div className="flex items-center gap-2.5">
                 <TableIcon className="text-primary" size={18} />
                 <h3 className="font-display font-semibold text-text-primary text-base">
@@ -661,7 +661,7 @@ export function WarehouseIsometricVisualizer({
                 </h3>
               </div>
               <button
-                className="text-text-muted hover:text-text-primary text-xs rounded-lg p-1.5 border border-surface-border hover:bg-surface-3 transition-colors"
+                className="text-text-muted hover:text-text-primary text-xs rounded-lg p-1.5 border border-surface-border bg-white hover:bg-surface-2 transition-colors shadow-2xs"
                 onClick={() => setShowTableView(false)}
                 type="button"
               >
@@ -686,7 +686,7 @@ export function WarehouseIsometricVisualizer({
                 <tbody className="divide-y divide-surface-border">
                   {zoneStats.map((z) => (
                     <tr
-                      className="hover:bg-surface/50 cursor-pointer transition-colors"
+                      className="hover:bg-surface-secondary/70 cursor-pointer transition-colors"
                       key={z.id}
                       onClick={() => {
                         setSelectedZoneId(z.id)
@@ -694,14 +694,14 @@ export function WarehouseIsometricVisualizer({
                         setShowTableView(false)
                       }}
                     >
-                      <td className="py-3 font-mono text-[11px] text-primary">
+                      <td className="py-3 font-mono text-[11px] text-primary font-semibold">
                         {z.id}
                       </td>
                       <td className="py-3 font-medium text-text-primary">
                         {z.name}
                       </td>
                       <td className="py-3">
-                        <span className="rounded bg-surface px-2 py-0.5 font-mono text-[10px] text-text-secondary border border-surface-border">
+                        <span className="rounded bg-surface-secondary px-2 py-0.5 font-mono text-[10px] text-text-secondary border border-surface-border">
                           {z.type}
                         </span>
                       </td>
@@ -717,21 +717,21 @@ export function WarehouseIsometricVisualizer({
                       <td className="py-3 text-right font-mono font-semibold text-text-primary pr-4">
                         {z.occupancyPct}%
                       </td>
-                      <td className="py-3 text-right font-mono text-text-primary">
+                      <td className="py-3 text-right font-mono text-text-primary font-medium">
                         {formatInr(z.actualValuation)}
                       </td>
                     </tr>
                   ))}
                   {unassignedProducts.length > 0 && (
-                    <tr className="bg-surface/20 border-t border-dashed border-surface-border text-text-muted">
-                      <td className="py-3 font-mono text-[11px] text-warning">
+                    <tr className="bg-amber-50/40 border-t border-dashed border-amber-200 text-text-muted">
+                      <td className="py-3 font-mono text-[11px] text-warning font-semibold">
                         [STAGING]
                       </td>
                       <td className="py-3 font-medium text-text-secondary">
                         Unassigned / Staging Buffer
                       </td>
                       <td className="py-3">
-                        <span className="rounded bg-surface px-2 py-0.5 font-mono text-[10px] text-warning border border-warning/30">
+                        <span className="rounded bg-amber-50 px-2 py-0.5 font-mono text-[10px] text-warning border border-warning/30 font-semibold">
                           Staging
                         </span>
                       </td>
@@ -741,7 +741,7 @@ export function WarehouseIsometricVisualizer({
                       <td className="py-3 text-right font-mono text-text-muted pr-4">
                         --
                       </td>
-                      <td className="py-3 text-right font-mono text-warning pr-4">
+                      <td className="py-3 text-right font-mono text-warning font-semibold pr-4">
                         {unassignedUnits}
                       </td>
                       <td className="py-3 text-right font-mono text-text-muted pr-4">
@@ -753,7 +753,7 @@ export function WarehouseIsometricVisualizer({
                     </tr>
                   )}
                 </tbody>
-                <tfoot className="border-t-2 border-surface-border bg-surface/30 font-mono text-xs">
+                <tfoot className="border-t-2 border-surface-border bg-surface-secondary/70 font-mono text-xs">
                   <tr>
                     <td
                       className="py-3 pl-1 font-bold text-text-primary"

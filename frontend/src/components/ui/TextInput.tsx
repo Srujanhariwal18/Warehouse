@@ -18,7 +18,7 @@ export function TextInput({
   return (
     <label className="grid gap-1.5 text-xs font-medium text-text-secondary">
       <span className="flex items-center justify-between">
-        <span>{label}</span>
+        <span className="text-text-primary font-medium">{label}</span>
         {error && (
           <span className="font-mono text-[11px] text-danger">{error}</span>
         )}
@@ -30,12 +30,12 @@ export function TextInput({
           </span>
         )}
         <input
-          className={`h-10 w-full rounded-lg border bg-[#0B1117] text-sm text-text-primary placeholder:text-text-muted transition-colors focus:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${
+          className={`h-10 w-full rounded-lg border bg-white text-sm text-text-primary placeholder:text-text-muted shadow-xs transition-colors focus:border-primary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary ${
             icon ? 'pl-9 pr-3' : 'px-3'
           } ${
             error
               ? 'border-danger/60 focus:border-danger focus-visible:ring-danger'
-              : 'border-surface-border hover:border-surface-3'
+              : 'border-surface-border hover:border-slate-300'
           } ${className}`}
           {...props}
         />

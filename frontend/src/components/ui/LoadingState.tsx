@@ -11,7 +11,7 @@ export function LoadingState({
     >
       <div className="relative mb-5 flex h-12 w-12 items-center justify-center">
         <div className="absolute inset-0 animate-ping rounded-xl bg-primary/10" />
-        <div className="relative h-9 w-9 rounded-lg border border-primary/40 bg-surface flex items-center justify-center shadow-[0_0_15px_rgba(34,211,197,0.15)]">
+        <div className="relative h-9 w-9 rounded-lg border border-primary/30 bg-surface flex items-center justify-center shadow-xs">
           <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
         </div>
       </div>

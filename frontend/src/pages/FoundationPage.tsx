@@ -13,18 +13,18 @@ export function FoundationPage() {
         aria-hidden="true"
         className="pointer-events-none absolute -right-20 top-16 h-80 w-80 rounded-full bg-secondary/10 blur-3xl"
       />
-      <section className="relative w-full max-w-3xl rounded-2xl border border-surface-3 bg-surface-1/90 p-8 shadow-2xl shadow-black/40 backdrop-blur-md sm:p-12">
+      <section className="relative w-full max-w-3xl rounded-2xl border border-surface-border bg-white/95 p-8 shadow-xl shadow-slate-900/10 backdrop-blur-md sm:p-12">
         <div className="flex items-center gap-3">
           <BrandMark />
           <span className="font-display text-xl font-bold tracking-tight text-text-primary">
             INVORA
           </span>
-          <span className="rounded border border-primary/20 bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary">
-            v2.0 Industrial
+          <span className="rounded border border-primary/20 bg-surface-blue px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-primary font-semibold">
+            Arctic Industrial
           </span>
         </div>
         <div className="mt-16 max-w-xl sm:mt-24">
-          <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary font-semibold">
             Operations Intelligence
           </p>
           <h1 className="mt-4 font-display text-4xl font-bold leading-tight tracking-tight text-text-primary sm:text-6xl">
@@ -36,7 +36,7 @@ export function FoundationPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-[#090D12] shadow-sm shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-primary/35"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-primary to-blue-700 px-5 text-sm font-semibold text-white shadow-sm shadow-primary/25 transition-all hover:opacity-95 hover:shadow-primary/35"
               to="/app/dashboard"
             >
               Enter Operations Console
@@ -44,7 +44,7 @@ export function FoundationPage() {
             </Link>
           </div>
         </div>
-        <div className="mt-16 flex items-center justify-between border-t border-surface-3 pt-5 text-xs text-text-muted">
+        <div className="mt-16 flex items-center justify-between border-t border-surface-border pt-5 text-xs text-text-muted">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-success" />
             <span className="font-mono">TELEMETRY SYSTEM ONLINE</span>

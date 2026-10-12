@@ -52,15 +52,14 @@ export function isOrderWithinDateRange(
     return false
   }
   const [year, month, day] = parts
-
-  const orderDate = new Date(year, month - 1, day)
-  const refDate = new Date(
-    referenceDate.getFullYear(),
-    referenceDate.getMonth(),
-    referenceDate.getDate(),
+  const orderTime = Date.UTC(year, month - 1, day)
+  const refTime = Date.UTC(
+    referenceDate.getUTCFullYear(),
+    referenceDate.getUTCMonth(),
+    referenceDate.getUTCDate(),
   )
 
-  const diffMs = refDate.getTime() - orderDate.getTime()
+  const diffMs = refTime - orderTime
   const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000))
 
   if (diffDays < 0) return false
@@ -248,7 +247,7 @@ export function OrdersPage() {
         title="Orders"
       />
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-xs text-text-secondary">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-border bg-surface-secondary/70 px-4 py-3 text-xs text-text-secondary shadow-2xs">
         <span className="h-2 w-2 rounded-full bg-secondary" />
         Mock data preview — order operations and status transitions stay in this
         browser session and do not affect live systems.
@@ -256,7 +255,7 @@ export function OrdersPage() {
 
       {notice && !createDialogOpen && !cancelTargetOrder && (
         <div
-          className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-success/30 bg-success/5 text-success' : 'border-danger/30 bg-danger/5 text-danger'}`}
+          className={`flex items-center justify-between rounded-xl border px-4 py-3 text-sm ${notice.type === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
           role={notice.type === 'error' ? 'alert' : 'status'}
         >
           {notice.message}
@@ -271,7 +270,7 @@ export function OrdersPage() {
       )}
 
       {/* Fulfillment Pipeline Telemetry Strip */}
-      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-surface-border bg-white shadow-2xs">
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-3 lg:grid-cols-5 lg:divide-x lg:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">

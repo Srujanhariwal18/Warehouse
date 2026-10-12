@@ -294,7 +294,7 @@ export function StockTransactionsPage() {
       )}
 
       {/* Operational Movement Telemetry Strip */}
-      <div className="rounded-xl border border-surface-border bg-gradient-to-r from-surface via-surface to-[#162027] p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div className="rounded-xl border border-surface-border bg-white shadow-2xs p-5 flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1">
           <span className="text-xs uppercase text-primary tracking-wider font-semibold flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -317,7 +317,7 @@ export function StockTransactionsPage() {
             <span className="text-[11px] text-text-muted font-medium block">
               Inbound Receipts
             </span>
-            <span className="font-mono text-base font-bold text-emerald-400">
+            <span className="font-mono text-base font-bold text-emerald-600">
               +{stats.totalReceived.toLocaleString('en-IN')} units
             </span>
           </div>
@@ -326,7 +326,7 @@ export function StockTransactionsPage() {
             <span className="text-[11px] text-text-muted font-medium block">
               Outbound Dispatches
             </span>
-            <span className="font-mono text-base font-bold text-rose-400">
+            <span className="font-mono text-base font-bold text-rose-600">
               -{stats.totalDispatched.toLocaleString('en-IN')} units
             </span>
           </div>

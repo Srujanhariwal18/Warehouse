@@ -10,15 +10,15 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary text-[#090D12] font-semibold hover:bg-primary/90 shadow-[0_0_18px_rgba(67,217,232,0.28)] active:scale-[0.99] disabled:bg-primary/30 disabled:text-[#090D12]/40',
+    'bg-gradient-to-r from-primary to-[#1D4ED8] text-white font-medium hover:from-[#1D4ED8] hover:to-[#1E40AF] shadow-xs active:scale-[0.99] disabled:opacity-50',
   secondary:
-    'border border-surface-border bg-surface text-text-primary hover:border-primary/40 hover:bg-surface-2 active:scale-[0.99] disabled:opacity-50',
+    'border border-surface-border bg-white text-text-primary hover:bg-surface-secondary hover:border-slate-300 shadow-xs active:scale-[0.99] disabled:opacity-50',
   ghost:
-    'text-text-secondary hover:bg-surface-2 hover:text-text-primary active:scale-[0.99] disabled:opacity-50',
+    'text-text-secondary hover:bg-surface-secondary hover:text-text-primary active:scale-[0.99] disabled:opacity-50',
   outline:
-    'border border-surface-border bg-transparent text-text-primary hover:border-text-secondary hover:bg-surface active:scale-[0.99] disabled:opacity-50',
+    'border border-surface-border bg-white text-text-primary hover:border-slate-300 hover:bg-surface-secondary shadow-xs active:scale-[0.99] disabled:opacity-50',
   danger:
-    'border border-danger/40 bg-danger/10 text-danger hover:bg-danger/20 hover:border-danger active:scale-[0.99] disabled:opacity-50',
+    'border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20 active:scale-[0.99] disabled:opacity-50',
 }
 
 const sizes = {
@@ -35,7 +35,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex items-center justify-center font-medium transition-all duration-150 motion-reduce:transition-none disabled:cursor-not-allowed ${sizes[size]} ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium transition-all duration-150 motion-reduce:transition-none cursor-pointer disabled:cursor-not-allowed ${sizes[size]} ${variants[variant]} ${className}`}
       {...props}
     />
   )

@@ -326,8 +326,8 @@ export function AppShell() {
                     className={({ isActive }) =>
                       `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs font-medium transition-all ${
                         isActive
-                          ? 'bg-primary/10 text-primary font-semibold shadow-[inset_0_0_12px_rgba(67,217,232,0.08)]'
-                          : 'text-text-secondary hover:bg-surface hover:text-text-primary'
+                          ? 'bg-surface-blue text-primary font-semibold shadow-xs'
+                          : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'
                       } ${collapsed ? 'justify-center px-0' : ''}`
                     }
                     key={to}
@@ -337,7 +337,7 @@ export function AppShell() {
                     {({ isActive }) => (
                       <>
                         {isActive && (
-                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary shadow-[0_0_10px_rgba(67,217,232,0.7)]" />
+                          <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary" />
                         )}
                         <Icon
                           aria-hidden="true"
@@ -364,10 +364,10 @@ export function AppShell() {
         {/* Bottom Workspace Telemetry Status */}
         <div className="p-3 border-t border-surface-border/60">
           {!collapsed ? (
-            <div className="rounded-xl border border-surface-border bg-graphite/60 p-3 shadow-inner">
+            <div className="rounded-xl border border-surface-border bg-surface-secondary p-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 font-mono text-[10px] text-primary uppercase tracking-wider font-semibold">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(67,217,232,0.8)]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   SYS.NORMAL
                 </span>
                 <span className="font-mono text-[10px] text-text-muted">
@@ -383,7 +383,7 @@ export function AppShell() {
               className="flex justify-center py-2"
               title="System normal (3 Hubs online)"
             >
-              <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_10px_rgba(67,217,232,0.9)]" />
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-xs" />
             </div>
           )}
         </div>
@@ -394,7 +394,7 @@ export function AppShell() {
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
             aria-hidden="true"
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
             onClick={() => setMobileOpen(false)}
           />
           <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] border-r border-surface-border bg-sidebar p-5 flex flex-col z-10 shadow-2xl">
@@ -426,7 +426,7 @@ export function AppShell() {
                         className={({ isActive }) =>
                           `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                             isActive
-                              ? 'bg-primary/10 text-primary font-semibold'
+                              ? 'bg-surface-blue text-primary font-semibold'
                               : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'
                           }`
                         }
@@ -481,7 +481,7 @@ export function AppShell() {
               {/* Working Global Omnibox Trigger */}
               <button
                 aria-label="Search entities across workspace"
-                className="flex items-center gap-2.5 h-9 rounded-lg border border-surface-border bg-surface/70 px-3 text-xs text-text-muted hover:border-surface-3 hover:text-text-secondary transition-colors"
+                className="flex items-center gap-2.5 h-9 rounded-lg border border-surface-border bg-white px-3 text-xs text-text-muted hover:border-primary/40 hover:text-text-secondary transition-colors shadow-2xs"
                 onClick={() => setSearchOpen(true)}
                 type="button"
               >
@@ -490,7 +490,7 @@ export function AppShell() {
                   Search SKUs, orders, hubs...
                 </span>
                 <span className="md:hidden">Search...</span>
-                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-surface-border bg-sidebar px-1.5 py-0.5 font-mono text-[10px] text-text-muted">
+                <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded border border-surface-border bg-surface-secondary px-1.5 py-0.5 font-mono text-[10px] text-text-muted">
                   <Command size={10} />K
                 </kbd>
               </button>
@@ -509,12 +509,12 @@ export function AppShell() {
                 >
                   <Bell size={18} />
                   {notifications.length > 0 && (
-                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-warning ring-2 ring-main" />
+                    <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-warning ring-2 ring-white" />
                   )}
                 </button>
 
                 {notificationsOpen && (
-                  <div className="absolute right-0 top-12 z-40 w-80 sm:w-96 rounded-xl border border-surface-border bg-surface-2 p-4 shadow-2xl shadow-black/50 animate-in fade-in slide-in-from-top-1">
+                  <div className="absolute right-0 top-12 z-40 w-80 sm:w-96 rounded-xl border border-surface-border bg-white p-4 shadow-xl shadow-slate-200/60 animate-in fade-in slide-in-from-top-1">
                     <div className="flex items-center justify-between border-b border-surface-border pb-3">
                       <div className="flex items-center gap-2">
                         <span className="font-display text-sm font-semibold text-text-primary">
@@ -552,10 +552,10 @@ export function AppShell() {
                             key={n.id}
                             className={`p-3 rounded-lg border text-xs cursor-pointer transition-colors ${
                               n.type === 'critical'
-                                ? 'bg-danger/10 border-danger/30 hover:bg-danger/15'
+                                ? 'bg-red-50/70 border-red-200 hover:bg-red-50'
                                 : n.type === 'warning'
-                                  ? 'bg-warning/10 border-warning/30 hover:bg-warning/15'
-                                  : 'bg-secondary/10 border-secondary/30 hover:bg-secondary/15'
+                                  ? 'bg-amber-50/70 border-amber-200 hover:bg-amber-50'
+                                  : 'bg-cyan-50/70 border-cyan-200 hover:bg-cyan-50'
                             }`}
                             onClick={() => {
                               setNotificationsOpen(false)
@@ -585,14 +585,14 @@ export function AppShell() {
                 <button
                   aria-expanded={systemInfoOpen}
                   aria-label="System status & profile"
-                  className="flex items-center gap-2 rounded-lg border border-surface-border bg-surface/60 px-2.5 py-1.5 text-xs hover:border-surface-3 transition-colors"
+                  className="flex items-center gap-2 rounded-lg border border-surface-border bg-white px-2.5 py-1.5 text-xs hover:border-primary/40 transition-colors shadow-2xs"
                   onClick={() => {
                     setSystemInfoOpen((prev) => !prev)
                     setNotificationsOpen(false)
                   }}
                   type="button"
                 >
-                  <div className="h-5 w-5 rounded-md bg-primary/15 border border-primary/30 flex items-center justify-center font-mono text-[10px] font-bold text-primary">
+                  <div className="h-5 w-5 rounded-md bg-surface-blue border border-primary/20 flex items-center justify-center font-mono text-[10px] font-bold text-primary">
                     OP
                   </div>
                   <span className="hidden sm:inline font-mono text-xs text-text-secondary font-medium">
@@ -601,7 +601,7 @@ export function AppShell() {
                 </button>
 
                 {systemInfoOpen && (
-                  <div className="absolute right-0 top-12 z-40 w-72 rounded-xl border border-surface-border bg-surface-2 p-4 shadow-2xl shadow-black/50 text-xs">
+                  <div className="absolute right-0 top-12 z-40 w-72 rounded-xl border border-surface-border bg-white p-4 shadow-xl shadow-slate-200/60 text-xs">
                     <div className="border-b border-surface-border pb-3">
                       <p className="font-semibold text-text-primary">
                         Operator Session
@@ -649,15 +649,15 @@ export function AppShell() {
         {searchOpen && (
           <div
             aria-modal="true"
-            className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-20 bg-black/80 backdrop-blur-xs"
+            className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-6 md:p-20 bg-slate-900/40 backdrop-blur-xs"
             onClick={(e) => {
               if (e.target === e.currentTarget) closeSearch()
             }}
             role="dialog"
           >
-            <div className="w-full max-w-2xl rounded-2xl border border-surface-border bg-surface-2 shadow-2xl shadow-black/70 overflow-hidden flex flex-col max-h-[80vh]">
+            <div className="w-full max-w-2xl rounded-2xl border border-surface-border bg-white shadow-2xl shadow-slate-900/20 overflow-hidden flex flex-col max-h-[80vh]">
               {/* Search Bar Input */}
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-surface-border bg-surface">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-surface-border bg-surface-secondary">
                 <Search size={18} className="text-primary shrink-0" />
                 <input
                   aria-label="Search all workspace entities"
@@ -668,7 +668,7 @@ export function AppShell() {
                   type="text"
                   value={searchQuery}
                 />
-                <kbd className="rounded border border-surface-border bg-sidebar px-1.5 py-0.5 font-mono text-[10px] text-text-muted shrink-0">
+                <kbd className="rounded border border-surface-border bg-white px-1.5 py-0.5 font-mono text-[10px] text-text-muted shrink-0 shadow-2xs">
                   ESC
                 </kbd>
               </div>
@@ -695,14 +695,14 @@ export function AppShell() {
                     {searchResults &&
                       searchResults.matchedProducts.length > 0 && (
                         <div>
-                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2">
+                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2 font-semibold">
                             Products ({searchResults.matchedProducts.length})
                           </p>
                           <div className="space-y-1.5">
                             {searchResults.matchedProducts.map((p) => (
                               <div
                                 key={p.id}
-                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 border border-surface-border hover:border-primary/40 cursor-pointer transition-colors"
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface-secondary/60 border border-surface-border hover:bg-surface-blue hover:border-primary/40 cursor-pointer transition-colors"
                                 onClick={() => {
                                   closeSearch()
                                   navigate('/app/inventory')
@@ -738,14 +738,14 @@ export function AppShell() {
                     {searchResults &&
                       searchResults.matchedOrders.length > 0 && (
                         <div>
-                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2">
+                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2 font-semibold">
                             Orders ({searchResults.matchedOrders.length})
                           </p>
                           <div className="space-y-1.5">
                             {searchResults.matchedOrders.map((o) => (
                               <div
                                 key={o.id}
-                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 border border-surface-border hover:border-primary/40 cursor-pointer transition-colors"
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface-secondary/60 border border-surface-border hover:bg-surface-blue hover:border-primary/40 cursor-pointer transition-colors"
                                 onClick={() => {
                                   closeSearch()
                                   navigate('/app/orders')
@@ -759,7 +759,7 @@ export function AppShell() {
                                     {o.customerName}
                                   </span>
                                 </div>
-                                <span className="font-mono text-xs text-text-primary">
+                                <span className="font-mono text-xs text-text-primary font-semibold">
                                   ₹{o.totalAmount.toLocaleString('en-IN')}
                                 </span>
                               </div>
@@ -772,7 +772,7 @@ export function AppShell() {
                     {searchResults &&
                       searchResults.matchedWarehouses.length > 0 && (
                         <div>
-                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2">
+                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2 font-semibold">
                             Facilities ({searchResults.matchedWarehouses.length}
                             )
                           </p>
@@ -780,7 +780,7 @@ export function AppShell() {
                             {searchResults.matchedWarehouses.map((w) => (
                               <div
                                 key={w.id}
-                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 border border-surface-border hover:border-primary/40 cursor-pointer transition-colors"
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface-secondary/60 border border-surface-border hover:bg-surface-blue hover:border-primary/40 cursor-pointer transition-colors"
                                 onClick={() => {
                                   closeSearch()
                                   navigate('/app/warehouses')
@@ -811,14 +811,14 @@ export function AppShell() {
                     {searchResults &&
                       searchResults.matchedSuppliers.length > 0 && (
                         <div>
-                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2">
+                          <p className="font-mono text-[10px] uppercase text-text-muted tracking-wider mb-2 font-semibold">
                             Suppliers ({searchResults.matchedSuppliers.length})
                           </p>
                           <div className="space-y-1.5">
                             {searchResults.matchedSuppliers.map((s) => (
                               <div
                                 key={s.id}
-                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 border border-surface-border hover:border-primary/40 cursor-pointer transition-colors"
+                                className="flex items-center justify-between p-2.5 rounded-lg bg-surface-secondary/60 border border-surface-border hover:bg-surface-blue hover:border-primary/40 cursor-pointer transition-colors"
                                 onClick={() => {
                                   closeSearch()
                                   navigate('/app/suppliers')

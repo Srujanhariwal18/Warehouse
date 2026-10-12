@@ -148,7 +148,7 @@ export function AlertsPage() {
       />
 
       {/* Mock Data Information Notice Banner */}
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-secondary/20 bg-secondary/5 px-4 py-3 text-xs text-text-secondary">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-border bg-surface-secondary/70 px-4 py-3 text-xs text-text-secondary shadow-2xs">
         <span className="h-2 w-2 rounded-full bg-secondary" />
         <span>
           <strong>Rule-based monitoring preview:</strong> Alerts are calculated
@@ -159,7 +159,7 @@ export function AlertsPage() {
       </div>
 
       {/* Incident Command Telemetry Strip */}
-      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-surface-border bg-white shadow-2xs">
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">

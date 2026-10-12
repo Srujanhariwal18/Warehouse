@@ -12,28 +12,28 @@ type StatusBadgeProps = {
 
 const tones: Record<StatusTone, { badge: string; pip: string }> = {
   success: {
-    badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25',
-    pip: 'bg-emerald-400',
+    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    pip: 'bg-emerald-500',
   },
   warning: {
-    badge: 'bg-amber-500/10 text-amber-400 border-amber-500/25',
-    pip: 'bg-amber-400',
+    badge: 'bg-amber-50 text-amber-700 border-amber-200',
+    pip: 'bg-amber-500',
   },
   danger: {
-    badge: 'bg-rose-500/10 text-rose-400 border-rose-500/25',
-    pip: 'bg-rose-400',
+    badge: 'bg-red-50 text-red-700 border-red-200',
+    pip: 'bg-red-500',
   },
   info: {
-    badge: 'bg-secondary/10 text-secondary border-secondary/25',
-    pip: 'bg-secondary',
+    badge: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+    pip: 'bg-cyan-600',
   },
   primary: {
-    badge: 'bg-primary/10 text-primary border-primary/25',
+    badge: 'bg-blue-50 text-blue-700 border-blue-200',
     pip: 'bg-primary',
   },
   neutral: {
-    badge: 'bg-surface-2 text-text-secondary border-surface-3',
-    pip: 'bg-text-muted',
+    badge: 'bg-slate-100 text-slate-700 border-slate-200',
+    pip: 'bg-slate-400',
   },
 }
 

@@ -421,7 +421,7 @@ function WarehousesRootView({
       )}
 
       {/* Logistics Facility Network Telemetry Strip */}
-      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-surface-border bg-white shadow-2xs">
         <div className="grid grid-cols-2 divide-y divide-surface-3 sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           <div className="p-4 sm:p-5">
             <div className="flex items-center justify-between text-text-muted">

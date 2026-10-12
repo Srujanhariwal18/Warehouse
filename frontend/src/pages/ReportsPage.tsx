@@ -57,8 +57,8 @@ import {
 import { useTransactionStore } from '@/lib/transactionStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
 
-const CATEGORY_COLORS = ['#43D9E8', '#5AA9FF', '#10B981', '#38BDF8', '#8EA0B2']
-const WAREHOUSE_COLORS = ['#43D9E8', '#5AA9FF', '#10B981', '#38BDF8', '#8EA0B2']
+const CATEGORY_COLORS = ['#2563EB', '#0891B2', '#059669', '#3B82F6', '#64748B']
+const WAREHOUSE_COLORS = ['#2563EB', '#0891B2', '#059669', '#3B82F6', '#64748B']
 
 export function ReportsPage() {
   const { products } = useInventoryStore()
@@ -511,10 +511,11 @@ export function ReportsPage() {
                         </Pie>
                         <Tooltip
                           contentStyle={{
-                            background: '#242e2b',
-                            border: '1px solid #2c3734',
+                            background: '#ffffff',
+                            border: '1px solid #dce5ef',
                             borderRadius: 12,
-                            color: '#edf3f0',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                            color: '#172b4d',
                             fontSize: 12,
                           }}
                           formatter={(value: unknown) => [
@@ -533,10 +534,10 @@ export function ReportsPage() {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="mt-4 divide-y divide-surface-3/50 overflow-hidden rounded-xl border border-surface-3/60">
+                  <div className="mt-4 divide-y divide-surface-border overflow-hidden rounded-xl border border-surface-border">
                     {categoryBreakdown.map((cat, idx) => (
                       <div
-                        className="flex items-center justify-between px-4 py-2.5 text-xs"
+                        className="flex items-center justify-between px-4 py-2.5 text-xs bg-white"
                         key={cat.category}
                       >
                         <div className="flex items-center gap-2">
@@ -606,28 +607,29 @@ export function ReportsPage() {
                         margin={{ left: 0, right: 12, top: 12 }}
                       >
                         <CartesianGrid
-                          stroke="#2c3734"
+                          stroke="#E2E8F0"
                           strokeDasharray="3 3"
                           vertical={false}
                         />
                         <XAxis
                           axisLine={false}
                           dataKey="warehouseName"
-                          tick={{ fill: '#8a9b95', fontSize: 11 }}
+                          tick={{ fill: '#64748B', fontSize: 11 }}
                           tickLine={false}
                         />
                         <YAxis
                           axisLine={false}
-                          tick={{ fill: '#8a9b95', fontSize: 11 }}
+                          tick={{ fill: '#64748B', fontSize: 11 }}
                           tickLine={false}
                           width={44}
                         />
                         <Tooltip
                           contentStyle={{
-                            background: '#242e2b',
-                            border: '1px solid #2c3734',
+                            background: '#ffffff',
+                            border: '1px solid #dce5ef',
                             borderRadius: 12,
-                            color: '#edf3f0',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                            color: '#172b4d',
                             fontSize: 12,
                           }}
                           formatter={(value: unknown, name: unknown) => [
@@ -933,12 +935,12 @@ export function ReportsPage() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#43D9E8"
-                          stopOpacity={0.35}
+                          stopColor="#2563EB"
+                          stopOpacity={0.25}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#43D9E8"
+                          stopColor="#2563EB"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
@@ -951,51 +953,52 @@ export function ReportsPage() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#f59e0b"
-                          stopOpacity={0.35}
+                          stopColor="#D97706"
+                          stopOpacity={0.25}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#f59e0b"
+                          stopColor="#D97706"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
                       <linearGradient id="trfGrad" x1="0" x2="0" y1="0" y2="1">
                         <stop
                           offset="5%"
-                          stopColor="#5AA9FF"
-                          stopOpacity={0.35}
+                          stopColor="#0891B2"
+                          stopOpacity={0.25}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#5AA9FF"
+                          stopColor="#0891B2"
                           stopOpacity={0.0}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
-                      stroke="#223140"
+                      stroke="#E2E8F0"
                       strokeDasharray="3 3"
                       vertical={false}
                     />
                     <XAxis
                       axisLine={false}
                       dataKey="period"
-                      tick={{ fill: '#8EA0B2', fontSize: 11 }}
+                      tick={{ fill: '#64748B', fontSize: 11 }}
                       tickLine={false}
                     />
                     <YAxis
                       axisLine={false}
-                      tick={{ fill: '#8EA0B2', fontSize: 11 }}
+                      tick={{ fill: '#64748B', fontSize: 11 }}
                       tickLine={false}
                       width={40}
                     />
                     <Tooltip
                       contentStyle={{
-                        background: '#111923',
-                        border: '1px solid #223140',
+                        background: '#ffffff',
+                        border: '1px solid #dce5ef',
                         borderRadius: 12,
-                        color: '#E9F0F7',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                        color: '#172b4d',
                         fontSize: 12,
                       }}
                     />
@@ -1003,7 +1006,7 @@ export function ReportsPage() {
                       dataKey="inbound"
                       fill="url(#inboundGrad)"
                       name="Inbound (+)"
-                      stroke="#43D9E8"
+                      stroke="#2563EB"
                       strokeWidth={2}
                       type="monotone"
                     />
@@ -1011,7 +1014,7 @@ export function ReportsPage() {
                       dataKey="outbound"
                       fill="url(#outboundGrad)"
                       name="Outbound (-)"
-                      stroke="#f59e0b"
+                      stroke="#D97706"
                       strokeWidth={2}
                       type="monotone"
                     />
@@ -1019,7 +1022,7 @@ export function ReportsPage() {
                       dataKey="transfers"
                       fill="url(#trfGrad)"
                       name="Transfers (0)"
-                      stroke="#5AA9FF"
+                      stroke="#0891B2"
                       strokeWidth={2}
                       type="monotone"
                     />
