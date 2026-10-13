@@ -13,6 +13,7 @@ import {
   type StockTransaction,
   type Warehouse,
 } from '@/mocks/inventoryData'
+import { WarehouseContext } from '@/lib/warehouseStore'
 
 export type ProductInput = Omit<Product, 'id'>
 export type StockOperation = 'Stock In' | 'Stock Out'
@@ -54,8 +55,6 @@ function generateUniqueId(prefix: string): string {
   const random = Math.random().toString(36).slice(2, 8)
   return `${prefix}-${timestamp}-${uniqueCounter}-${random}`
 }
-
-import { WarehouseContext } from '@/lib/warehouseStore'
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function validateProductData(

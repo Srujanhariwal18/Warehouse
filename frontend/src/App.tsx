@@ -57,8 +57,8 @@ function App() {
           <Route element={<ReportsPage />} path="/app/reports" />
           <Route element={<AlertsPage />} path="/app/alerts" />
         </Route>
-        <Route element={<NotFoundPage />} path="*" />
         <Route element={<Navigate replace to="/app/dashboard" />} path="/app" />
+        <Route element={<NotFoundPage />} path="*" />
       </Routes>
     </Suspense>
   )
