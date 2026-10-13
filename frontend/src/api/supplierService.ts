@@ -37,7 +37,7 @@ export class MockSupplierService implements ISupplierRepository {
     const trimmedEmail = input.email.trim()
     const trimmedPhone = input.phone.trim()
     const trimmedAddress = input.address.trim()
-    const trimmedCity = input.city.trim()
+    const trimmedCity = (input.city || '').trim()
 
     if (
       !trimmedCompany ||
@@ -96,7 +96,7 @@ export class MockSupplierService implements ISupplierRepository {
     const trimmedEmail = input.email.trim()
     const trimmedPhone = input.phone.trim()
     const trimmedAddress = input.address.trim()
-    const trimmedCity = input.city.trim()
+    const trimmedCity = (input.city || '').trim()
 
     if (
       !trimmedCompany ||

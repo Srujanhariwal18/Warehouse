@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -14,6 +15,8 @@ import {
   type Warehouse,
 } from '@/mocks/inventoryData'
 import { WarehouseContext } from '@/lib/warehouseStore'
+import { httpInventoryService } from '@/api/httpInventoryService'
+import { httpTransactionService } from '@/api/httpTransactionService'
 
 export type ProductInput = Omit<Product, 'id'>
 export type StockOperation = 'Stock In' | 'Stock Out'
@@ -139,6 +142,24 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
   const warehouseStore = useContext(WarehouseContext)
   const liveWarehouses = warehouseStore?.warehouses ?? warehouses
 
+  useEffect(() => {
+    let mounted = true
+    const loadProducts = async () => {
+      try {
+        const live = await httpInventoryService.getProducts()
+        if (mounted && live && live.length > 0) {
+          setProducts(live)
+        }
+      } catch {
+        // Fallback to local state if offline or unauthenticated
+      }
+    }
+    loadProducts()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const store = useMemo<InventoryStore>(() => {
     const lowStockProducts = products.filter(
       (product) => product.stock <= product.reorderThreshold,
@@ -166,6 +187,22 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           sku: input.sku.trim(),
         }
         setProducts((current) => [...current, newProduct])
+
+        httpInventoryService
+          .createProduct(input)
+          .then((res) => {
+            if (res.ok && res.data?.id) {
+              setProducts((current) =>
+                current.map((p) =>
+                  p.id === id ? { ...p, id: res.data!.id } : p,
+                ),
+              )
+            }
+          })
+          .catch((err) => {
+            console.warn('Backend product creation notice:', err)
+          })
+
         return { ok: true, id }
       },
       updateProduct: (id, input) => {
@@ -194,6 +231,11 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
               : product,
           ),
         )
+
+        httpInventoryService.updateProduct(id, input).catch((err) => {
+          console.warn('Backend product update notice:', err)
+        })
+
         return { ok: true }
       },
       applyStockOperation: (productId, quantity, operation) => {
@@ -260,6 +302,37 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           ),
         )
         setTransactions((current) => [transaction, ...current])
+
+        // Persist operation to backend transactions API
+        if (operation === 'Stock In') {
+          httpTransactionService
+            .recordStockIn(
+              {
+                productId,
+                quantity,
+                destinationWarehouseId: product.warehouseId,
+                reason: 'Stock In manual operation',
+              },
+              products,
+              liveWarehouses,
+              [],
+            )
+            .catch((err) => console.warn('Backend stock-in note:', err))
+        } else {
+          httpTransactionService
+            .recordStockOut(
+              {
+                productId,
+                quantity,
+                sourceWarehouseId: product.warehouseId,
+                reason: 'Stock Out manual operation',
+              },
+              products,
+              liveWarehouses,
+            )
+            .catch((err) => console.warn('Backend stock-out note:', err))
+        }
+
         return { ok: true }
       },
       updateProductStock: (productId, newStock, locationUpdate) => {

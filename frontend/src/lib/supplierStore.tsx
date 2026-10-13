@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -10,6 +11,7 @@ import {
   type Supplier,
   type SupplierStatus,
 } from '@/mocks/supplierData'
+import { httpSupplierService } from '@/api/httpSupplierService'
 
 export type CreateSupplierInput = {
   companyName: string
@@ -115,6 +117,24 @@ export function validateSupplierInput(
 export function SuppliersProvider({ children }: { children: ReactNode }) {
   const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
 
+  useEffect(() => {
+    let mounted = true
+    const loadSuppliers = async () => {
+      try {
+        const live = await httpSupplierService.getSuppliers()
+        if (mounted && live && live.length > 0) {
+          setSuppliers(live)
+        }
+      } catch {
+        // Fallback to local state if offline or unauthenticated
+      }
+    }
+    loadSuppliers()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const store = useMemo<SuppliersStore>(() => {
     return {
       suppliers,
@@ -155,6 +175,22 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
         }
 
         setSuppliers((prev) => [newSupplier, ...prev])
+
+        httpSupplierService
+          .createSupplier(input)
+          .then((res) => {
+            if (res.ok && res.data?.id) {
+              setSuppliers((prev) =>
+                prev.map((s) =>
+                  s.id === id ? { ...s, id: res.data!.id } : s,
+                ),
+              )
+            }
+          })
+          .catch((err) => {
+            console.warn('Backend supplier creation notice:', err)
+          })
+
         return { ok: true, id }
       },
 
@@ -182,7 +218,6 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
         }
 
         const today = new Date().toISOString().slice(0, 10)
-
         setSuppliers((prev) =>
           prev.map((s) =>
             s.id === id
@@ -209,6 +244,10 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
               : s,
           ),
         )
+
+        httpSupplierService.updateSupplier(id, merged).catch((err) => {
+          console.warn('Backend supplier update notice:', err)
+        })
 
         return { ok: true, id }
       },
@@ -238,6 +277,10 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
               : s,
           ),
         )
+
+        httpSupplierService.deactivateSupplier(id).catch((err) => {
+          console.warn('Backend supplier deactivate notice:', err)
+        })
 
         return { ok: true, id }
       },

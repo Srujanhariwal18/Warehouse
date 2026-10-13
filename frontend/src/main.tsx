@@ -9,20 +9,24 @@ import { SuppliersProvider } from '@/lib/supplierStore'
 import { WarehouseProvider } from '@/lib/warehouseStore'
 import { TransactionProvider } from '@/lib/transactionStore'
 
+import { AuthProvider } from '@/lib/authStore'
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <WarehouseProvider>
-        <InventoryProvider>
-          <SuppliersProvider>
-            <OrdersProvider>
-              <TransactionProvider>
-                <App />
-              </TransactionProvider>
-            </OrdersProvider>
-          </SuppliersProvider>
-        </InventoryProvider>
-      </WarehouseProvider>
+      <AuthProvider>
+        <WarehouseProvider>
+          <InventoryProvider>
+            <SuppliersProvider>
+              <OrdersProvider>
+                <TransactionProvider>
+                  <App />
+                </TransactionProvider>
+              </OrdersProvider>
+            </SuppliersProvider>
+          </InventoryProvider>
+        </WarehouseProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

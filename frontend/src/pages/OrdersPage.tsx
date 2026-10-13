@@ -248,9 +248,8 @@ export function OrdersPage() {
       />
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-border bg-surface-secondary/70 px-4 py-3 text-xs text-text-secondary shadow-2xs">
-        <span className="h-2 w-2 rounded-full bg-secondary" />
-        Mock data preview — order operations and status transitions stay in this
-        browser session and do not affect live systems.
+        <span className="h-2 w-2 rounded-full bg-amber-500" />
+        Backend Architecture Note: The Invora Spring Boot backend does not currently expose an /api/orders endpoint. Orders and dispatch fulfillment are managed on the client using real products and warehouses loaded from the backend database.
       </div>
 
       {notice && !createDialogOpen && !cancelTargetOrder && (

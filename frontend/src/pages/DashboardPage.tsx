@@ -38,6 +38,8 @@ import {
   getProductStockAtWarehouse,
   useTransactionStore,
 } from '@/lib/transactionStore'
+import { httpDashboardService } from '@/api/httpDashboardService'
+import type { DashboardSummaryResponse } from '@/api/types'
 
 type ChartRange = '7D' | '30D' | '12M'
 
@@ -68,6 +70,21 @@ export function DashboardPage() {
     useState<string>('wh-mum')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState(new Date())
+  const [backendSummary, setBackendSummary] =
+    useState<DashboardSummaryResponse | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    httpDashboardService
+      .getSummary()
+      .then((sum) => {
+        if (mounted) setBackendSummary(sum)
+      })
+      .catch(() => {})
+    return () => {
+      mounted = false
+    }
+  }, [refreshing])
 
   useEffect(() => {
     if (!refreshing) return
@@ -78,10 +95,12 @@ export function DashboardPage() {
     return () => window.clearTimeout(timer)
   }, [refreshing])
 
-  // Core metrics derived from stores
+  // Core metrics derived from stores and backend summary
   const inventoryValue = useMemo(
-    () => products.reduce((total, p) => total + p.stock * p.price, 0),
-    [products],
+    () =>
+      backendSummary?.totalInventoryValuation ??
+      products.reduce((total, p) => total + p.stock * p.price, 0),
+    [backendSummary, products],
   )
   const totalUnits = useMemo(
     () => products.reduce((total, p) => total + p.stock, 0),

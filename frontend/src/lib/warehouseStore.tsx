@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -15,6 +16,7 @@ import {
   type ZoneStatus,
   type RackStatus,
 } from '@/mocks/warehouseData'
+import { httpWarehouseService } from '@/api/httpWarehouseService'
 
 export type CreateWarehouseInput = {
   id?: string
@@ -256,6 +258,30 @@ export function WarehouseProvider({ children }: { children: ReactNode }) {
   )
   const [zonesList, setZonesList] = useState<WarehouseZone[]>(initialZones)
   const [racksList, setRacksList] = useState<WarehouseRack[]>(initialRacks)
+
+  useEffect(() => {
+    let mounted = true
+    const loadFacilities = async () => {
+      try {
+        const [liveWhs, liveZones, liveRacks] = await Promise.all([
+          httpWarehouseService.getWarehouses(),
+          httpWarehouseService.getZones(),
+          httpWarehouseService.getRacks(),
+        ])
+        if (mounted) {
+          if (liveWhs && liveWhs.length > 0) setWarehousesList(liveWhs)
+          if (liveZones && liveZones.length > 0) setZonesList(liveZones)
+          if (liveRacks && liveRacks.length > 0) setRacksList(liveRacks)
+        }
+      } catch {
+        // Fallback to local state if offline or unauthenticated
+      }
+    }
+    loadFacilities()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const store = useMemo<WarehouseStore>(() => {
     return {

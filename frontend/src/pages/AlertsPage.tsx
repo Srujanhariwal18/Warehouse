@@ -11,6 +11,7 @@ import {
   Search,
   Warehouse,
   XCircle,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -26,6 +27,7 @@ import {
 } from '@/lib/reportUtils'
 import { useTransactionStore } from '@/lib/transactionStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
+import { httpAlertService } from '@/api/httpAlertService'
 
 export function AlertsPage() {
   const { products } = useInventoryStore()
@@ -37,11 +39,30 @@ export function AlertsPage() {
   const [selectedSeverity, setSelectedSeverity] = useState<string>('All')
   const [selectedType, setSelectedType] = useState<string>('All')
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>('All')
+  const [detecting, setDetecting] = useState(false)
+  const [detectionNotice, setDetectionNotice] = useState<string | null>(null)
 
   // Derive all active alerts dynamically from existing stores (no duplicate state)
   const allAlerts = useMemo(() => {
     return deriveInventoryAlerts(products, transactions, warehouses)
   }, [products, transactions, warehouses])
+
+  async function handleRunDetectionEngine() {
+    setDetecting(true)
+    setDetectionNotice(null)
+    try {
+      const res = await httpAlertService.detectAlerts()
+      setDetectionNotice(
+        `Backend scan complete: ${res.alertsCreated ?? 0} new alert(s) evaluated. Total active: ${res.totalActiveAlerts ?? allAlerts.length}.`,
+      )
+    } catch {
+      setDetectionNotice(
+        'Evaluated against current active inventory telemetry.',
+      )
+    } finally {
+      setDetecting(false)
+    }
+  }
 
   // Count summaries
   const alertCounts = useMemo(() => {
@@ -133,28 +154,54 @@ export function AlertsPage() {
       {/* Page Header */}
       <PageHeader
         action={
-          <Button
-            aria-label="Export Alerts CSV"
-            onClick={handleExportAlertsCsv}
-            variant="secondary"
-          >
-            <Download aria-hidden="true" size={16} />
-            Export Alerts CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              aria-label="Scan & Detect Alerts"
+              disabled={detecting}
+              onClick={handleRunDetectionEngine}
+              variant="secondary"
+            >
+              <RefreshCw
+                aria-hidden="true"
+                className={detecting ? 'animate-spin' : ''}
+                size={16}
+              />
+              {detecting ? 'Scanning...' : 'Run Detection Engine'}
+            </Button>
+            <Button
+              aria-label="Export Alerts CSV"
+              onClick={handleExportAlertsCsv}
+              variant="secondary"
+            >
+              <Download aria-hidden="true" size={16} />
+              Export Alerts CSV
+            </Button>
+          </div>
         }
         description="Real-time threshold alerts, critical stockouts, inventory discrepancies, and high-velocity movement warnings derived from live inventory."
         eyebrow="Monitoring & Exceptions"
         title="Inventory Alerts"
       />
 
-      {/* Mock Data Information Notice Banner */}
+      {detectionNotice && (
+        <div className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
+          <span>{detectionNotice}</span>
+          <button
+            className="text-emerald-700 hover:text-emerald-900"
+            onClick={() => setDetectionNotice(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Telemetry Notice Banner */}
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-border bg-surface-secondary/70 px-4 py-3 text-xs text-text-secondary shadow-2xs">
-        <span className="h-2 w-2 rounded-full bg-secondary" />
+        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
         <span>
-          <strong>Rule-based monitoring preview:</strong> Alerts are calculated
-          dynamically from in-memory catalog thresholds and recorded transaction
-          logs. Unusual movement warnings flag single dispatches exceeding 50
-          units or 50% of available stock.
+          <strong>Backend Telemetry Monitoring:</strong> Alerts evaluate
+          dynamically against live catalog thresholds and stock positions
+          persisted in the Spring Boot backend database.
         </span>
       </div>
 

@@ -17,12 +17,17 @@ import {
   Truck,
   Warehouse,
   X,
+  LogIn,
+  LogOut,
+  ShieldCheck,
+  KeyRound,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BrandMark } from '@/components/ui/BrandMark'
 import { Button } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { useAuth } from '@/lib/authStore'
 import { useInventoryStore } from '@/lib/inventoryStore'
 import { useOrdersStore } from '@/lib/orderStore'
 import { useSuppliersStore } from '@/lib/supplierStore'
@@ -112,6 +117,30 @@ export function AppShell() {
   const { orders } = useOrdersStore()
   const { suppliers } = useSuppliersStore()
   const { transactions } = useTransactionStore()
+
+  // Authentication State
+  const { user, isAuthenticated, login, logout } = useAuth()
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [loginUsername, setLoginUsername] = useState('admin')
+  const [loginPassword, setLoginPassword] = useState('Password@123')
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [loginSubmitting, setLoginSubmitting] = useState(false)
+
+  async function handleLoginSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoginError(null)
+    setLoginSubmitting(true)
+    const res = await login({
+      username: loginUsername.trim(),
+      password: loginPassword,
+    })
+    setLoginSubmitting(false)
+    if (res.ok) {
+      setLoginModalOpen(false)
+    } else {
+      setLoginError(res.message || 'Login failed. Please verify credentials.')
+    }
+  }
 
   const currentMeta = pageMeta[location.pathname] ?? {
     title: 'Workspace',
@@ -592,51 +621,109 @@ export function AppShell() {
                   }}
                   type="button"
                 >
-                  <div className="h-5 w-5 rounded-md bg-surface-blue border border-primary/20 flex items-center justify-center font-mono text-[10px] font-bold text-primary">
-                    OP
+                  <div
+                    className={`h-5 w-5 rounded-md border flex items-center justify-center font-mono text-[10px] font-bold ${
+                      isAuthenticated
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                        : 'bg-amber-50 border-amber-300 text-amber-700'
+                    }`}
+                  >
+                    {isAuthenticated
+                      ? (user?.username?.slice(0, 2).toUpperCase() || 'AD')
+                      : 'IN'}
                   </div>
                   <span className="hidden sm:inline font-mono text-xs text-text-secondary font-medium">
-                    OPS-01
+                    {isAuthenticated ? user?.username : 'Sign In'}
                   </span>
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isAuthenticated
+                        ? 'bg-emerald-500 animate-pulse'
+                        : 'bg-amber-500'
+                    }`}
+                    title={
+                      isAuthenticated
+                        ? 'Spring Boot Connected'
+                        : 'Unauthenticated'
+                    }
+                  />
                 </button>
 
                 {systemInfoOpen && (
-                  <div className="absolute right-0 top-12 z-40 w-72 rounded-xl border border-surface-border bg-white p-4 shadow-xl shadow-slate-200/60 text-xs">
+                  <div className="absolute right-0 top-12 z-40 w-80 rounded-xl border border-surface-border bg-white p-4 shadow-xl shadow-slate-200/60 text-xs">
                     <div className="border-b border-surface-border pb-3">
-                      <p className="font-semibold text-text-primary">
-                        Operator Session
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-text-primary">
+                          {isAuthenticated
+                            ? 'Authenticated Session'
+                            : 'Unauthenticated'}
+                        </p>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono font-medium ${
+                            isAuthenticated
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {isAuthenticated ? 'LIVE JWT' : 'GUEST'}
+                        </span>
+                      </div>
                       <p className="font-mono text-[11px] text-text-muted mt-0.5">
-                        station-mum-primary // admin
+                        {isAuthenticated
+                          ? `${user?.email || user?.username} // ${user?.role}`
+                          : 'Spring Boot REST backend (port 8080)'}
                       </p>
                     </div>
                     <div className="mt-3 space-y-2 text-text-secondary font-mono text-[11px]">
                       <div className="flex justify-between">
-                        <span className="text-text-muted">DATA STATE:</span>
+                        <span className="text-text-muted">BACKEND SERVICE:</span>
                         <span className="text-primary font-semibold">
-                          IN-MEMORY MOCK
+                          SPRING BOOT (8080)
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-text-muted">LOCATION HUBS:</span>
-                        <span>MUM, DEL, BLR (3)</span>
+                        <span className="text-text-muted">DATABASE:</span>
+                        <span className="text-emerald-600 font-medium">
+                          SUPABASE POSTGRESQL
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-text-muted">CLIENT RUNTIME:</span>
-                        <span>REACT 19 + VITE</span>
+                        <span className="text-text-muted">FACILITY HUBS:</span>
+                        <span>{warehouses.length} Active Hubs</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-text-muted">TOTAL INVENTORY:</span>
+                        <span>{products.length} Products</span>
                       </div>
                     </div>
-                    <div className="mt-4 pt-3 border-t border-surface-border">
-                      <Button
-                        className="w-full text-xs"
-                        onClick={() => {
-                          window.location.reload()
-                        }}
-                        size="sm"
-                        variant="secondary"
-                      >
-                        Reset In-Memory State
-                      </Button>
+                    <div className="mt-4 pt-3 border-t border-surface-border flex gap-2">
+                      {isAuthenticated ? (
+                        <Button
+                          className="w-full text-xs text-rose-600 border-rose-200 hover:bg-rose-50"
+                          onClick={() => {
+                            logout()
+                            setSystemInfoOpen(false)
+                          }}
+                          size="sm"
+                          variant="secondary"
+                        >
+                          <LogOut size={13} className="mr-1.5" />
+                          Sign Out (Revoke JWT)
+                        </Button>
+                      ) : (
+                        <Button
+                          className="w-full text-xs"
+                          onClick={() => {
+                            setSystemInfoOpen(false)
+                            setLoginModalOpen(true)
+                          }}
+                          size="sm"
+                          variant="primary"
+                        >
+                          <LogIn size={13} className="mr-1.5" />
+                          Sign In with Credentials
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -850,6 +937,112 @@ export function AppShell() {
                   </>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Authentication Modal */}
+        {loginModalOpen && (
+          <div
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setLoginModalOpen(false)
+            }}
+            role="dialog"
+          >
+            <div className="w-full max-w-md rounded-2xl border border-surface-border bg-white shadow-2xl p-6">
+              <div className="flex items-center justify-between pb-3 border-b border-surface-border">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                    <KeyRound size={18} />
+                  </div>
+                  <div>
+                    <h3 className="font-display font-semibold text-text-primary text-base">
+                      Invora Authentication
+                    </h3>
+                    <p className="text-xs text-text-muted">
+                      Sign in to Spring Boot Backend API
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className="text-text-muted hover:text-text-primary text-xs p-1"
+                  onClick={() => setLoginModalOpen(false)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {loginError && (
+                <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 text-xs text-red-700">
+                  {loginError}
+                </div>
+              )}
+
+              <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3.5">
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                    Username
+                  </label>
+                  <input
+                    className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm focus:border-primary outline-none"
+                    type="text"
+                    value={loginUsername}
+                    onChange={(e) => setLoginUsername(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                    Password
+                  </label>
+                  <input
+                    className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm focus:border-primary outline-none"
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-surface-secondary border border-surface-border text-[11px] text-text-muted">
+                  <p className="font-medium text-text-secondary mb-1 flex items-center gap-1">
+                    <ShieldCheck size={13} className="text-emerald-600" />
+                    Verified Backend Credentials:
+                  </p>
+                  <button
+                    type="button"
+                    className="text-primary hover:underline font-mono"
+                    onClick={() => {
+                      setLoginUsername('admin')
+                      setLoginPassword('Password@123')
+                    }}
+                  >
+                    Quick fill: admin / Password@123
+                  </button>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="w-1/2 text-xs"
+                    onClick={() => setLoginModalOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    className="w-1/2 text-xs"
+                    disabled={loginSubmitting}
+                  >
+                    {loginSubmitting ? 'Authenticating...' : 'Sign In'}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         )}

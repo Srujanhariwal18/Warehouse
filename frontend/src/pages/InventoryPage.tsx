@@ -79,7 +79,9 @@ export function InventoryPage() {
           !product.id ||
           !product.name?.trim() ||
           !product.sku?.trim() ||
-          !warehouseIds.has(product.warehouseId) ||
+          (warehouseIds.size > 0 &&
+            product.warehouseId &&
+            !warehouseIds.has(product.warehouseId)) ||
           !Number.isFinite(product.price) ||
           product.price <= 0 ||
           !Number.isFinite(product.stock) ||

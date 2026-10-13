@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -18,6 +19,7 @@ import type { Supplier } from '@/mocks/supplierData'
 import { useInventoryStore } from '@/lib/inventoryStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
 import { useSuppliersStore } from '@/lib/supplierStore'
+import { httpTransactionService } from '@/api/httpTransactionService'
 
 export type TransactionOperationResult =
   { ok: true; id: string } | { ok: false; message: string }
@@ -355,6 +357,24 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const [transactionsList, setTransactionsList] = useState<
     StockTransactionRecord[]
   >(initialTransactionsSeed)
+
+  useEffect(() => {
+    let mounted = true
+    const loadTransactions = async () => {
+      try {
+        const live = await httpTransactionService.getTransactions()
+        if (mounted && live && live.length > 0) {
+          setTransactionsList(live)
+        }
+      } catch {
+        // Fallback or unauthenticated
+      }
+    }
+    loadTransactions()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const store = useMemo<TransactionStore>(() => {
     return {

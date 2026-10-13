@@ -1,27 +1,49 @@
 /**
  * INVORA API & REPOSITORY ABSTRACTION LAYER
- *
- * Current Architecture (Phase 3):
- * --------------------------------
- * This layer decouples the React UI components and state stores from raw mock data fixtures.
- * All frontend domain operations route through explicit repository interfaces implemented
- * by mock service classes using in-memory state seeded from `@/mocks/*`.
- *
- * Backend Integration Roadmap (Final Phase):
- * -------------------------------------------
- * In the final integration phase, each mock service below will be swapped with a real HTTP client
- * without modifying UI components or business calculation utilities:
- *
- * 1. `IInventoryRepository`   -> Replaced by `HttpInventoryService` calling `GET/POST/PUT /api/v1/products`
- * 2. `IWarehouseRepository`   -> Replaced by `HttpWarehouseService` calling `/api/v1/warehouses`, `/zones`, `/racks`
- * 3. `ISupplierRepository`   -> Replaced by `HttpSupplierService` calling `/api/v1/suppliers`
- * 4. `ITransactionRepository` -> Replaced by `HttpTransactionService` calling `/api/v1/transactions`
- * 5. `IOrderRepository`       -> Replaced by `HttpOrderService` calling `/api/v1/orders`
+ * Exposes repository interfaces, typed HTTP clients connecting to Spring Boot,
+ * and test mock services.
  */
 
 export * from './types'
+export * from './client'
 
-// Repositories & Mock Services
+// Production HTTP Services (Spring Boot REST)
+export {
+  httpInventoryService,
+  HttpInventoryService,
+} from './httpInventoryService'
+
+export {
+  httpWarehouseService,
+  HttpWarehouseService,
+} from './httpWarehouseService'
+
+export {
+  httpSupplierService,
+  HttpSupplierService,
+} from './httpSupplierService'
+
+export {
+  httpTransactionService,
+  HttpTransactionService,
+} from './httpTransactionService'
+
+export {
+  httpAlertService,
+  HttpAlertService,
+} from './httpAlertService'
+
+export {
+  httpReportService,
+  HttpReportService,
+} from './httpReportService'
+
+export {
+  httpDashboardService,
+  HttpDashboardService,
+} from './httpDashboardService'
+
+// Repositories & Mock Services (for Unit & Regression Tests)
 export {
   mockInventoryService,
   MockInventoryService,
