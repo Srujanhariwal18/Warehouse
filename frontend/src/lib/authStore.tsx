@@ -70,35 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let ignore = false
 
-    const tryAutoLogin = async () => {
-      try {
-        const authData = await apiClient.post<AuthResponse>('/auth/login', {
-          username: 'admin',
-          password: 'Password@123',
-        })
-        if (!ignore && authData?.accessToken) {
-          tokenStorage.set(authData.accessToken)
-          setToken(authData.accessToken)
-          setUser({
-            id: authData.id,
-            username: authData.username,
-            email: authData.email,
-            role: authData.role,
-            active: true,
-            createdAt: new Date().toISOString(),
-          })
-          setIsLoading(false)
-          window.dispatchEvent(
-            new CustomEvent('invora:auth-changed', {
-              detail: { token: authData.accessToken },
-            }),
-          )
-        }
-      } catch {
-        if (!ignore) setIsLoading(false)
-      }
-    }
-
     const initialToken = tokenStorage.get()
     if (initialToken) {
       apiClient
@@ -118,14 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .catch((err) => {
           if (!ignore) {
             if (err instanceof ApiClientError && err.status === 401) {
-              tryAutoLogin()
+              logout()
             } else {
               setIsLoading(false)
             }
           }
         })
-    } else {
-      tryAutoLogin()
     }
 
     const handleUnauthorized = () => {

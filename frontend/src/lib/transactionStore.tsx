@@ -7,7 +7,6 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  initialTransactionsSeed,
   type CreateAdjustmentInput,
   type CreateStockInInput,
   type CreateStockOutInput,
@@ -356,24 +355,34 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const [transactionsList, setTransactionsList] = useState<
     StockTransactionRecord[]
-  >(initialTransactionsSeed)
+  >([])
 
   useEffect(() => {
     let mounted = true
     const loadTransactions = async () => {
       try {
         const live = await httpTransactionService.getTransactions()
-        if (mounted && live && live.length > 0) {
-          setTransactionsList(live)
+        if (mounted) {
+          setTransactionsList(live || [])
         }
       } catch {
-        // Fallback or unauthenticated
+        if (mounted) {
+          setTransactionsList([])
+        }
       }
     }
-    loadTransactions()
 
-    const handleAuthChange = () => {
+    if (typeof window !== 'undefined' && localStorage.getItem('invora_auth_token')) {
       loadTransactions()
+    }
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<{ token?: string | null }>
+      if (custom.detail?.token === null) {
+        setTransactionsList([])
+      } else {
+        loadTransactions()
+      }
     }
     window.addEventListener('invora:auth-changed', handleAuthChange)
 

@@ -7,8 +7,6 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  products as initialProducts,
-  stockTransactions as initialTransactions,
   warehouses,
   type Product,
   type StockTransaction,
@@ -137,10 +135,13 @@ export function validateProductData(
 const InventoryContext = createContext<InventoryStore | null>(null)
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
-  const [products, setProducts] = useState(initialProducts)
-  const [transactions, setTransactions] = useState(initialTransactions)
+  const [products, setProducts] = useState<Product[]>([])
+  const [transactions, setTransactions] = useState<StockTransaction[]>([])
   const warehouseStore = useContext(WarehouseContext)
-  const liveWarehouses = warehouseStore?.warehouses ?? warehouses
+  const liveWarehouses = useMemo(
+    () => warehouseStore?.warehouses ?? [],
+    [warehouseStore?.warehouses],
+  )
 
   useEffect(() => {
     let mounted = true
@@ -151,8 +152,8 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           httpTransactionService.getTransactions(),
         ])
         if (mounted) {
-          if (live && live.length > 0) setProducts(live)
-          if (liveTx && liveTx.length > 0) {
+          setProducts(live || [])
+          if (liveTx) {
             setTransactions(
               liveTx.map((t) => ({
                 id: t.id,
@@ -176,13 +177,25 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch {
-        // Fallback to local state if offline or unauthenticated
+        if (mounted) {
+          setProducts([])
+          setTransactions([])
+        }
       }
     }
-    loadInventoryData()
 
-    const handleAuthChange = () => {
+    if (typeof window !== 'undefined' && localStorage.getItem('invora_auth_token')) {
       loadInventoryData()
+    }
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<{ token?: string | null }>
+      if (custom.detail?.token === null) {
+        setProducts([])
+        setTransactions([])
+      } else {
+        loadInventoryData()
+      }
     }
     window.addEventListener('invora:auth-changed', handleAuthChange)
 

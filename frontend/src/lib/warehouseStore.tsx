@@ -8,9 +8,6 @@ import {
 } from 'react'
 import type { Warehouse, WarehouseStatus } from '@/mocks/inventoryData'
 import {
-  initialWarehousesSeed,
-  initialZones,
-  initialRacks,
   type WarehouseZone,
   type WarehouseRack,
   type ZoneStatus,
@@ -253,11 +250,9 @@ export function validateRackInput(
 }
 
 export function WarehouseProvider({ children }: { children: ReactNode }) {
-  const [warehousesList, setWarehousesList] = useState<Warehouse[]>(
-    initialWarehousesSeed,
-  )
-  const [zonesList, setZonesList] = useState<WarehouseZone[]>(initialZones)
-  const [racksList, setRacksList] = useState<WarehouseRack[]>(initialRacks)
+  const [warehousesList, setWarehousesList] = useState<Warehouse[]>([])
+  const [zonesList, setZonesList] = useState<WarehouseZone[]>([])
+  const [racksList, setRacksList] = useState<WarehouseRack[]>([])
 
   useEffect(() => {
     let mounted = true
@@ -269,18 +264,32 @@ export function WarehouseProvider({ children }: { children: ReactNode }) {
           httpWarehouseService.getRacks(),
         ])
         if (mounted) {
-          if (liveWhs && liveWhs.length > 0) setWarehousesList(liveWhs)
-          if (liveZones && liveZones.length > 0) setZonesList(liveZones)
-          if (liveRacks && liveRacks.length > 0) setRacksList(liveRacks)
+          setWarehousesList(liveWhs || [])
+          setZonesList(liveZones || [])
+          setRacksList(liveRacks || [])
         }
       } catch {
-        // Fallback to local state if offline or unauthenticated
+        if (mounted) {
+          setWarehousesList([])
+          setZonesList([])
+          setRacksList([])
+        }
       }
     }
-    loadFacilities()
 
-    const handleAuthChange = () => {
+    if (typeof window !== 'undefined' && localStorage.getItem('invora_auth_token')) {
       loadFacilities()
+    }
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<{ token?: string | null }>
+      if (custom.detail?.token === null) {
+        setWarehousesList([])
+        setZonesList([])
+        setRacksList([])
+      } else {
+        loadFacilities()
+      }
     }
     window.addEventListener('invora:auth-changed', handleAuthChange)
 

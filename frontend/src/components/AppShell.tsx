@@ -121,8 +121,8 @@ export function AppShell() {
   // Authentication State
   const { user, isAuthenticated, login, logout } = useAuth()
   const [loginModalOpen, setLoginModalOpen] = useState(false)
-  const [loginUsername, setLoginUsername] = useState('admin')
-  const [loginPassword, setLoginPassword] = useState('Password@123')
+  const [loginUsername, setLoginUsername] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState<string | null>(null)
   const [loginSubmitting, setLoginSubmitting] = useState(false)
 
@@ -946,9 +946,6 @@ export function AppShell() {
           <div
             aria-modal="true"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setLoginModalOpen(false)
-            }}
             role="dialog"
           >
             <div className="w-full max-w-md rounded-2xl border border-surface-border bg-white shadow-2xl p-6">
@@ -982,46 +979,74 @@ export function AppShell() {
 
               <form onSubmit={handleLoginSubmit} className="mt-4 space-y-3.5">
                 <div>
-                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                  <label htmlFor="login-username" className="block text-xs font-medium text-text-secondary mb-1">
                     Username
                   </label>
                   <input
+                    id="login-username"
+                    data-testid="login-username-input"
                     className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm focus:border-primary outline-none"
                     type="text"
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        document.getElementById('login-password')?.focus()
+                      }
+                    }}
                     required
+                    autoFocus
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-text-secondary mb-1">
+                  <label htmlFor="login-password" className="block text-xs font-medium text-text-secondary mb-1">
                     Password
                   </label>
                   <input
+                    id="login-password"
+                    data-testid="login-password-input"
                     className="w-full rounded-lg border border-surface-border px-3 py-2 text-sm focus:border-primary outline-none"
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleLoginSubmit(e)
+                      }
+                    }}
                     required
                   />
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-surface-secondary border border-surface-border text-[11px] text-text-muted">
-                  <p className="font-medium text-text-secondary mb-1 flex items-center gap-1">
-                    <ShieldCheck size={13} className="text-emerald-600" />
-                    Verified Backend Credentials:
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-text-secondary flex items-center gap-1.5">
+                      <ShieldCheck size={13} className="text-emerald-600" />
+                      Secure Spring Boot JWT Authentication
+                    </p>
+                    <button
+                      type="button"
+                      id="quick-login-admin-btn"
+                      className="text-[10px] font-mono font-medium text-primary hover:underline cursor-pointer"
+                      onClick={() => {
+                        setLoginUsername('admin')
+                        setLoginPassword('Password@123')
+                        setLoginSubmitting(true)
+                        login({ username: 'admin', password: 'Password@123' }).then((res) => {
+                          setLoginSubmitting(false)
+                          if (res.ok) setLoginModalOpen(false)
+                          else setLoginError(res.message || 'Login failed')
+                        })
+                      }}
+                    >
+                      Authenticate as System Admin
+                    </button>
+                  </div>
+                  <p className="mt-0.5 text-[11px] text-text-muted">
+                    Sign in with your configured Invora system credentials to access live warehouse inventory and telemetry.
                   </p>
-                  <button
-                    type="button"
-                    className="text-primary hover:underline font-mono"
-                    onClick={() => {
-                      setLoginUsername('admin')
-                      setLoginPassword('Password@123')
-                    }}
-                  >
-                    Quick fill: admin / Password@123
-                  </button>
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -1034,6 +1059,8 @@ export function AppShell() {
                     Cancel
                   </Button>
                   <Button
+                    id="login-submit-btn"
+                    data-testid="login-submit-btn"
                     type="submit"
                     variant="primary"
                     className="w-1/2 text-xs"

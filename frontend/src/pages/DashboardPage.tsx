@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   ArrowRight,
+  Building2,
   CheckCircle2,
   Clock,
   Package,
@@ -383,7 +384,7 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
             {/* Col 1-7: Signature 3D Warehouse Visualization */}
             <div className="lg:col-span-7 flex flex-col gap-2.5">
-              {activeFacility && (
+              {activeFacility ? (
                 <WarehouseIsometricVisualizer
                   activeWarehouse={activeFacility}
                   facilities={facilityTelemetry}
@@ -393,6 +394,14 @@ export function DashboardPage() {
                   selectedFacilityId={activeWarehouseId}
                   zones={zones}
                 />
+              ) : (
+                <div className="rounded-xl border border-surface-border bg-white p-8 text-center flex flex-col items-center justify-center min-h-[360px]">
+                  <Building2 className="text-text-muted mb-2" size={32} />
+                  <h3 className="font-semibold text-text-primary text-sm">No Facility Telemetry Loaded</h3>
+                  <p className="text-xs text-text-muted max-w-sm mt-1">
+                    Sign in with your Invora account to stream real facility structures and 3D digital twin models from the Spring Boot API.
+                  </p>
+                </div>
               )}
             </div>
 

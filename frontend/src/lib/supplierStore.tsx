@@ -7,7 +7,6 @@ import {
   type ReactNode,
 } from 'react'
 import {
-  initialSuppliers,
   type Supplier,
   type SupplierStatus,
 } from '@/mocks/supplierData'
@@ -115,24 +114,34 @@ export function validateSupplierInput(
 }
 
 export function SuppliersProvider({ children }: { children: ReactNode }) {
-  const [suppliers, setSuppliers] = useState<Supplier[]>(initialSuppliers)
+  const [suppliers, setSuppliers] = useState<Supplier[]>([])
 
   useEffect(() => {
     let mounted = true
     const loadSuppliers = async () => {
       try {
         const live = await httpSupplierService.getSuppliers()
-        if (mounted && live && live.length > 0) {
-          setSuppliers(live)
+        if (mounted) {
+          setSuppliers(live || [])
         }
       } catch {
-        // Fallback to local state if offline or unauthenticated
+        if (mounted) {
+          setSuppliers([])
+        }
       }
     }
-    loadSuppliers()
 
-    const handleAuthChange = () => {
+    if (typeof window !== 'undefined' && localStorage.getItem('invora_auth_token')) {
       loadSuppliers()
+    }
+
+    const handleAuthChange = (e: Event) => {
+      const custom = e as CustomEvent<{ token?: string | null }>
+      if (custom.detail?.token === null) {
+        setSuppliers([])
+      } else {
+        loadSuppliers()
+      }
     }
     window.addEventListener('invora:auth-changed', handleAuthChange)
 
