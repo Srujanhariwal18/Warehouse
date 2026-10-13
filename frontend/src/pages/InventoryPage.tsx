@@ -25,7 +25,10 @@ import {
 import { formatInr } from '@/lib/formatters'
 import type { Product } from '@/mocks/inventoryData'
 import { useWarehouseStore } from '@/lib/warehouseStore'
-import { useTransactionStore } from '@/lib/transactionStore'
+import {
+  getProductStockAtWarehouse,
+  useTransactionStore,
+} from '@/lib/transactionStore'
 
 type DialogMode = 'add' | 'edit' | 'stock-in' | 'stock-out' | null
 type SortKey = 'name' | 'stock' | 'price' | 'value'
@@ -170,21 +173,23 @@ export function InventoryPage() {
   function handleStock(
     quantity: number,
     operation: 'Stock In' | 'Stock Out',
+    targetWarehouseId?: string,
   ): StoreOperationResult {
     if (!selected) {
       return { ok: false, message: 'No product selected.' }
     }
+    const warehouseToUse = targetWarehouseId || selected.warehouseId
     const result =
       operation === 'Stock In'
         ? createStockIn({
             productId: selected.id,
-            destinationWarehouseId: selected.warehouseId,
+            destinationWarehouseId: warehouseToUse,
             quantity,
             reason: 'Catalogue stock replenishment',
           })
         : createStockOut({
             productId: selected.id,
-            sourceWarehouseId: selected.warehouseId,
+            sourceWarehouseId: warehouseToUse,
             quantity,
             reason: 'Catalogue stock dispatch',
           })
@@ -812,6 +817,35 @@ function ProductDrawer({
               </div>
             ))}
           </div>
+
+          {product.warehouseStock &&
+            Object.keys(product.warehouseStock).length > 0 && (
+              <div className="mt-3 rounded-xl border border-surface-border bg-surface-secondary/40 p-3">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted font-semibold block mb-2">
+                  Facility Stock Breakdown
+                </span>
+                <div className="space-y-1.5">
+                  {Object.entries(product.warehouseStock).map(
+                    ([whId, units]) => {
+                      const wh = warehouses.find((w) => w.id === whId)
+                      return (
+                        <div
+                          className="flex items-center justify-between text-xs font-mono"
+                          key={whId}
+                        >
+                          <span className="text-text-secondary">
+                            {wh ? wh.name : whId}
+                          </span>
+                          <span className="font-semibold text-text-primary">
+                            {units.toLocaleString('en-IN')} units
+                          </span>
+                        </div>
+                      )
+                    },
+                  )}
+                </div>
+              </div>
+            )}
         </div>
 
         <div className="mt-6 pt-4 border-t border-surface-border space-y-2">
@@ -848,6 +882,7 @@ function ProductDialog({
   onStock: (
     quantity: number,
     operation: 'Stock In' | 'Stock Out',
+    warehouseId?: string,
   ) => StoreOperationResult
   product: Product | null
 }) {
@@ -908,7 +943,7 @@ function ProductDialog({
       }
 
       const operation = mode === 'stock-in' ? 'Stock In' : 'Stock Out'
-      const result = onStock(parsedQuantity, operation)
+      const result = onStock(parsedQuantity, operation, warehouseId)
       if (!result.ok) {
         setError(result.message)
       }
@@ -1011,17 +1046,46 @@ function ProductDialog({
 
           <form className="mt-4 space-y-3.5" onSubmit={handleSubmit}>
             {isStock ? (
-              <TextInput
-                autoFocus
-                id="stock-quantity"
-                label="Quantity"
-                min="1"
-                onChange={(event) => setQuantity(event.target.value)}
-                placeholder="Number of units"
-                step="1"
-                type="number"
-                value={quantity}
-              />
+              <>
+                <div>
+                  <label
+                    className="block text-xs font-medium text-text-secondary mb-1"
+                    htmlFor="stock-warehouse"
+                  >
+                    {mode === 'stock-in'
+                      ? 'Destination Facility'
+                      : 'Source Facility'}
+                  </label>
+                  <select
+                    className="h-10 w-full rounded-lg border border-surface-border bg-white px-3 text-xs text-text-primary outline-none focus:border-primary shadow-2xs"
+                    id="stock-warehouse"
+                    onChange={(event) => setWarehouseId(event.target.value)}
+                    value={warehouseId}
+                  >
+                    {warehouses.map((w) => {
+                      const avail = product
+                        ? getProductStockAtWarehouse(product, w.id)
+                        : 0
+                      return (
+                        <option key={w.id} value={w.id}>
+                          {w.name} ({avail.toLocaleString('en-IN')} available)
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+                <TextInput
+                  autoFocus
+                  id="stock-quantity"
+                  label="Quantity"
+                  min="1"
+                  onChange={(event) => setQuantity(event.target.value)}
+                  placeholder="Number of units"
+                  step="1"
+                  type="number"
+                  value={quantity}
+                />
+              </>
             ) : (
               <>
                 <TextInput
