@@ -49,49 +49,96 @@ type Props = {
   cameraResetTrigger: number
 }
 
-// Camera controller that smoothly transitions between 3D Perspective, 2D Floor Plan, and Elevation cutaway
+// Camera controller that dynamically frames the warehouse bounds to fit any viewport
 function CameraController({
   viewMode,
   cameraResetTrigger,
+  dimensions,
 }: {
   viewMode: VisualizationMode
   cameraResetTrigger: number
+  dimensions: { width: number; length: number; height: number }
 }) {
-  const { camera } = useThree()
+  const { camera, size } = useThree()
   const controlsRef = useRef<ComponentRef<typeof OrbitControls>>(null)
 
   useEffect(() => {
     if (!controlsRef.current) return
+    const controls = controlsRef.current
+
+    const w = dimensions.width
+    const l = dimensions.length
+    const h = dimensions.height
+
+    // Calculate aspect ratio and FOV geometry
+    const aspect = Math.max(0.3, size.width / Math.max(1, size.height))
+    const pCam = camera as THREE.PerspectiveCamera
+    const fov = pCam.fov ?? 40
+    const vFovRad = (fov * Math.PI) / 180
+    const tanHalfVFov = Math.tan(vFovRad / 2)
+    const tanHalfHFov = tanHalfVFov * aspect
+    const minHalfFov = Math.min(vFovRad / 2, Math.atan(tanHalfHFov))
 
     if (viewMode === 'isometric') {
-      // 3D Perspective architectural orbit angle
-      camera.position.set(19, 17, 21)
-      camera.lookAt(0, 1.5, 0)
-      controlsRef.current.target.set(0, 1.2, 0)
-      controlsRef.current.maxPolarAngle = Math.PI / 2 - 0.05
-      controlsRef.current.minPolarAngle = 0.1
-      controlsRef.current.enableRotate = true
+      // 3D Perspective architectural orbit angle: fit complete bounding sphere
+      const R = Math.sqrt((w / 2) ** 2 + (l / 2) ** 2 + (h / 2) ** 2)
+      const safety = aspect < 1 ? 1.4 : 1.22
+      const distance = Math.max(18, (R / Math.sin(minHalfFov)) * safety)
+
+      const dir = new THREE.Vector3(1.15, 0.9, 1.15).normalize()
+      const target = new THREE.Vector3(0, Math.min(2.0, h * 0.25), 0)
+      const pos = target.clone().add(dir.multiplyScalar(distance))
+
+      camera.position.copy(pos)
+      camera.lookAt(target)
+      controls.target.copy(target)
+      controls.maxPolarAngle = Math.PI / 2 - 0.05
+      controls.minPolarAngle = 0.1
+      controls.enableRotate = true
+      controls.maxDistance = distance * 2.8
+      controls.minDistance = 4
     } else if (viewMode === 'topdown') {
-      // 2D Floor Plan: top-down architectural layout
-      camera.position.set(0, 34, 0.001)
-      camera.lookAt(0, 0, 0)
-      controlsRef.current.target.set(0, 0, 0)
-      controlsRef.current.maxPolarAngle = 0.02
-      controlsRef.current.minPolarAngle = 0
-      controlsRef.current.enableRotate = false
+      // 2D Floor Plan: top-down architectural layout fitted exactly to width & length
+      const distV = l / 2 / tanHalfVFov
+      const distH = w / 2 / tanHalfHFov
+      const safety = aspect < 1 ? 1.35 : 1.18
+      const distance = Math.max(20, Math.max(distV, distH) * safety)
+
+      const target = new THREE.Vector3(0, 0, 0)
+      const pos = new THREE.Vector3(0, distance, 0.001)
+
+      camera.position.copy(pos)
+      camera.lookAt(target)
+      controls.target.copy(target)
+      controls.maxPolarAngle = 0.02
+      controls.minPolarAngle = 0
+      controls.enableRotate = false
+      controls.maxDistance = distance * 2.5
+      controls.minDistance = 4
     } else if (viewMode === 'elevation') {
-      // Elevation: side cutaway profile showing vertical shelf tiers
-      camera.position.set(0, 4.5, 29)
-      camera.lookAt(0, 2.5, 0)
-      controlsRef.current.target.set(0, 2.2, 0)
-      controlsRef.current.maxPolarAngle = Math.PI / 2
-      controlsRef.current.minPolarAngle = Math.PI / 2.25
-      controlsRef.current.enableRotate = true
+      // Elevation: elevated cutaway side profile displaying all vertical rack tiers
+      const R = Math.sqrt((w / 2) ** 2 + (l / 2) ** 2 + (h / 2) ** 2)
+      const safety = aspect < 1 ? 1.35 : 1.18
+      const distance = Math.max(20, (R / Math.sin(minHalfFov)) * safety)
+
+      // Look from angled side cutaway so vertical uprights and shelves are in clear view
+      const dir = new THREE.Vector3(1.2, 0.45, 0.5).normalize()
+      const target = new THREE.Vector3(0, Math.min(2.5, h * 0.3), 0)
+      const pos = target.clone().add(dir.multiplyScalar(distance))
+
+      camera.position.copy(pos)
+      camera.lookAt(target)
+      controls.target.copy(target)
+      controls.maxPolarAngle = Math.PI / 2 - 0.05
+      controls.minPolarAngle = 0.15
+      controls.enableRotate = true
+      controls.maxDistance = distance * 2.8
+      controls.minDistance = 4
     }
 
     camera.updateProjectionMatrix()
-    controlsRef.current.update()
-  }, [viewMode, camera, cameraResetTrigger])
+    controls.update()
+  }, [viewMode, camera, size, cameraResetTrigger, dimensions])
 
   return (
     <OrbitControls
@@ -99,26 +146,29 @@ function CameraController({
       enableDamping
       enablePan
       enableZoom
-      maxDistance={70}
-      minDistance={5}
       ref={controlsRef}
     />
   )
 }
 
 // Interactive Storage Zone Demarcation with Ground Boundaries & 3D Billboard Labels
+// Interactive Storage Zone Demarcation with Ground Boundaries & 3D Billboard Labels
 function InteractiveZoneBoundary({
   placedZone,
+  index = 0,
   isSelected,
   isHovered,
   heatmapMetric,
+  viewMode,
   onSelect,
   onHover,
 }: {
   placedZone: PlacedZone
+  index?: number
   isSelected: boolean
   isHovered: boolean
   heatmapMetric: HeatmapMetric
+  viewMode: VisualizationMode
   onSelect: () => void
   onHover: (hovered: boolean) => void
 }) {
@@ -168,8 +218,8 @@ function InteractiveZoneBoundary({
       <mesh position={[0, 0.008, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshBasicMaterial
-          color={isSelected ? '#43D9E8' : isHovered ? zoneColor : '#162434'}
-          opacity={isSelected ? 0.22 : isHovered ? 0.14 : 0.05}
+          color={isSelected ? '#38BDF8' : isHovered ? zoneColor : '#162434'}
+          opacity={isSelected ? 0.24 : isHovered ? 0.16 : 0.06}
           transparent
         />
       </mesh>
@@ -178,7 +228,7 @@ function InteractiveZoneBoundary({
       <lineSegments position={[0, 0.015, 0]}>
         <edgesGeometry args={[new THREE.BoxGeometry(width, 0.01, depth)]} />
         <lineBasicMaterial
-          color={isSelected ? '#43D9E8' : isHovered ? '#5AA9FF' : '#2A3C50'}
+          color={isSelected ? '#38BDF8' : isHovered ? '#60A5FA' : '#2F435A'}
           linewidth={isSelected ? 2 : 1}
         />
       </lineSegments>
@@ -186,17 +236,25 @@ function InteractiveZoneBoundary({
       {/* 3D Floating Zone Info Billboard Badge */}
       <Html
         center
-        distanceFactor={28}
-        position={[0, 5.0, 0]}
-        style={{ pointerEvents: 'auto' }}
+        distanceFactor={viewMode === 'topdown' ? 42 : 32}
+        position={[
+          0,
+          viewMode === 'topdown'
+            ? 0.35
+            : viewMode === 'elevation'
+              ? 1.4 + (index % 2) * 1.5
+              : 4.0,
+          0,
+        ]}
+        style={{ pointerEvents: 'auto', userSelect: 'none' }}
       >
         <button
-          className={`flex items-center gap-2 rounded-lg border px-2.5 py-1 text-xs shadow-xl backdrop-blur-md transition-all cursor-pointer whitespace-nowrap ${
+          className={`flex items-center gap-1.5 rounded-lg border px-2 py-0.5 text-xs shadow-lg backdrop-blur-md transition-all cursor-pointer whitespace-nowrap max-w-[150px] sm:max-w-none ${
             isSelected
-              ? 'border-primary bg-primary/20 text-primary font-bold shadow-[0_0_16px_rgba(67,217,232,0.4)] scale-105'
+              ? 'border-primary bg-primary/25 text-white font-bold shadow-[0_0_16px_rgba(56,189,248,0.5)] ring-1 ring-primary scale-105'
               : isHovered
-                ? 'border-secondary/60 bg-surface-2/95 text-secondary scale-102'
-                : 'border-surface-border/80 bg-surface/90 text-text-primary hover:border-primary/50'
+                ? 'border-secondary/80 bg-slate-900/95 text-secondary scale-102'
+                : 'border-slate-700/80 bg-slate-900/85 text-slate-200 hover:border-primary/50'
           }`}
           onClick={(e) => {
             e.stopPropagation()
@@ -205,14 +263,16 @@ function InteractiveZoneBoundary({
           type="button"
         >
           <span
-            className="h-2 w-2 rounded-full"
+            className="h-2 w-2 shrink-0 rounded-full"
             style={{ backgroundColor: zoneColor }}
           />
-          <span className="font-semibold text-[11px]">{zone.name}</span>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-semibold text-[10px] sm:text-[11px] truncate">
+            {zone.name}
+          </span>
+          <span className="font-mono text-[9px] sm:text-[10px] text-slate-400 shrink-0">
             {heatmapMetric === 'valuation'
               ? formatInr(actualValuation)
-              : `${occupancyPct}% Occ`}
+              : `${occupancyPct}%`}
           </span>
         </button>
       </Html>
@@ -243,9 +303,9 @@ export function Warehouse3DCanvas({
   }, [activeWarehouse, zones, racks, products])
 
   return (
-    <div className="relative w-full h-[540px] bg-[#0A0E15] rounded-xl overflow-hidden select-none">
+    <div className="relative w-full h-[480px] sm:h-[540px] bg-[#0A0F17] rounded-xl overflow-hidden select-none">
       <Canvas
-        camera={{ fov: 42, position: [19, 17, 21] }}
+        camera={{ fov: 40 }}
         gl={{
           antialias: true,
           alpha: false,
@@ -257,7 +317,7 @@ export function Warehouse3DCanvas({
         }}
         shadows
       >
-        <color args={['#0A0E15']} attach="background" />
+        <color args={['#0A0F17']} attach="background" />
 
         {/* 1. Structural Warehouse Shell, Floor Slab & Columns */}
         <WarehouseShell
@@ -267,38 +327,45 @@ export function Warehouse3DCanvas({
           width={layout.dimensions.width}
         />
 
-        {/* 2. Directional Industrial Lighting & Ambient Ambiance */}
-        <ambientLight color="#162230" intensity={1.4} />
+        {/* 2. Directional Industrial Lighting & Ambient Skylight Ambiance */}
+        <hemisphereLight
+          color="#D8E2EC"
+          groundColor="#1B2634"
+          intensity={1.15}
+        />
+        <ambientLight color="#8DA4C4" intensity={0.9} />
         <directionalLight
           castShadow
           color="#FFFFFF"
-          intensity={1.9}
-          position={[18, 28, 14]}
+          intensity={2.2}
+          position={[22, 32, 18]}
           shadow-bias={-0.0005}
           shadow-mapSize={[1024, 1024]}
         />
         <directionalLight
-          color="#43D9E8"
-          intensity={0.65}
-          position={[-16, 14, -12]}
+          color="#38BDF8"
+          intensity={0.9}
+          position={[-20, 18, -16]}
         />
         <pointLight
-          color="#5AA9FF"
-          distance={28}
-          intensity={0.75}
+          color="#60A5FA"
+          distance={36}
+          intensity={0.95}
           position={[0, 9, 0]}
         />
 
         {/* 3. Storage Zones with Floor Demarcation & Interactive Billboard Badges */}
-        {layout.zones.map((placedZone) => (
+        {layout.zones.map((placedZone, idx) => (
           <InteractiveZoneBoundary
             heatmapMetric={heatmapMetric}
+            index={idx}
             isHovered={hoveredZoneId === placedZone.zone.id}
             isSelected={selectedZoneId === placedZone.zone.id}
             key={placedZone.zone.id}
             onHover={(hov) => onHoverZone(hov ? placedZone.zone.id : null)}
             onSelect={() => onSelectZone(placedZone.zone.id)}
             placedZone={placedZone}
+            viewMode={viewMode}
           />
         ))}
 
@@ -333,9 +400,10 @@ export function Warehouse3DCanvas({
           <SafetyFixtureModel fixture={sf} key={sf.id} />
         ))}
 
-        {/* 8. Camera and View Mode Controller */}
+        {/* 8. Camera and View Mode Controller with Dynamic Responsive Framing */}
         <CameraController
           cameraResetTrigger={cameraResetTrigger}
+          dimensions={layout.dimensions}
           viewMode={viewMode}
         />
       </Canvas>

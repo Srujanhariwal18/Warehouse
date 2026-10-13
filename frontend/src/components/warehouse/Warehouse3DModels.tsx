@@ -30,62 +30,66 @@ export function WarehouseShell({
       <mesh position={[0, -0.4, 0]} receiveShadow>
         <boxGeometry args={[width, 0.8, length]} />
         <meshStandardMaterial
-          color="#0C131D"
-          metalness={0.2}
-          roughness={0.85}
+          color="#141E2C"
+          metalness={0.22}
+          roughness={0.8}
         />
       </mesh>
 
       {/* Perimeter Ground Bevel Trim */}
       <lineSegments position={[0, 0.005, 0]}>
         <edgesGeometry args={[new THREE.BoxGeometry(width, 0.01, length)]} />
-        <lineBasicMaterial color="#1E2B3A" />
+        <lineBasicMaterial color="#2B3D52" />
       </lineSegments>
 
       {/* Main Longitudinal Transport Highway (Central Aisle Z-axis) */}
       <mesh position={[0, 0.01, 0]}>
         <planeGeometry args={[2.8, length - 2]} />
         <meshStandardMaterial
-          color="#111B28"
-          metalness={0.15}
-          roughness={0.9}
+          color="#1B293A"
+          metalness={0.2}
+          roughness={0.85}
         />
       </mesh>
 
-      {/* High-Visibility Aisle Safety Boundary Stripes (Cyan & Amber Guide Rails) */}
+      {/* High-Visibility Aisle Safety Boundary Stripes (Cyan Guide Rails) */}
       <mesh position={[1.4, 0.012, 0]}>
         <planeGeometry args={[0.08, length - 2]} />
-        <meshBasicMaterial color="#43D9E8" opacity={0.65} transparent />
+        <meshBasicMaterial color="#38BDF8" opacity={0.75} transparent />
       </mesh>
       <mesh position={[-1.4, 0.012, 0]}>
         <planeGeometry args={[0.08, length - 2]} />
-        <meshBasicMaterial color="#43D9E8" opacity={0.65} transparent />
+        <meshBasicMaterial color="#38BDF8" opacity={0.75} transparent />
       </mesh>
 
       {/* Cross-Aisle Transport Arteries (East-West Transverse Walkways) */}
       <mesh position={[0, 0.011, 0]}>
         <planeGeometry args={[width - 3, 2.2]} />
-        <meshStandardMaterial color="#101925" />
+        <meshStandardMaterial
+          color="#192636"
+          metalness={0.15}
+          roughness={0.85}
+        />
       </mesh>
       <mesh position={[0, 0.013, 1.1]}>
         <planeGeometry args={[width - 3, 0.06]} />
-        <meshBasicMaterial color="#F5A524" opacity={0.7} transparent />
+        <meshBasicMaterial color="#F59E0B" opacity={0.75} transparent />
       </mesh>
       <mesh position={[0, 0.013, -1.1]}>
         <planeGeometry args={[width - 3, 0.06]} />
-        <meshBasicMaterial color="#F5A524" opacity={0.7} transparent />
+        <meshBasicMaterial color="#F59E0B" opacity={0.75} transparent />
       </mesh>
 
       {/* Front Inbound/Outbound Loading Dock Apron (+Z) */}
       <mesh position={[0, 0.011, length / 2 - 2.5]}>
         <planeGeometry args={[width * 0.55, 4.2]} />
-        <meshStandardMaterial color="#13202E" />
+        <meshStandardMaterial color="#1E2C3E" roughness={0.8} />
       </mesh>
       <lineSegments position={[0, 0.014, length / 2 - 2.5]}>
         <edgesGeometry
           args={[new THREE.BoxGeometry(width * 0.55, 0.01, 4.2)]}
         />
-        <lineBasicMaterial color="#F5A524" opacity={0.8} transparent />
+        <lineBasicMaterial color="#F59E0B" opacity={0.85} transparent />
       </lineSegments>
 
       {/* Loading Dock Leveler Plates (Steel diamond-plate texture simulation) */}
@@ -97,26 +101,26 @@ export function WarehouseShell({
           <mesh>
             <boxGeometry args={[2.2, 0.03, 1.2]} />
             <meshStandardMaterial
-              color="#2B3E52"
+              color="#33475B"
               metalness={0.8}
               roughness={0.3}
             />
           </mesh>
           <mesh position={[0, 0.02, 0]}>
             <planeGeometry args={[2.0, 0.1]} />
-            <meshBasicMaterial color="#F5A524" />
+            <meshBasicMaterial color="#F59E0B" />
           </mesh>
         </group>
       ))}
 
-      {/* Structural Steel Columns with Base Mounting Flanges */}
+      {/* Structural Steel Interior Columns with Base Mounting Flanges */}
       {columns.map(([cx, cy, cz], idx) => (
         <group key={`column-${idx}`} position={[cx, 0, cz]}>
           {/* Base Anchor Plate */}
           <mesh position={[0, 0.04, 0]}>
             <boxGeometry args={[0.7, 0.08, 0.7]} />
             <meshStandardMaterial
-              color="#1E2A38"
+              color="#223244"
               metalness={0.7}
               roughness={0.4}
             />
@@ -125,7 +129,7 @@ export function WarehouseShell({
           <mesh castShadow position={[0, cy, 0]}>
             <boxGeometry args={[0.38, height, 0.38]} />
             <meshStandardMaterial
-              color="#233446"
+              color="#2D4155"
               metalness={0.75}
               roughness={0.35}
             />
@@ -133,44 +137,82 @@ export function WarehouseShell({
           {/* High-visibility yellow lower bumper wrapping */}
           <mesh position={[0, 0.6, 0]}>
             <boxGeometry args={[0.42, 1.1, 0.42]} />
-            <meshStandardMaterial color="#EAB308" roughness={0.5} />
+            <meshStandardMaterial color="#EAB308" roughness={0.45} />
           </mesh>
         </group>
       ))}
 
-      {/* Low Enclosure Industrial Perimeter Walls (3-wall cutaway for unobstructed camera orbit) */}
+      {/* Architectural Cutaway Perimeter Walls (Low foundation stem curb with safety coping) */}
       {/* Rear Wall (-Z) */}
-      <mesh position={[0, 1.5, -length / 2 + 0.1]}>
-        <boxGeometry args={[width, 3.0, 0.2]} />
+      <mesh position={[0, 0.375, -length / 2 + 0.1]}>
+        <boxGeometry args={[width, 0.75, 0.22]} />
         <meshStandardMaterial
-          color="#0F1723"
-          metalness={0.4}
-          opacity={0.88}
-          roughness={0.7}
-          transparent
+          color="#1C2B3C"
+          metalness={0.35}
+          roughness={0.65}
         />
       </mesh>
+      {/* Rear Wall Safety Coping Trim */}
+      <mesh position={[0, 0.76, -length / 2 + 0.1]}>
+        <boxGeometry args={[width, 0.04, 0.24]} />
+        <meshStandardMaterial color="#F59E0B" roughness={0.5} />
+      </mesh>
+
       {/* Left Wall (-X) */}
-      <mesh position={[-width / 2 + 0.1, 1.5, 0]}>
-        <boxGeometry args={[0.2, 3.0, length]} />
+      <mesh position={[-width / 2 + 0.1, 0.375, 0]}>
+        <boxGeometry args={[0.22, 0.75, length]} />
         <meshStandardMaterial
-          color="#0F1723"
-          metalness={0.4}
-          opacity={0.88}
-          roughness={0.7}
-          transparent
+          color="#1C2B3C"
+          metalness={0.35}
+          roughness={0.65}
         />
       </mesh>
+      <mesh position={[-width / 2 + 0.1, 0.76, 0]}>
+        <boxGeometry args={[0.24, 0.04, length]} />
+        <meshStandardMaterial color="#38BDF8" roughness={0.5} />
+      </mesh>
+
       {/* Right Wall (+X) */}
-      <mesh position={[width / 2 - 0.1, 1.5, 0]}>
-        <boxGeometry args={[0.2, 3.0, length]} />
+      <mesh position={[width / 2 - 0.1, 0.375, 0]}>
+        <boxGeometry args={[0.22, 0.75, length]} />
         <meshStandardMaterial
-          color="#0F1723"
-          metalness={0.4}
-          opacity={0.88}
-          roughness={0.7}
-          transparent
+          color="#1C2B3C"
+          metalness={0.35}
+          roughness={0.65}
         />
+      </mesh>
+      <mesh position={[width / 2 - 0.1, 0.76, 0]}>
+        <boxGeometry args={[0.24, 0.04, length]} />
+        <meshStandardMaterial color="#38BDF8" roughness={0.5} />
+      </mesh>
+
+      {/* 4 Corner Architectural Envelope Columns */}
+      {[
+        [-width / 2 + 0.2, -length / 2 + 0.2],
+        [width / 2 - 0.2, -length / 2 + 0.2],
+        [-width / 2 + 0.2, length / 2 - 0.2],
+        [width / 2 - 0.2, length / 2 - 0.2],
+      ].map(([px, pz], cIdx) => (
+        <group key={`corner-col-${cIdx}`} position={[px, 0, pz]}>
+          <mesh castShadow position={[0, height / 2, 0]}>
+            <boxGeometry args={[0.42, height, 0.42]} />
+            <meshStandardMaterial
+              color="#223345"
+              metalness={0.75}
+              roughness={0.35}
+            />
+          </mesh>
+          <mesh position={[0, 0.6, 0]}>
+            <boxGeometry args={[0.46, 1.1, 0.46]} />
+            <meshStandardMaterial color="#EAB308" roughness={0.45} />
+          </mesh>
+        </group>
+      ))}
+
+      {/* Rear Structural Eave Tie-Beam */}
+      <mesh position={[0, height - 0.1, -length / 2 + 0.2]}>
+        <boxGeometry args={[width - 0.4, 0.2, 0.25]} />
+        <meshStandardMaterial color="#1E2E40" metalness={0.6} roughness={0.4} />
       </mesh>
     </group>
   )

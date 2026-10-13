@@ -7,6 +7,8 @@ import {
   Table as TableIcon,
   Warehouse as WarehouseIcon,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -63,6 +65,7 @@ export function WarehouseIsometricVisualizer({
   const [cameraResetTrigger, setCameraResetTrigger] = useState<number>(0)
   const [showTableView, setShowTableView] = useState<boolean>(false)
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false)
+  const [isHudExpanded, setIsHudExpanded] = useState<boolean>(false)
   const [webGLAvailable] = useState<boolean>(() =>
     typeof window !== 'undefined' ? checkWebGLSupport() : true,
   )
@@ -268,16 +271,22 @@ export function WarehouseIsometricVisualizer({
     })
   }, [facilityZones, facilityRacks, productsByZone, activeWarehouse.id])
 
-  // Selected or hovered active zone telemetry
+  // Selected or hovered active zone telemetry (null if none selected or hovered)
   const activeZone = useMemo(() => {
-    const targetId = selectedZoneId || hoveredZoneId || facilityZones[0]?.id
-    return zoneStats.find((z) => z.id === targetId) || zoneStats[0] || null
-  }, [zoneStats, selectedZoneId, hoveredZoneId, facilityZones])
+    const targetId = selectedZoneId || hoveredZoneId
+    if (!targetId) return null
+    return zoneStats.find((z) => z.id === targetId) || null
+  }, [zoneStats, selectedZoneId, hoveredZoneId])
 
   const activeRack = useMemo(() => {
     if (!selectedRackId) return null
     return facilityRacks.find((r) => r.id === selectedRackId) || null
   }, [facilityRacks, selectedRackId])
+
+  const activeRackParentZone = useMemo(() => {
+    if (!activeRack) return null
+    return zoneStats.find((z) => z.id === activeRack.zoneId) || null
+  }, [activeRack, zoneStats])
 
   // Active entity details: specific rack if selected, otherwise selected/hovered zone
   const activeEntity = useMemo(() => {
@@ -314,7 +323,12 @@ export function WarehouseIsometricVisualizer({
         id: activeRack.id,
         name: activeRack.name,
         typeLabel: `${activeRack.levels ?? 4} High-Bay Tiers`,
-        parentName: activeZone?.name ?? 'Storage Zone',
+        parentName:
+          activeRackParentZone?.name ??
+          (activeRack.zoneId
+            ? `Zone ${activeRack.zoneId}`
+            : 'Independent Rack (Unassigned Zone)'),
+        parentZone: activeRackParentZone,
         status: activeRack.status,
         capacity,
         units,
@@ -331,6 +345,7 @@ export function WarehouseIsometricVisualizer({
         name: activeZone.name,
         typeLabel: activeZone.type,
         parentName: activeWarehouse.name,
+        parentZone: activeZone,
         status: activeZone.status,
         capacity: activeZone.totalCapacity,
         units: activeZone.actualUnits,
@@ -343,6 +358,7 @@ export function WarehouseIsometricVisualizer({
     return null
   }, [
     activeRack,
+    activeRackParentZone,
     activeZone,
     facilityProducts,
     activeWarehouse.id,
@@ -404,7 +420,7 @@ export function WarehouseIsometricVisualizer({
           {/* Heatmap Metric Selector */}
           <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 text-xs shadow-2xs">
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'occupancy'
                   ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -416,7 +432,7 @@ export function WarehouseIsometricVisualizer({
               Occupancy
             </button>
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'type'
                   ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -425,10 +441,11 @@ export function WarehouseIsometricVisualizer({
               title="Color code by zone operational function"
               type="button"
             >
-              Zone Function
+              <span className="sm:hidden">Function</span>
+              <span className="hidden sm:inline">Zone Function</span>
             </button>
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 heatmapMetric === 'valuation'
                   ? 'bg-surface-blue text-primary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -444,7 +461,7 @@ export function WarehouseIsometricVisualizer({
           {/* View Modes Selector */}
           <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 text-xs shadow-2xs">
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 viewMode === 'isometric'
                   ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -456,7 +473,7 @@ export function WarehouseIsometricVisualizer({
               3D Iso
             </button>
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 viewMode === 'topdown'
                   ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -468,7 +485,7 @@ export function WarehouseIsometricVisualizer({
               2D Plan
             </button>
             <button
-              className={`rounded px-2.5 py-1 text-[11px] font-medium transition-colors ${
+              className={`rounded px-2 sm:px-2.5 py-1 text-[10px] sm:text-[11px] font-medium transition-colors ${
                 viewMode === 'elevation'
                   ? 'bg-surface-cyan text-secondary font-semibold shadow-xs'
                   : 'text-text-muted hover:text-text-primary'
@@ -574,38 +591,49 @@ export function WarehouseIsometricVisualizer({
 
         {/* View Mode Indicator Overlay */}
         <div className="absolute top-3 left-3 z-10 flex items-center gap-2 rounded-lg border border-surface-border bg-white/95 px-2.5 py-1 text-[11px] font-mono text-text-secondary backdrop-blur-md shadow-xs">
-          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" />
           <span className="font-medium text-text-primary">
             {viewMode === 'isometric'
-              ? '3D PERSPECTIVE // ORBIT ACTIVE'
+              ? '3D PERSPECTIVE'
               : viewMode === 'topdown'
-                ? '2D FLOOR PLAN // TOP-DOWN'
-                : 'ELEVATION // MULTI-TIER PROFILE'}
+                ? '2D FLOOR PLAN'
+                : 'ELEVATION PROFILE'}
           </span>
-          <span className="text-surface-border">|</span>
-          <span className="text-text-muted text-[10px]">
+          <span className="text-surface-border hidden sm:inline">|</span>
+          <span className="text-text-muted text-[10px] hidden sm:inline">
             Drag to Rotate • Scroll to Zoom
           </span>
         </div>
 
+        {/* Floating HUD Guidance Hint (when no entity is active) */}
+        {!activeEntity && (
+          <div className="absolute bottom-3 left-3 z-10 hidden sm:flex items-center gap-2 rounded-lg border border-surface-border/80 bg-white/90 px-3 py-1.5 text-[11px] font-mono text-text-muted backdrop-blur-md shadow-xs pointer-events-none">
+            <span className="h-1.5 w-1.5 rounded-full bg-secondary/80 shrink-0" />
+            <span>
+              Click any zone badge or rack structure to inspect live inventory
+              telemetry
+            </span>
+          </div>
+        )}
+
         {/* Floating HUD Telemetry Card (Active Zone / Rack Details) */}
         {activeEntity && (
-          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-96 rounded-xl border border-surface-border bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md z-20">
-            <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2.5">
-              <div>
+          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-96 rounded-xl border border-surface-border bg-white/95 p-3 sm:p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md z-20 transition-all duration-200">
+            <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2">
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <span
-                    className={`h-2 w-2 rounded-full ${
+                    className={`h-2 w-2 rounded-full shrink-0 ${
                       activeEntity.isRack
                         ? 'bg-secondary shadow-[0_0_8px_rgba(8,145,178,0.4)]'
                         : 'bg-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]'
                     }`}
                   />
-                  <span className="font-semibold text-xs text-text-primary">
+                  <span className="font-semibold text-xs text-text-primary truncate">
                     {activeEntity.name}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-text-muted">
+                <div className="flex items-center gap-1.5 mt-0.5 text-[10px] font-mono text-text-muted truncate">
                   <span>ID: {activeEntity.id}</span>
                   <span>•</span>
                   <span>{activeEntity.typeLabel}</span>
@@ -613,7 +641,7 @@ export function WarehouseIsometricVisualizer({
                     <>
                       <span>•</span>
                       <span
-                        className="truncate max-w-[110px]"
+                        className="truncate max-w-[120px]"
                         title={activeEntity.parentName}
                       >
                         {activeEntity.parentName}
@@ -622,7 +650,7 @@ export function WarehouseIsometricVisualizer({
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <StatusBadge
                   size="sm"
                   tone={
@@ -631,13 +659,28 @@ export function WarehouseIsometricVisualizer({
                 >
                   {activeEntity.status}
                 </StatusBadge>
-                {(selectedZoneId || selectedRackId) && (
+                {/* Mobile Expand / Collapse toggle */}
+                <button
+                  aria-label={isHudExpanded ? 'Collapse HUD' : 'Expand HUD'}
+                  className="sm:hidden p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors"
+                  onClick={() => setIsHudExpanded((v) => !v)}
+                  title={isHudExpanded ? 'Show less' : 'Show details'}
+                  type="button"
+                >
+                  {isHudExpanded ? (
+                    <ChevronDown size={14} />
+                  ) : (
+                    <ChevronUp size={14} />
+                  )}
+                </button>
+                {(selectedZoneId || selectedRackId || hoveredZoneId) && (
                   <button
                     aria-label="Deselect"
                     className="p-1 rounded-md text-text-muted hover:text-text-primary hover:bg-surface-secondary transition-colors"
                     onClick={() => {
                       setSelectedZoneId(null)
                       setSelectedRackId(null)
+                      setHoveredZoneId(null)
                     }}
                     title="Clear selection"
                     type="button"
@@ -648,133 +691,164 @@ export function WarehouseIsometricVisualizer({
               </div>
             </div>
 
-            {/* Entity Metrics Grid */}
-            <div className="mt-2.5 grid grid-cols-4 gap-2 text-[11px] font-mono">
-              <div>
-                <span className="text-[10px] text-text-muted block">UNITS</span>
-                <span className="font-bold text-text-primary">
+            {/* Mobile Compact 1-liner when collapsed */}
+            <div
+              className={`mt-2 flex items-center justify-between text-[11px] font-mono sm:hidden ${isHudExpanded ? 'hidden' : 'flex'}`}
+            >
+              <span className="text-text-secondary">
+                <strong className="text-text-primary">
                   {activeEntity.units}
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-text-muted block">
-                  CAPACITY
-                </span>
-                <span className="font-bold text-text-primary">
-                  {activeEntity.capacity} plts
-                </span>
-              </div>
-              <div>
-                <span
-                  className="text-[10px] text-text-muted block truncate"
-                  title="Rated slot capacity proxy utilization (0-100%)"
-                >
-                  OCCUPANCY
-                </span>
-                <span
-                  className={`font-bold ${
-                    activeEntity.occupancyPct >= 75
-                      ? 'text-emerald-600'
-                      : activeEntity.occupancyPct >= 35
-                        ? 'text-primary'
-                        : activeEntity.occupancyPct > 0
-                          ? 'text-amber-600'
-                          : 'text-rose-600'
-                  }`}
-                >
-                  {activeEntity.occupancyPct}%
-                </span>
-              </div>
-              <div>
-                <span className="text-[10px] text-text-muted block">
-                  VALUATION
-                </span>
-                <span className="font-bold text-primary">
-                  {formatInr(activeEntity.valuation)}
-                </span>
-              </div>
+                </strong>{' '}
+                Units ({activeEntity.capacity} plts)
+              </span>
+              <span
+                className={`font-bold ${
+                  activeEntity.occupancyPct >= 75
+                    ? 'text-emerald-600'
+                    : activeEntity.occupancyPct >= 35
+                      ? 'text-primary'
+                      : activeEntity.occupancyPct > 0
+                        ? 'text-amber-600'
+                        : 'text-rose-600'
+                }`}
+              >
+                {activeEntity.occupancyPct}% Fill
+              </span>
             </div>
 
-            {/* Associated Product Inventory List */}
-            <div className="mt-3 pt-2.5 border-t border-surface-border">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-mono font-semibold text-text-secondary uppercase tracking-wider">
-                  Assigned Inventory ({activeEntity.products.length} SKUs)
-                </span>
-                {unassignedProducts.length > 0 && (
-                  <button
-                    className="text-[10px] font-mono text-warning hover:underline"
-                    onClick={() => setShowTableView(true)}
-                    type="button"
+            {/* Entity Metrics Grid & SKU Details (always visible on sm:, toggleable on mobile) */}
+            <div className={`${isHudExpanded ? 'block' : 'hidden sm:block'}`}>
+              {/* Entity Metrics Grid */}
+              <div className="mt-2.5 grid grid-cols-4 gap-2 text-[11px] font-mono">
+                <div>
+                  <span className="text-[10px] text-text-muted block">
+                    UNITS
+                  </span>
+                  <span className="font-bold text-text-primary">
+                    {activeEntity.units}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-text-muted block">
+                    CAPACITY
+                  </span>
+                  <span className="font-bold text-text-primary">
+                    {activeEntity.capacity} plts
+                  </span>
+                </div>
+                <div>
+                  <span
+                    className="text-[10px] text-text-muted block truncate"
+                    title="Rated slot capacity proxy utilization (0-100%)"
                   >
-                    {unassignedProducts.length} unassigned
-                  </button>
+                    OCCUPANCY
+                  </span>
+                  <span
+                    className={`font-bold ${
+                      activeEntity.occupancyPct >= 75
+                        ? 'text-emerald-600'
+                        : activeEntity.occupancyPct >= 35
+                          ? 'text-primary'
+                          : activeEntity.occupancyPct > 0
+                            ? 'text-amber-600'
+                            : 'text-rose-600'
+                    }`}
+                  >
+                    {activeEntity.occupancyPct}%
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-text-muted block">
+                    VALUATION
+                  </span>
+                  <span className="font-bold text-primary">
+                    {formatInr(activeEntity.valuation)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Associated Product Inventory List */}
+              <div className="mt-3 pt-2.5 border-t border-surface-border">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-mono font-semibold text-text-secondary uppercase tracking-wider">
+                    Assigned Inventory ({activeEntity.products.length} SKUs)
+                  </span>
+                  {unassignedProducts.length > 0 && (
+                    <button
+                      className="text-[10px] font-mono text-warning hover:underline"
+                      onClick={() => setShowTableView(true)}
+                      type="button"
+                    >
+                      {unassignedProducts.length} unassigned
+                    </button>
+                  )}
+                </div>
+
+                {activeEntity.products.length === 0 ? (
+                  <div className="py-2 px-2.5 rounded-lg bg-surface-secondary/70 border border-surface-border text-center">
+                    <span className="font-mono text-[11px] text-text-muted block">
+                      {activeEntity.isRack
+                        ? 'Empty Rack — No stock assigned'
+                        : 'Empty Zone — No products stored'}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="max-h-24 sm:max-h-28 overflow-y-auto divide-y divide-surface-border/50 rounded-lg border border-surface-border bg-surface-secondary/40 px-2 py-1">
+                    {activeEntity.products.map((p) => {
+                      const stock =
+                        p.warehouseStock &&
+                        p.warehouseStock[activeWarehouse.id] !== undefined
+                          ? p.warehouseStock[activeWarehouse.id]
+                          : p.warehouseId === activeWarehouse.id
+                            ? p.stock
+                            : 0
+                      return (
+                        <div
+                          className="py-1 flex items-center justify-between text-[11px]"
+                          key={p.id}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                            <span className="font-mono text-[10px] text-primary font-semibold shrink-0">
+                              {p.sku}
+                            </span>
+                            <span
+                              className="truncate text-text-primary text-[11px]"
+                              title={p.name}
+                            >
+                              {p.name}
+                            </span>
+                          </div>
+                          <div className="font-mono text-[10px] shrink-0 text-right">
+                            <span className="font-bold text-text-primary">
+                              {stock}
+                            </span>
+                            <span className="text-text-muted ml-0.5">u</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
                 )}
               </div>
 
-              {activeEntity.products.length === 0 ? (
-                <div className="py-2 px-2.5 rounded-lg bg-surface-secondary/70 border border-surface-border text-center">
-                  <span className="font-mono text-[11px] text-text-muted block">
-                    {activeEntity.isRack
-                      ? 'Empty Rack — No stock assigned'
-                      : 'Empty Zone — No products stored'}
+              {/* Quick action link to Warehouses Page */}
+              <div className="mt-2.5 pt-2 border-t border-surface-border flex items-center justify-between text-[11px]">
+                <span className="text-text-muted flex items-center gap-1 font-mono text-[10px]">
+                  <Boxes className="text-secondary" size={12} />
+                  <span>
+                    {activeEntity.parentZone
+                      ? `${activeEntity.parentZone.rackCount ?? facilityRacks.filter((r) => r.zoneId === activeEntity.parentZone?.id).length} Racks in Zone`
+                      : `${facilityRacks.length} Facility Racks`}
                   </span>
-                </div>
-              ) : (
-                <div className="max-h-28 overflow-y-auto divide-y divide-surface-border/50 rounded-lg border border-surface-border bg-surface-secondary/40 px-2 py-1">
-                  {activeEntity.products.map((p) => {
-                    const stock =
-                      p.warehouseStock &&
-                      p.warehouseStock[activeWarehouse.id] !== undefined
-                        ? p.warehouseStock[activeWarehouse.id]
-                        : p.warehouseId === activeWarehouse.id
-                          ? p.stock
-                          : 0
-                    return (
-                      <div
-                        className="py-1 flex items-center justify-between text-[11px]"
-                        key={p.id}
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0 pr-2">
-                          <span className="font-mono text-[10px] text-primary font-semibold shrink-0">
-                            {p.sku}
-                          </span>
-                          <span
-                            className="truncate text-text-primary text-[11px]"
-                            title={p.name}
-                          >
-                            {p.name}
-                          </span>
-                        </div>
-                        <div className="font-mono text-[10px] shrink-0 text-right">
-                          <span className="font-bold text-text-primary">
-                            {stock}
-                          </span>
-                          <span className="text-text-muted ml-0.5">u</span>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Quick action link to Warehouses Page */}
-            <div className="mt-2.5 pt-2 border-t border-surface-border flex items-center justify-between text-[11px]">
-              <span className="text-text-muted flex items-center gap-1 font-mono text-[10px]">
-                <Boxes className="text-secondary" size={12} />
-                <span>
-                  {activeZone.rackCount} Racks • {activeZone.assignedSkus} SKUs
-                  in Zone
                 </span>
-              </span>
-              <Link
-                className="text-primary hover:underline font-medium flex items-center gap-1 text-[11px]"
-                to="/app/warehouses"
-              >
-                <span>Manage Facility Racks</span>
-                <Sparkles size={11} />
-              </Link>
+                <Link
+                  className="text-primary hover:underline font-medium flex items-center gap-1 text-[11px]"
+                  to="/app/warehouses"
+                >
+                  <span>Manage Facility Racks</span>
+                  <Sparkles size={11} />
+                </Link>
+              </div>
             </div>
           </div>
         )}
