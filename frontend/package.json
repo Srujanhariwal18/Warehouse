@@ -10,7 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "test": "vite-node tests/orderValidation.test.ts && vite-node tests/suppliers.test.ts && vite-node tests/warehouse.test.ts && vite-node tests/transactions.test.ts && vite-node tests/reportsAndAlerts.test.ts && vite-node tests/integrationPhase10.test.ts && vite-node tests/digitalTwin.test.ts"
+    "test": "vite-node tests/orderValidation.test.ts && vite-node tests/suppliers.test.ts && vite-node tests/warehouse.test.ts && vite-node tests/transactions.test.ts && vite-node tests/reportsAndAlerts.test.ts && vite-node tests/integrationPhase10.test.ts && vite-node tests/digitalTwin.test.ts && vite-node tests/mockArchitectureAndWorkflows.test.ts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

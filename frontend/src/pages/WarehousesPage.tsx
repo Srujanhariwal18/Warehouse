@@ -37,6 +37,7 @@ import {
   type CreateWarehouseInput,
   type CreateZoneInput,
 } from '@/lib/warehouseStore'
+import { WarehouseIsometricVisualizer } from '@/components/warehouse/WarehouseIsometricVisualizer'
 import type { Product, Warehouse, WarehouseStatus } from '@/mocks/inventoryData'
 import type {
   RackStatus,
@@ -125,7 +126,13 @@ export function WarehousesPage() {
   const warehouseProductCounts = useMemo(() => {
     const map = new Map<string, number>()
     for (const p of products) {
-      if (p.warehouseId) {
+      if (p.warehouseStock && typeof p.warehouseStock === 'object') {
+        for (const [whId, units] of Object.entries(p.warehouseStock)) {
+          if (units > 0) {
+            map.set(whId, (map.get(whId) ?? 0) + 1)
+          }
+        }
+      } else if (p.warehouseId) {
         map.set(p.warehouseId, (map.get(p.warehouseId) ?? 0) + 1)
       }
     }
@@ -209,6 +216,7 @@ export function WarehousesPage() {
         onBack={navigateToRoot}
         onNavigateZone={(zoneId) => navigateToZone(currentWarehouse.id, zoneId)}
         onUpdateZone={updateZone}
+        products={products}
         reactivateZone={reactivateZone}
         setNotice={setNotice}
         warehouseProductCount={
@@ -1020,6 +1028,7 @@ function WarehouseZonesView({
   zoneProductCounts,
   onBack,
   onNavigateZone,
+  products,
   onAddZone,
   onUpdateZone,
   deactivateZone,
@@ -1030,6 +1039,7 @@ function WarehouseZonesView({
   currentWarehouse: Warehouse
   zones: WarehouseZone[]
   allRacks: WarehouseRack[]
+  products: Product[]
   warehouseRackCount: number
   warehouseProductCount: number
   zoneRackCounts: Map<string, number>
@@ -1049,6 +1059,7 @@ function WarehouseZonesView({
   notice: { type: 'success' | 'error'; message: string } | null
   setNotice: (n: { type: 'success' | 'error'; message: string } | null) => void
 }) {
+  const [viewTab, setViewTab] = useState<'zones' | 'digital-twin'>('zones')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('All')
   const [sortField, setSortField] = useState<ZoneSortField>('name')
@@ -1134,7 +1145,32 @@ function WarehouseZonesView({
       {/* Page Header */}
       <PageHeader
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center rounded-lg border border-surface-border bg-white p-0.5 shadow-2xs">
+              <button
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  viewTab === 'zones'
+                    ? 'bg-surface-blue text-primary font-semibold shadow-xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+                onClick={() => setViewTab('zones')}
+                type="button"
+              >
+                Zone Ledger
+              </button>
+              <button
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                  viewTab === 'digital-twin'
+                    ? 'bg-surface-blue text-primary font-semibold shadow-xs'
+                    : 'text-text-muted hover:text-text-primary'
+                }`}
+                onClick={() => setViewTab('digital-twin')}
+                type="button"
+              >
+                <Layers size={13} />
+                <span>3D Digital Twin</span>
+              </button>
+            </div>
             <Button
               className="flex items-center gap-1.5"
               onClick={onBack}
@@ -1240,411 +1276,427 @@ function WarehouseZonesView({
         </div>
       </Card>
 
-      {/* Zone Level Telemetry Strip */}
-      <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
-        <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center justify-between text-text-muted">
-              <span className="text-xs font-medium text-text-secondary">
-                Facility Zones
-              </span>
-              <Layers className="text-primary" size={16} />
-            </div>
-            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-              {zones.length}
-            </div>
-            <div className="mt-1 text-xs text-text-muted">
-              Configured functional areas
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center justify-between text-text-muted">
-              <span className="text-xs font-medium text-text-secondary">
-                Active Zones
-              </span>
-              <CheckCircle2 className="text-success" size={16} />
-            </div>
-            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-              {activeZonesCount}
-            </div>
-            <div className="mt-1 text-xs text-text-muted">
-              Operational receiving & storage
-            </div>
-          </div>
-
-          <div className="p-4 sm:p-5">
-            <div className="flex items-center justify-between text-text-muted">
-              <span className="text-xs font-medium text-text-secondary">
-                Racks in Facility
-              </span>
-              <Server className="text-secondary" size={16} />
-            </div>
-            <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
-              {warehouseRackCount}
-            </div>
-            <div className="mt-1 text-xs text-text-muted">
-              Distributed across functional zones
-            </div>
-          </div>
+      {viewTab === 'digital-twin' ? (
+        <div className="space-y-4">
+          <WarehouseIsometricVisualizer
+            activeWarehouse={currentWarehouse}
+            onSelectZone={(zid) => onNavigateZone(zid)}
+            products={products}
+            racks={allRacks}
+            zones={zones}
+          />
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Zone Level Telemetry Strip */}
+          <div className="overflow-hidden rounded-xl border border-surface-3 bg-surface-1 shadow-sm">
+            <div className="grid grid-cols-1 divide-y divide-surface-3 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-xs font-medium text-text-secondary">
+                    Facility Zones
+                  </span>
+                  <Layers className="text-primary" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+                  {zones.length}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  Configured functional areas
+                </div>
+              </div>
 
-      {/* Controls Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
-                size={16}
-              />
-              <input
-                aria-label="Search zones"
-                className="h-10 w-full rounded-xl border border-surface-3 bg-sidebar pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
-                placeholder="Search zones by name, code, type, or description..."
-                value={search}
-              />
-              {search && (
-                <button
-                  aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                  onClick={() => setSearch('')}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-xs font-medium text-text-secondary">
+                    Active Zones
+                  </span>
+                  <CheckCircle2 className="text-success" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+                  {activeZonesCount}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  Operational receiving & storage
+                </div>
+              </div>
 
-            {/* Status Filter */}
-            <div className="flex rounded-xl border border-surface-3 bg-sidebar p-1">
-              {(['All', 'Active', 'Inactive'] as StatusFilterOption[]).map(
-                (status) => (
-                  <button
-                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                      statusFilter === status
-                        ? 'bg-surface text-text-primary shadow-xs'
-                        : 'text-text-muted hover:text-text-primary'
-                    }`}
-                    key={status}
-                    onClick={() => {
-                      setStatusFilter(status)
-                      setPage(1)
-                    }}
-                  >
-                    {status}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {hasActiveFilters && (
-              <Button
-                className="text-xs text-text-muted hover:text-text-primary"
-                onClick={resetFilters}
-                variant="ghost"
-              >
-                Reset filters
-              </Button>
-            )}
-            <div className="text-xs text-text-muted">
-              {filteredZones.length}{' '}
-              {filteredZones.length === 1 ? 'zone' : 'zones'}
-            </div>
-          </div>
-        </div>
-      </Card>
-
-      {/* Zones Table */}
-      <Card className="overflow-hidden">
-        {paginatedZones.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-text-secondary">
-              <thead className="border-b border-surface-3 bg-sidebar text-xs uppercase tracking-wider text-text-muted">
-                <tr>
-                  <th
-                    className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
-                    onClick={() => toggleSort('name')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Zone Name
-                      <ArrowUpDown size={13} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
-                    onClick={() => toggleSort('id')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Identifier
-                      <ArrowUpDown size={13} />
-                    </div>
-                  </th>
-                  <th
-                    className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
-                    onClick={() => toggleSort('type')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Zone Type
-                      <ArrowUpDown size={13} />
-                    </div>
-                  </th>
-                  <th className="px-5 py-3.5">Description</th>
-                  <th
-                    className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
-                    onClick={() => toggleSort('racks')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Racks
-                      <ArrowUpDown size={13} />
-                    </div>
-                  </th>
-                  <th className="px-5 py-3.5">Assigned SKUs</th>
-                  <th
-                    className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
-                    onClick={() => toggleSort('status')}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      Status
-                      <ArrowUpDown size={13} />
-                    </div>
-                  </th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-3/60">
-                {paginatedZones.map((zone) => {
-                  const rackCount = zoneRackCounts.get(zone.id) ?? 0
-                  const productCount = zoneProductCounts.get(zone.id) ?? 0
-
-                  return (
-                    <tr
-                      className="group transition-colors hover:bg-surface-3/30"
-                      key={zone.id}
-                    >
-                      {/* Zone Name */}
-                      <td className="px-5 py-4 font-medium text-text-primary">
-                        {zone.name}
-                      </td>
-
-                      {/* Identifier */}
-                      <td className="px-5 py-4 font-mono text-xs whitespace-nowrap">
-                        <span className="rounded-md border border-surface-3 bg-sidebar px-2 py-1">
-                          {zone.id}
-                        </span>
-                      </td>
-
-                      {/* Type */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="rounded-md bg-surface-3 px-2 py-1 text-xs text-text-primary">
-                          {zone.type ?? 'Storage'}
-                        </span>
-                      </td>
-
-                      {/* Description */}
-                      <td className="px-5 py-4 text-xs text-text-muted max-w-xs truncate">
-                        {zone.description ?? '—'}
-                      </td>
-
-                      {/* Racks */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <span className="font-mono font-medium text-text-primary">
-                          {rackCount}
-                        </span>{' '}
-                        <span className="text-xs text-text-muted">
-                          {rackCount === 1 ? 'rack' : 'racks'}
-                        </span>
-                      </td>
-
-                      {/* SKUs */}
-                      <td className="px-5 py-4 whitespace-nowrap text-xs">
-                        <span className="font-mono text-text-primary">
-                          {productCount}
-                        </span>{' '}
-                        <span className="text-text-muted">SKUs</span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-5 py-4 whitespace-nowrap">
-                        <StatusBadge
-                          tone={
-                            zone.status === 'Active' ? 'success' : 'neutral'
-                          }
-                        >
-                          {zone.status ?? 'Active'}
-                        </StatusBadge>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-5 py-4 text-right whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-1">
-                          {/* Manage Racks Drill-down */}
-                          <Button
-                            aria-label={`Manage racks in ${zone.name}`}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
-                            onClick={() => onNavigateZone(zone.id)}
-                            variant="secondary"
-                          >
-                            <Server size={13} />
-                            <span>Racks ({rackCount})</span>
-                            <ArrowRight size={12} />
-                          </Button>
-
-                          {/* Edit Zone */}
-                          <Button
-                            aria-label={`Edit ${zone.name}`}
-                            className="h-8 w-8 p-0 text-text-muted hover:text-text-primary"
-                            onClick={() => setEditingZone(zone)}
-                            variant="ghost"
-                          >
-                            <Edit2 size={15} />
-                          </Button>
-
-                          {/* Deactivate / Reactivate */}
-                          {zone.status === 'Active' ? (
-                            <Button
-                              aria-label={`Deactivate ${zone.name}`}
-                              className="h-8 w-8 p-0 text-text-muted hover:text-danger"
-                              onClick={() => setDeactivateTarget(zone)}
-                              variant="ghost"
-                            >
-                              <XCircle size={15} />
-                            </Button>
-                          ) : (
-                            <Button
-                              aria-label={`Reactivate ${zone.name}`}
-                              className="h-8 w-8 p-0 text-text-muted hover:text-success"
-                              onClick={() => {
-                                const res = reactivateZone(zone.id)
-                                if (res.ok) {
-                                  setNotice({
-                                    type: 'success',
-                                    message: `Zone "${zone.name}" was reactivated.`,
-                                  })
-                                } else {
-                                  setNotice({
-                                    type: 'error',
-                                    message:
-                                      res.message ??
-                                      'Failed to reactivate zone.',
-                                  })
-                                }
-                              }}
-                              variant="ghost"
-                            >
-                              <RotateCcw size={15} />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-8">
-            <EmptyState
-              action={
-                hasActiveFilters ? (
-                  <Button onClick={resetFilters} variant="secondary">
-                    Clear filters
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={() => setAddDialogOpen(true)}
-                    variant="primary"
-                  >
-                    Add first zone
-                  </Button>
-                )
-              }
-              description={
-                hasActiveFilters
-                  ? 'No zones match your search or filter. Try clearing filters.'
-                  : `No storage zones configured for ${currentWarehouse.name}. Add a zone to organize storage aisles and racks.`
-              }
-              title={
-                hasActiveFilters ? 'No matching zones' : 'No zones registered'
-              }
-            />
-          </div>
-        )}
-
-        {/* Pagination Toolbar */}
-        {filteredZones.length > 0 && (
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-surface-3/80 px-5 py-4 text-xs text-text-muted sm:flex-row">
-            <div>
-              Showing{' '}
-              <span className="font-medium text-text-primary">
-                {(page - 1) * pageSize + 1}
-              </span>{' '}
-              to{' '}
-              <span className="font-medium text-text-primary">
-                {Math.min(page * pageSize, filteredZones.length)}
-              </span>{' '}
-              of{' '}
-              <span className="font-medium text-text-primary">
-                {filteredZones.length}
-              </span>{' '}
-              zones
-            </div>
-
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5">
-                Rows per page:
-                <select
-                  aria-label="Rows per page"
-                  className="rounded-lg border border-surface-3 bg-sidebar px-2 py-1 text-xs text-text-primary outline-none cursor-pointer"
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value))
-                    setPage(1)
-                  }}
-                  value={pageSize}
-                >
-                  {pageSizes.map((sz) => (
-                    <option key={sz} value={sz}>
-                      {sz}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="flex items-center gap-1">
-                <Button
-                  aria-label="Previous page"
-                  className="px-2"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  variant="ghost"
-                >
-                  <ChevronLeft size={16} />
-                </Button>
-                <span className="px-2 font-mono text-text-primary">
-                  {page} / {pageCount}
-                </span>
-                <Button
-                  aria-label="Next page"
-                  className="px-2"
-                  disabled={page >= pageCount}
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                  variant="ghost"
-                >
-                  <ChevronRight size={16} />
-                </Button>
+              <div className="p-4 sm:p-5">
+                <div className="flex items-center justify-between text-text-muted">
+                  <span className="text-xs font-medium text-text-secondary">
+                    Racks in Facility
+                  </span>
+                  <Server className="text-secondary" size={16} />
+                </div>
+                <div className="mt-2 font-mono text-2xl font-bold tracking-tight text-text-primary sm:text-3xl">
+                  {warehouseRackCount}
+                </div>
+                <div className="mt-1 text-xs text-text-muted">
+                  Distributed across functional zones
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </Card>
+
+          {/* Controls Bar */}
+          <Card className="p-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                    size={16}
+                  />
+                  <input
+                    aria-label="Search zones"
+                    className="h-10 w-full rounded-xl border border-surface-3 bg-sidebar pl-9 pr-3 text-sm text-text-primary placeholder:text-text-muted focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    onChange={(e) => {
+                      setSearch(e.target.value)
+                      setPage(1)
+                    }}
+                    placeholder="Search zones by name, code, type, or description..."
+                    value={search}
+                  />
+                  {search && (
+                    <button
+                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                      onClick={() => setSearch('')}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Status Filter */}
+                <div className="flex rounded-xl border border-surface-3 bg-sidebar p-1">
+                  {(['All', 'Active', 'Inactive'] as StatusFilterOption[]).map(
+                    (status) => (
+                      <button
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                          statusFilter === status
+                            ? 'bg-surface text-text-primary shadow-xs'
+                            : 'text-text-muted hover:text-text-primary'
+                        }`}
+                        key={status}
+                        onClick={() => {
+                          setStatusFilter(status)
+                          setPage(1)
+                        }}
+                      >
+                        {status}
+                      </button>
+                    ),
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {hasActiveFilters && (
+                  <Button
+                    className="text-xs text-text-muted hover:text-text-primary"
+                    onClick={resetFilters}
+                    variant="ghost"
+                  >
+                    Reset filters
+                  </Button>
+                )}
+                <div className="text-xs text-text-muted">
+                  {filteredZones.length}{' '}
+                  {filteredZones.length === 1 ? 'zone' : 'zones'}
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Zones Table */}
+          <Card className="overflow-hidden">
+            {paginatedZones.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-text-secondary">
+                  <thead className="border-b border-surface-3 bg-sidebar text-xs uppercase tracking-wider text-text-muted">
+                    <tr>
+                      <th
+                        className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
+                        onClick={() => toggleSort('name')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Zone Name
+                          <ArrowUpDown size={13} />
+                        </div>
+                      </th>
+                      <th
+                        className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
+                        onClick={() => toggleSort('id')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Identifier
+                          <ArrowUpDown size={13} />
+                        </div>
+                      </th>
+                      <th
+                        className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
+                        onClick={() => toggleSort('type')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Zone Type
+                          <ArrowUpDown size={13} />
+                        </div>
+                      </th>
+                      <th className="px-5 py-3.5">Description</th>
+                      <th
+                        className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
+                        onClick={() => toggleSort('racks')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Racks
+                          <ArrowUpDown size={13} />
+                        </div>
+                      </th>
+                      <th className="px-5 py-3.5">Assigned SKUs</th>
+                      <th
+                        className="cursor-pointer px-5 py-3.5 hover:text-text-primary"
+                        onClick={() => toggleSort('status')}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Status
+                          <ArrowUpDown size={13} />
+                        </div>
+                      </th>
+                      <th className="px-5 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-3/60">
+                    {paginatedZones.map((zone) => {
+                      const rackCount = zoneRackCounts.get(zone.id) ?? 0
+                      const productCount = zoneProductCounts.get(zone.id) ?? 0
+
+                      return (
+                        <tr
+                          className="group transition-colors hover:bg-surface-3/30"
+                          key={zone.id}
+                        >
+                          {/* Zone Name */}
+                          <td className="px-5 py-4 font-medium text-text-primary">
+                            {zone.name}
+                          </td>
+
+                          {/* Identifier */}
+                          <td className="px-5 py-4 font-mono text-xs whitespace-nowrap">
+                            <span className="rounded-md border border-surface-3 bg-sidebar px-2 py-1">
+                              {zone.id}
+                            </span>
+                          </td>
+
+                          {/* Type */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="rounded-md bg-surface-3 px-2 py-1 text-xs text-text-primary">
+                              {zone.type ?? 'Storage'}
+                            </span>
+                          </td>
+
+                          {/* Description */}
+                          <td className="px-5 py-4 text-xs text-text-muted max-w-xs truncate">
+                            {zone.description ?? '—'}
+                          </td>
+
+                          {/* Racks */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="font-mono font-medium text-text-primary">
+                              {rackCount}
+                            </span>{' '}
+                            <span className="text-xs text-text-muted">
+                              {rackCount === 1 ? 'rack' : 'racks'}
+                            </span>
+                          </td>
+
+                          {/* SKUs */}
+                          <td className="px-5 py-4 whitespace-nowrap text-xs">
+                            <span className="font-mono text-text-primary">
+                              {productCount}
+                            </span>{' '}
+                            <span className="text-text-muted">SKUs</span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <StatusBadge
+                              tone={
+                                zone.status === 'Active' ? 'success' : 'neutral'
+                              }
+                            >
+                              {zone.status ?? 'Active'}
+                            </StatusBadge>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
+                              {/* Manage Racks Drill-down */}
+                              <Button
+                                aria-label={`Manage racks in ${zone.name}`}
+                                className="flex items-center gap-1.5 px-2.5 py-1 text-xs"
+                                onClick={() => onNavigateZone(zone.id)}
+                                variant="secondary"
+                              >
+                                <Server size={13} />
+                                <span>Racks ({rackCount})</span>
+                                <ArrowRight size={12} />
+                              </Button>
+
+                              {/* Edit Zone */}
+                              <Button
+                                aria-label={`Edit ${zone.name}`}
+                                className="h-8 w-8 p-0 text-text-muted hover:text-text-primary"
+                                onClick={() => setEditingZone(zone)}
+                                variant="ghost"
+                              >
+                                <Edit2 size={15} />
+                              </Button>
+
+                              {/* Deactivate / Reactivate */}
+                              {zone.status === 'Active' ? (
+                                <Button
+                                  aria-label={`Deactivate ${zone.name}`}
+                                  className="h-8 w-8 p-0 text-text-muted hover:text-danger"
+                                  onClick={() => setDeactivateTarget(zone)}
+                                  variant="ghost"
+                                >
+                                  <XCircle size={15} />
+                                </Button>
+                              ) : (
+                                <Button
+                                  aria-label={`Reactivate ${zone.name}`}
+                                  className="h-8 w-8 p-0 text-text-muted hover:text-success"
+                                  onClick={() => {
+                                    const res = reactivateZone(zone.id)
+                                    if (res.ok) {
+                                      setNotice({
+                                        type: 'success',
+                                        message: `Zone "${zone.name}" was reactivated.`,
+                                      })
+                                    } else {
+                                      setNotice({
+                                        type: 'error',
+                                        message:
+                                          res.message ??
+                                          'Failed to reactivate zone.',
+                                      })
+                                    }
+                                  }}
+                                  variant="ghost"
+                                >
+                                  <RotateCcw size={15} />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8">
+                <EmptyState
+                  action={
+                    hasActiveFilters ? (
+                      <Button onClick={resetFilters} variant="secondary">
+                        Clear filters
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => setAddDialogOpen(true)}
+                        variant="primary"
+                      >
+                        Add first zone
+                      </Button>
+                    )
+                  }
+                  description={
+                    hasActiveFilters
+                      ? 'No zones match your search or filter. Try clearing filters.'
+                      : `No storage zones configured for ${currentWarehouse.name}. Add a zone to organize storage aisles and racks.`
+                  }
+                  title={
+                    hasActiveFilters
+                      ? 'No matching zones'
+                      : 'No zones registered'
+                  }
+                />
+              </div>
+            )}
+
+            {/* Pagination Toolbar */}
+            {filteredZones.length > 0 && (
+              <div className="flex flex-col items-center justify-between gap-4 border-t border-surface-3/80 px-5 py-4 text-xs text-text-muted sm:flex-row">
+                <div>
+                  Showing{' '}
+                  <span className="font-medium text-text-primary">
+                    {(page - 1) * pageSize + 1}
+                  </span>{' '}
+                  to{' '}
+                  <span className="font-medium text-text-primary">
+                    {Math.min(page * pageSize, filteredZones.length)}
+                  </span>{' '}
+                  of{' '}
+                  <span className="font-medium text-text-primary">
+                    {filteredZones.length}
+                  </span>{' '}
+                  zones
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1.5">
+                    Rows per page:
+                    <select
+                      aria-label="Rows per page"
+                      className="rounded-lg border border-surface-3 bg-sidebar px-2 py-1 text-xs text-text-primary outline-none cursor-pointer"
+                      onChange={(e) => {
+                        setPageSize(Number(e.target.value))
+                        setPage(1)
+                      }}
+                      value={pageSize}
+                    >
+                      {pageSizes.map((sz) => (
+                        <option key={sz} value={sz}>
+                          {sz}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <div className="flex items-center gap-1">
+                    <Button
+                      aria-label="Previous page"
+                      className="px-2"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      variant="ghost"
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <span className="px-2 font-mono text-text-primary">
+                      {page} / {pageCount}
+                    </span>
+                    <Button
+                      aria-label="Next page"
+                      className="px-2"
+                      disabled={page >= pageCount}
+                      onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                      variant="ghost"
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        </>
+      )}
 
       {/* Add Zone Dialog */}
       {addDialogOpen && (

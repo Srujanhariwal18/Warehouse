@@ -34,7 +34,10 @@ import { formatDate, formatInr } from '@/lib/formatters'
 import { useInventoryStore } from '@/lib/inventoryStore'
 import { useOrdersStore } from '@/lib/orderStore'
 import { useWarehouseStore } from '@/lib/warehouseStore'
-import { useTransactionStore } from '@/lib/transactionStore'
+import {
+  getProductStockAtWarehouse,
+  useTransactionStore,
+} from '@/lib/transactionStore'
 
 type ChartRange = '7D' | '30D' | '12M'
 
@@ -119,10 +122,18 @@ export function DashboardPage() {
   // Facility stock allocation & capacity computation
   const facilityTelemetry = useMemo(() => {
     return warehouses.map((wh) => {
-      const assignedProducts = products.filter((p) => p.warehouseId === wh.id)
-      const whStock = assignedProducts.reduce((sum, p) => sum + p.stock, 0)
-      const whValue = assignedProducts.reduce(
-        (sum, p) => sum + p.stock * p.price,
+      const whProducts = products.filter((p) => {
+        if (p.warehouseStock && p.warehouseStock[wh.id] !== undefined) {
+          return p.warehouseStock[wh.id] > 0
+        }
+        return p.warehouseId === wh.id
+      })
+      const whStock = whProducts.reduce(
+        (sum, p) => sum + getProductStockAtWarehouse(p, wh.id),
+        0,
+      )
+      const whValue = whProducts.reduce(
+        (sum, p) => sum + getProductStockAtWarehouse(p, wh.id) * p.price,
         0,
       )
       const capacitySqFt = wh.capacitySqFt ?? 75000
@@ -133,7 +144,7 @@ export function DashboardPage() {
       const whZones = zones.filter((z) => z.warehouseId === wh.id)
       return {
         ...wh,
-        skuCount: assignedProducts.length,
+        skuCount: whProducts.length,
         stockUnits: whStock,
         valuation: whValue,
         capacitySqFt,

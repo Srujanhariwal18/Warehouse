@@ -279,6 +279,76 @@ export function WarehouseIsometricVisualizer({
     return facilityRacks.find((r) => r.id === selectedRackId) || null
   }, [facilityRacks, selectedRackId])
 
+  // Active entity details: specific rack if selected, otherwise selected/hovered zone
+  const activeEntity = useMemo(() => {
+    if (activeRack) {
+      const rackProds = facilityProducts.filter(
+        (p) => p.rackId === activeRack.id,
+      )
+      const units = rackProds.reduce((sum, p) => {
+        const stock =
+          p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+            ? p.warehouseStock[activeWarehouse.id]
+            : p.warehouseId === activeWarehouse.id
+              ? p.stock
+              : 0
+        return sum + stock
+      }, 0)
+      const valuation = rackProds.reduce((sum, p) => {
+        const stock =
+          p.warehouseStock && p.warehouseStock[activeWarehouse.id] !== undefined
+            ? p.warehouseStock[activeWarehouse.id]
+            : p.warehouseId === activeWarehouse.id
+              ? p.stock
+              : 0
+        return sum + stock * p.price
+      }, 0)
+      const capacity = activeRack.capacity ?? 50
+      const occupancyPct =
+        capacity > 0
+          ? Math.min(100, Math.max(0, Math.round((units / capacity) * 100)))
+          : 0
+
+      return {
+        isRack: true,
+        id: activeRack.id,
+        name: activeRack.name,
+        typeLabel: `${activeRack.levels ?? 4} High-Bay Tiers`,
+        parentName: activeZone?.name ?? 'Storage Zone',
+        status: activeRack.status,
+        capacity,
+        units,
+        valuation,
+        occupancyPct,
+        products: rackProds,
+      }
+    }
+
+    if (activeZone) {
+      return {
+        isRack: false,
+        id: activeZone.id,
+        name: activeZone.name,
+        typeLabel: activeZone.type,
+        parentName: activeWarehouse.name,
+        status: activeZone.status,
+        capacity: activeZone.totalCapacity,
+        units: activeZone.actualUnits,
+        valuation: activeZone.actualValuation,
+        occupancyPct: activeZone.occupancyPct,
+        products: activeZone.zoneAssignedProducts ?? [],
+      }
+    }
+
+    return null
+  }, [
+    activeRack,
+    activeZone,
+    facilityProducts,
+    activeWarehouse.id,
+    activeWarehouse.name,
+  ])
+
   return (
     <div
       className={`rounded-xl border border-surface-border bg-white shadow-sm relative flex flex-col overflow-hidden transition-all duration-300 ${
@@ -518,33 +588,48 @@ export function WarehouseIsometricVisualizer({
           </span>
         </div>
 
-        {/* Floating HUD Telemetry Card (Active Zone Details) */}
-        {activeZone && (
-          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-84 rounded-xl border border-surface-border bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md z-20">
+        {/* Floating HUD Telemetry Card (Active Zone / Rack Details) */}
+        {activeEntity && (
+          <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:w-96 rounded-xl border border-surface-border bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md z-20">
             <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2.5">
               <div>
                 <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
+                  <span
+                    className={`h-2 w-2 rounded-full ${
+                      activeEntity.isRack
+                        ? 'bg-secondary shadow-[0_0_8px_rgba(8,145,178,0.4)]'
+                        : 'bg-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]'
+                    }`}
+                  />
                   <span className="font-semibold text-xs text-text-primary">
-                    {activeRack ? activeRack.name : activeZone.name}
+                    {activeEntity.name}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-text-muted">
-                  <span>ID: {activeRack ? activeRack.id : activeZone.id}</span>
+                  <span>ID: {activeEntity.id}</span>
                   <span>•</span>
-                  <span>
-                    {activeRack
-                      ? `${activeRack.levels ?? 4} High-Bay Tiers`
-                      : activeZone.type}
-                  </span>
+                  <span>{activeEntity.typeLabel}</span>
+                  {activeEntity.isRack && (
+                    <>
+                      <span>•</span>
+                      <span
+                        className="truncate max-w-[110px]"
+                        title={activeEntity.parentName}
+                      >
+                        {activeEntity.parentName}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-1.5">
                 <StatusBadge
                   size="sm"
-                  tone={activeZone.status === 'Active' ? 'success' : 'neutral'}
+                  tone={
+                    activeEntity.status === 'Active' ? 'success' : 'neutral'
+                  }
                 >
-                  {activeZone.status}
+                  {activeEntity.status}
                 </StatusBadge>
                 {(selectedZoneId || selectedRackId) && (
                   <button
@@ -563,69 +648,131 @@ export function WarehouseIsometricVisualizer({
               </div>
             </div>
 
-            {/* Honest Data Presentation */}
-            {activeZone.assignedSkus === 0 && activeZone.actualUnits === 0 ? (
-              <div className="mt-2.5 py-2 px-3 rounded-lg bg-surface-secondary/70 border border-surface-border text-center">
-                <span className="font-mono text-[11px] text-text-muted block">
-                  Zone-level data unavailable
-                </span>
-                <span className="text-[10px] text-text-muted/70 block mt-0.5">
-                  Illustrative rack geometry active
+            {/* Entity Metrics Grid */}
+            <div className="mt-2.5 grid grid-cols-4 gap-2 text-[11px] font-mono">
+              <div>
+                <span className="text-[10px] text-text-muted block">UNITS</span>
+                <span className="font-bold text-text-primary">
+                  {activeEntity.units}
                 </span>
               </div>
-            ) : (
-              <div className="mt-2.5 grid grid-cols-4 gap-2 text-[11px] font-mono">
-                <div>
-                  <span className="text-[10px] text-text-muted block">
-                    UNITS
-                  </span>
-                  <span className="font-bold text-text-primary">
-                    {activeZone.actualUnits}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-text-muted block">
-                    CAPACITY
-                  </span>
-                  <span className="font-bold text-text-primary">
-                    {activeZone.totalCapacity} plts
-                  </span>
-                </div>
-                <div>
-                  <span
-                    className="text-[10px] text-text-muted block truncate"
-                    title="Rated slot capacity proxy utilization (0-100%)"
+              <div>
+                <span className="text-[10px] text-text-muted block">
+                  CAPACITY
+                </span>
+                <span className="font-bold text-text-primary">
+                  {activeEntity.capacity} plts
+                </span>
+              </div>
+              <div>
+                <span
+                  className="text-[10px] text-text-muted block truncate"
+                  title="Rated slot capacity proxy utilization (0-100%)"
+                >
+                  OCCUPANCY
+                </span>
+                <span
+                  className={`font-bold ${
+                    activeEntity.occupancyPct >= 75
+                      ? 'text-emerald-600'
+                      : activeEntity.occupancyPct >= 35
+                        ? 'text-primary'
+                        : activeEntity.occupancyPct > 0
+                          ? 'text-amber-600'
+                          : 'text-rose-600'
+                  }`}
+                >
+                  {activeEntity.occupancyPct}%
+                </span>
+              </div>
+              <div>
+                <span className="text-[10px] text-text-muted block">
+                  VALUATION
+                </span>
+                <span className="font-bold text-primary">
+                  {formatInr(activeEntity.valuation)}
+                </span>
+              </div>
+            </div>
+
+            {/* Associated Product Inventory List */}
+            <div className="mt-3 pt-2.5 border-t border-surface-border">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-mono font-semibold text-text-secondary uppercase tracking-wider">
+                  Assigned Inventory ({activeEntity.products.length} SKUs)
+                </span>
+                {unassignedProducts.length > 0 && (
+                  <button
+                    className="text-[10px] font-mono text-warning hover:underline"
+                    onClick={() => setShowTableView(true)}
+                    type="button"
                   >
-                    OCCUPANCY
-                  </span>
-                  <span className="font-bold text-text-primary">
-                    {activeZone.occupancyPct}%
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-text-muted block">
-                    VALUATION
-                  </span>
-                  <span className="font-bold text-primary">
-                    {formatInr(activeZone.actualValuation)}
-                  </span>
-                </div>
+                    {unassignedProducts.length} unassigned
+                  </button>
+                )}
               </div>
-            )}
+
+              {activeEntity.products.length === 0 ? (
+                <div className="py-2 px-2.5 rounded-lg bg-surface-secondary/70 border border-surface-border text-center">
+                  <span className="font-mono text-[11px] text-text-muted block">
+                    {activeEntity.isRack
+                      ? 'Empty Rack — No stock assigned'
+                      : 'Empty Zone — No products stored'}
+                  </span>
+                </div>
+              ) : (
+                <div className="max-h-28 overflow-y-auto divide-y divide-surface-border/50 rounded-lg border border-surface-border bg-surface-secondary/40 px-2 py-1">
+                  {activeEntity.products.map((p) => {
+                    const stock =
+                      p.warehouseStock &&
+                      p.warehouseStock[activeWarehouse.id] !== undefined
+                        ? p.warehouseStock[activeWarehouse.id]
+                        : p.warehouseId === activeWarehouse.id
+                          ? p.stock
+                          : 0
+                    return (
+                      <div
+                        className="py-1 flex items-center justify-between text-[11px]"
+                        key={p.id}
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0 pr-2">
+                          <span className="font-mono text-[10px] text-primary font-semibold shrink-0">
+                            {p.sku}
+                          </span>
+                          <span
+                            className="truncate text-text-primary text-[11px]"
+                            title={p.name}
+                          >
+                            {p.name}
+                          </span>
+                        </div>
+                        <div className="font-mono text-[10px] shrink-0 text-right">
+                          <span className="font-bold text-text-primary">
+                            {stock}
+                          </span>
+                          <span className="text-text-muted ml-0.5">u</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Quick action link to Warehouses Page */}
-            <div className="mt-3 pt-2.5 border-t border-surface-border flex items-center justify-between text-[11px]">
+            <div className="mt-2.5 pt-2 border-t border-surface-border flex items-center justify-between text-[11px]">
               <span className="text-text-muted flex items-center gap-1 font-mono text-[10px]">
-                <Boxes size={12} className="text-secondary" />
+                <Boxes className="text-secondary" size={12} />
                 <span>
                   {activeZone.rackCount} Racks • {activeZone.assignedSkus} SKUs
+                  in Zone
                 </span>
               </span>
               <Link
                 className="text-primary hover:underline font-medium flex items-center gap-1 text-[11px]"
                 to="/app/warehouses"
               >
-                <span>Inspect Hub Racks</span>
+                <span>Manage Facility Racks</span>
                 <Sparkles size={11} />
               </Link>
             </div>

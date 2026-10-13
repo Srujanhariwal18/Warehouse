@@ -205,6 +205,22 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
           operation === 'Stock In'
             ? product.stock + quantity
             : product.stock - quantity
+
+        const currentLocStock =
+          product.warehouseStock &&
+          typeof product.warehouseStock[product.warehouseId] === 'number'
+            ? product.warehouseStock[product.warehouseId]
+            : product.stock
+        const updatedWarehouseStock = product.warehouseStock
+          ? {
+              ...product.warehouseStock,
+              [product.warehouseId]:
+                operation === 'Stock In'
+                  ? currentLocStock + quantity
+                  : Math.max(0, currentLocStock - quantity),
+            }
+          : undefined
+
         const transaction: StockTransaction = {
           id: generateUniqueId('txn'),
           productId,
@@ -216,7 +232,13 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
         setProducts((current) =>
           current.map((item) =>
-            item.id === productId ? { ...item, stock: nextStock } : item,
+            item.id === productId
+              ? {
+                  ...item,
+                  stock: nextStock,
+                  warehouseStock: updatedWarehouseStock ?? item.warehouseStock,
+                }
+              : item,
           ),
         )
         setTransactions((current) => [transaction, ...current])

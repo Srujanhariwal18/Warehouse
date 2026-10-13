@@ -139,7 +139,7 @@ export function generateWarehouse3DLayout(
   for (const product of products) {
     const units =
       product.warehouseStock &&
-        product.warehouseStock[warehouse.id] !== undefined
+      product.warehouseStock[warehouse.id] !== undefined
         ? product.warehouseStock[warehouse.id]
         : product.warehouseId === warehouse.id
           ? product.stock
@@ -213,9 +213,9 @@ export function generateWarehouse3DLayout(
     const occupancyPct =
       totalCapacity > 0
         ? Math.min(
-          100,
-          Math.max(0, Math.round((actualUnits / totalCapacity) * 100)),
-        )
+            100,
+            Math.max(0, Math.round((actualUnits / totalCapacity) * 100)),
+          )
         : 0
 
     // Place racks inside this zone

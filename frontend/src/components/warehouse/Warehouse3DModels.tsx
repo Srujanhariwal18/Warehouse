@@ -334,7 +334,9 @@ export function StorageRackModel({
 
             {/* 2 Heavy Pallets with Modular Cargo stacked per tier */}
             {[-width * 0.25, width * 0.25].map((palletX, pIdx) => {
-              const showCargo = isLevelOccupied || pIdx === 0
+              const showCargo =
+                occupiedUnits > 0 &&
+                (isLevelOccupied || (lvlIdx === 0 && pIdx === 0))
 
               return (
                 <group key={`pallet-${pIdx}`} position={[palletX, 0.07, 0]}>
