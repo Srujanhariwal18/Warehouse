@@ -371,8 +371,15 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       }
     }
     loadTransactions()
+
+    const handleAuthChange = () => {
+      loadTransactions()
+    }
+    window.addEventListener('invora:auth-changed', handleAuthChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('invora:auth-changed', handleAuthChange)
     }
   }, [])
 

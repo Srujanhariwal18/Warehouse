@@ -278,8 +278,15 @@ export function WarehouseProvider({ children }: { children: ReactNode }) {
       }
     }
     loadFacilities()
+
+    const handleAuthChange = () => {
+      loadFacilities()
+    }
+    window.addEventListener('invora:auth-changed', handleAuthChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('invora:auth-changed', handleAuthChange)
     }
   }, [])
 

@@ -66,23 +66,42 @@ export function DashboardPage() {
   const { transactions } = useTransactionStore()
 
   const [range, setRange] = useState<ChartRange>('12M')
-  const [selectedWarehouseId, setSelectedWarehouseId] =
-    useState<string>('wh-mum')
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>('')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState(new Date())
   const [backendSummary, setBackendSummary] =
     useState<DashboardSummaryResponse | null>(null)
 
+  const activeWarehouseId = useMemo(() => {
+    if (
+      selectedWarehouseId &&
+      warehouses.some((w) => w.id === selectedWarehouseId)
+    ) {
+      return selectedWarehouseId
+    }
+    return warehouses[0]?.id || 'wh-mum'
+  }, [selectedWarehouseId, warehouses])
+
   useEffect(() => {
     let mounted = true
-    httpDashboardService
-      .getSummary()
-      .then((sum) => {
-        if (mounted) setBackendSummary(sum)
-      })
-      .catch(() => {})
+    const fetchSummary = () => {
+      httpDashboardService
+        .getSummary()
+        .then((sum) => {
+          if (mounted) setBackendSummary(sum)
+        })
+        .catch(() => {})
+    }
+    fetchSummary()
+
+    const handleAuthChange = () => {
+      fetchSummary()
+    }
+    window.addEventListener('invora:auth-changed', handleAuthChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('invora:auth-changed', handleAuthChange)
     }
   }, [refreshing])
 
@@ -103,8 +122,10 @@ export function DashboardPage() {
     [backendSummary, products],
   )
   const totalUnits = useMemo(
-    () => products.reduce((total, p) => total + p.stock, 0),
-    [products],
+    () =>
+      backendSummary?.totalStockQuantity ??
+      products.reduce((total, p) => total + p.stock, 0),
+    [backendSummary, products],
   )
   const pendingOrders = useMemo(
     () => orders.filter((o) => o.status === 'Pending'),
@@ -115,13 +136,17 @@ export function DashboardPage() {
     [products],
   )
 
+  const totalProductsCount =
+    backendSummary?.totalActiveProducts ?? products.length
+  const lowStockCount =
+    backendSummary?.lowStockProductsCount ?? lowStockProducts.length
   const healthyProductsCount = Math.max(
     0,
-    products.length - lowStockProducts.length - outOfStockProducts.length,
+    totalProductsCount - lowStockCount - outOfStockProducts.length,
   )
   const healthRate =
-    products.length > 0
-      ? ((healthyProductsCount / products.length) * 100).toFixed(1)
+    totalProductsCount > 0
+      ? ((healthyProductsCount / totalProductsCount) * 100).toFixed(1)
       : '100.0'
 
   const chartData = useMemo(() => {
@@ -189,11 +214,11 @@ export function DashboardPage() {
 
   const activeFacility = useMemo(() => {
     return (
-      facilityTelemetry.find((f) => f.id === selectedWarehouseId) ||
+      facilityTelemetry.find((f) => f.id === activeWarehouseId) ||
       facilityTelemetry[0] ||
       null
     )
-  }, [facilityTelemetry, selectedWarehouseId])
+  }, [facilityTelemetry, activeWarehouseId])
 
   return (
     <div className="space-y-4">
@@ -365,7 +390,7 @@ export function DashboardPage() {
                   onSelectFacility={setSelectedWarehouseId}
                   products={products}
                   racks={racks}
-                  selectedFacilityId={selectedWarehouseId}
+                  selectedFacilityId={activeWarehouseId}
                   zones={zones}
                 />
               )}

@@ -33,7 +33,15 @@ import {
 type DialogMode = 'add' | 'edit' | 'stock-in' | 'stock-out' | null
 type SortKey = 'name' | 'stock' | 'price' | 'value'
 
-const categories = ['Storage', 'Packing', 'Equipment', 'Safety']
+const categories = [
+  'Raw Materials',
+  'Finished Goods',
+  'Packaging Supplies',
+  'Storage',
+  'Packing',
+  'Equipment',
+  'Safety',
+]
 const pageSizes = [10, 20, 40]
 
 function statusFor(product: Product) {

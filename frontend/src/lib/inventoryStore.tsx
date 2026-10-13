@@ -144,19 +144,51 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true
-    const loadProducts = async () => {
+    const loadInventoryData = async () => {
       try {
-        const live = await httpInventoryService.getProducts()
-        if (mounted && live && live.length > 0) {
-          setProducts(live)
+        const [live, liveTx] = await Promise.all([
+          httpInventoryService.getProducts(),
+          httpTransactionService.getTransactions(),
+        ])
+        if (mounted) {
+          if (live && live.length > 0) setProducts(live)
+          if (liveTx && liveTx.length > 0) {
+            setTransactions(
+              liveTx.map((t) => ({
+                id: t.id,
+                productId: t.productId,
+                productName: t.productName,
+                sku: t.sku,
+                type:
+                  t.type === 'Stock Out'
+                    ? 'Outbound'
+                    : t.type === 'Adjustment'
+                      ? 'Adjustment'
+                      : 'Inbound',
+                quantity: t.quantity,
+                timestamp: t.timestamp,
+                date: t.date,
+                notes: t.reason || '',
+                isSeed: false,
+                warehouseId: t.warehouseId,
+              })),
+            )
+          }
         }
       } catch {
         // Fallback to local state if offline or unauthenticated
       }
     }
-    loadProducts()
+    loadInventoryData()
+
+    const handleAuthChange = () => {
+      loadInventoryData()
+    }
+    window.addEventListener('invora:auth-changed', handleAuthChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('invora:auth-changed', handleAuthChange)
     }
   }, [])
 

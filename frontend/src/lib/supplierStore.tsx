@@ -130,8 +130,15 @@ export function SuppliersProvider({ children }: { children: ReactNode }) {
       }
     }
     loadSuppliers()
+
+    const handleAuthChange = () => {
+      loadSuppliers()
+    }
+    window.addEventListener('invora:auth-changed', handleAuthChange)
+
     return () => {
       mounted = false
+      window.removeEventListener('invora:auth-changed', handleAuthChange)
     }
   }, [])
 
