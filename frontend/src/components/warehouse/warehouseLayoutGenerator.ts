@@ -145,7 +145,7 @@ export function generateWarehouse3DLayout(
           ? product.stock
           : 0
 
-    if (units <= 0 && product.warehouseId !== warehouse.id) continue
+    if (product.warehouseId !== warehouse.id && units <= 0) continue
 
     let targetZoneId: string | undefined
     if (product.rackId && rackMap.has(product.rackId)) {

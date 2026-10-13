@@ -88,7 +88,8 @@ export type WarehouseStore = {
   reactivateRack: (id: string) => WarehouseOperationResult
 }
 
-const WarehouseContext = createContext<WarehouseStore | null>(null)
+// eslint-disable-next-line react-refresh/only-export-components
+export const WarehouseContext = createContext<WarehouseStore | null>(null)
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function validateWarehouseInput(

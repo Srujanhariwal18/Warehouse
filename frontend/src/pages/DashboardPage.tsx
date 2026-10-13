@@ -105,7 +105,21 @@ export function DashboardPage() {
       ? ((healthyProductsCount / products.length) * 100).toFixed(1)
       : '100.0'
 
-  const chartData = movementDataByRange[range]
+  const chartData = useMemo(() => {
+    const base = movementDataByRange[range].map((d) => ({ ...d }))
+    const sessionTxns = transactions.filter((t) => !t.isSeed)
+    if (sessionTxns.length > 0 && base.length > 0) {
+      const lastPoint = base[base.length - 1]
+      for (const tx of sessionTxns) {
+        if (tx.type === 'Stock In') {
+          lastPoint.inbound += tx.quantity
+        } else if (tx.type === 'Stock Out') {
+          lastPoint.outbound += tx.quantity
+        }
+      }
+    }
+    return base
+  }, [range, transactions])
   const productsById = useMemo(
     () => new Map(products.map((p) => [p.id, p])),
     [products],

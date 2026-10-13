@@ -11,6 +11,7 @@ import {
   warehouses,
   type Product,
   type StockTransaction,
+  type Warehouse,
 } from '@/mocks/inventoryData'
 
 export type ProductInput = Omit<Product, 'id'>
@@ -54,10 +55,14 @@ function generateUniqueId(prefix: string): string {
   return `${prefix}-${timestamp}-${uniqueCounter}-${random}`
 }
 
-function validateProductData(
+import { WarehouseContext } from '@/lib/warehouseStore'
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function validateProductData(
   input: ProductInput,
   currentProducts: Product[],
   excludeProductId?: string,
+  currentWarehouses: Warehouse[] = warehouses,
 ): { ok: true } | { ok: false; message: string } {
   const trimmedName = input.name?.trim() ?? ''
   if (!trimmedName) {
@@ -117,7 +122,9 @@ function validateProductData(
     }
   }
 
-  const validWarehouse = warehouses.some((w) => w.id === input.warehouseId)
+  const validWarehouse = currentWarehouses.some(
+    (w) => w.id === input.warehouseId,
+  )
   if (!validWarehouse) {
     return { ok: false, message: 'Please select a valid warehouse.' }
   }
@@ -130,6 +137,8 @@ const InventoryContext = createContext<InventoryStore | null>(null)
 export function InventoryProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState(initialProducts)
   const [transactions, setTransactions] = useState(initialTransactions)
+  const warehouseStore = useContext(WarehouseContext)
+  const liveWarehouses = warehouseStore?.warehouses ?? warehouses
 
   const store = useMemo<InventoryStore>(() => {
     const lowStockProducts = products.filter(
@@ -141,7 +150,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
       transactions,
       lowStockProducts,
       addProduct: (input) => {
-        const validation = validateProductData(input, products)
+        const validation = validateProductData(
+          input,
+          products,
+          undefined,
+          liveWarehouses,
+        )
         if (!validation.ok) {
           return validation
         }
@@ -160,7 +174,12 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         if (!existing) {
           return { ok: false, message: 'Product was not found.' }
         }
-        const validation = validateProductData(input, products, id)
+        const validation = validateProductData(
+          input,
+          products,
+          id,
+          liveWarehouses,
+        )
         if (!validation.ok) {
           return validation
         }
@@ -263,7 +282,7 @@ export function InventoryProvider({ children }: { children: ReactNode }) {
         setTransactions((current) => [transaction, ...current])
       },
     }
-  }, [products, transactions])
+  }, [products, transactions, liveWarehouses])
 
   return (
     <InventoryContext.Provider value={store}>

@@ -25,6 +25,7 @@ import {
 import { formatInr } from '@/lib/formatters'
 import type { Product } from '@/mocks/inventoryData'
 import { useWarehouseStore } from '@/lib/warehouseStore'
+import { useTransactionStore } from '@/lib/transactionStore'
 
 type DialogMode = 'add' | 'edit' | 'stock-in' | 'stock-out' | null
 type SortKey = 'name' | 'stock' | 'price' | 'value'
@@ -41,14 +42,10 @@ function statusFor(product: Product) {
 }
 
 export function InventoryPage() {
-  const {
-    addProduct,
-    applyStockOperation,
-    lowStockProducts,
-    products,
-    updateProduct,
-  } = useInventoryStore()
+  const { addProduct, lowStockProducts, products, updateProduct } =
+    useInventoryStore()
   const { warehouses } = useWarehouseStore()
+  const { createStockIn, createStockOut } = useTransactionStore()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All categories')
   const [warehouse, setWarehouse] = useState('All warehouses')
@@ -177,13 +174,27 @@ export function InventoryPage() {
     if (!selected) {
       return { ok: false, message: 'No product selected.' }
     }
-    const result = applyStockOperation(selected.id, quantity, operation)
+    const result =
+      operation === 'Stock In'
+        ? createStockIn({
+            productId: selected.id,
+            destinationWarehouseId: selected.warehouseId,
+            quantity,
+            reason: 'Catalogue stock replenishment',
+          })
+        : createStockOut({
+            productId: selected.id,
+            sourceWarehouseId: selected.warehouseId,
+            quantity,
+            reason: 'Catalogue stock dispatch',
+          })
+
     if (!result.ok) {
       return result
     }
     setNotice({
       type: 'success',
-      message: `${operation} recorded in transactions.`,
+      message: `${operation} recorded in transactions ledger.`,
     })
     setDialog(null)
     return { ok: true }

@@ -275,6 +275,16 @@ Preview the production build locally:
 npm run preview
 ```
 
+## Phase 3: Complete Frontend Using Mock Data Only
+
+Phase 3 stabilizes and completes all frontend workflows using pure in-memory mock data, strict repository boundaries, and cross-module reactive synchronization:
+
+- **Frontend-Only Execution**: Zero backend (Spring Boot) or database (Supabase/PostgreSQL) dependencies. All state is maintained through clean repository abstractions (`IInventoryRepository`, `IWarehouseRepository`, `ISupplierRepository`, `ITransactionRepository`, `IOrderRepository`) backed by deterministic in-memory fixtures.
+- **Cross-Module State Synchronization**: Stock adjustments, receipts, dispatches, and transfers performed in any view immediately update catalog stock, stock badges, transaction logs, dashboard telemetry, velocity analytics, and alerts in lockstep.
+- **3D Warehouse Digital Twin**: Interactive Three.js/React Three Fiber isometric visualizer with floor plan (2D), elevation (cross-section), orbit controls, zone/rack level drill-downs, heatmaps, and dynamic layout safety for all facilities.
+- **Zero-Trust Input & Boundary Validation**: Negative inventory prevention, inter-warehouse stock conservation laws, order line aggregation ceilings, duplicate SKU/email/facility-id detection, and dependency-protected deactivation flows.
+- **CSV Security**: RFC-4180 compliant CSV exports with CWE-123 spreadsheet formula injection mitigation (`=`, `+`, `-`, `@`, `\t`, `\r` neutralization) and UTF-8 BOM encoding for international spreadsheet compatibility.
+
 ## Phase 10: Final Integration, Performance & Security
 
 Phase 10 provides full system integration, cross-module reactive store synchronization, bundle optimization, security hardening, and deployment readiness.
