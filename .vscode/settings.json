@@ -11,5 +11,6 @@
     "**/PROJECT_RULES.md": true,
     "**/VERSION": true,
     "**/model_capabilities.yaml": true
-  }
+  },
+  "java.compile.nullAnalysis.mode": "automatic"
 }
