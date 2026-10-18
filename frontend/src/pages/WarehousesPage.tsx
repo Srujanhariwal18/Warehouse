@@ -14,6 +14,7 @@ import {
   PackagePlus,
   PackageMinus,
 } from 'lucide-react'
+import { CharacterReveal, ParagraphReveal, AnimatedNumber } from '../components/AnimatedText'
 
 export interface RackItem {
   id: string
@@ -516,15 +517,31 @@ export function WarehousesPage() {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10 pb-8 border-b border-gray-100">
         <div>
           <span className="text-xs font-mono font-bold tracking-widest text-[#DF6951] uppercase mb-2 block">
-            FACILITY TOPOLOGY &amp; SPATIAL MAPPING
+            <CharacterReveal text="FACILITY TOPOLOGY & SPATIAL MAPPING" startDelay={50} charStagger={14} />
           </span>
-          <h1 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-[#181E4B]">
-            Warehouse Architecture &amp; Racks
+          <h1
+            className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-[#181E4B]"
+            aria-label="Warehouse Architecture & Racks"
+          >
+            <span aria-hidden="true" className="block">
+              <span className="text-reveal-mask mr-[0.26em]">
+                <span className="text-reveal-word" style={{ animationDelay: '100ms' }}>Warehouse</span>
+              </span>
+              <span className="text-reveal-mask mr-[0.26em]">
+                <span className="text-reveal-word" style={{ animationDelay: '160ms' }}>Architecture</span>
+              </span>
+              <span className="text-reveal-mask mr-[0.26em]">
+                <span className="text-reveal-word" style={{ animationDelay: '220ms' }}>&amp;</span>
+              </span>
+              <span className="text-reveal-mask">
+                <span className="text-reveal-word" style={{ animationDelay: '280ms' }}>Racks</span>
+              </span>
+            </span>
           </h1>
-          <p className="text-sm sm:text-base text-[#5E6282] mt-3 max-w-2xl leading-relaxed">
+          <ParagraphReveal delay={380} className="text-sm sm:text-base text-[#5E6282] mt-3 max-w-2xl leading-relaxed">
             Real-time multi-zone occupancy and rack utilization gauges. Every bay reflects capacity limits,
             live batch allocations, and worst-case inventory health thresholds.
-          </p>
+          </ParagraphReveal>
         </div>
 
         {/* View Mode & Facility Selector */}
@@ -609,15 +626,17 @@ export function WarehousesPage() {
         <div className="p-4 rounded-2xl bg-white border border-gray-100 shadow-xs">
           <span className="text-[11px] font-mono text-[#5E6282] uppercase tracking-wider block">Total Occupancy</span>
           <span className="text-base sm:text-lg font-bold font-mono text-[#181E4B] mt-1 block">
-            {currentWarehouse.occupiedUnits.toLocaleString()} / {currentWarehouse.totalCapacity.toLocaleString()}
+            <AnimatedNumber value={currentWarehouse.occupiedUnits} duration={500} /> / {currentWarehouse.totalCapacity.toLocaleString()}
           </span>
-          <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 block">{overallUtilPct}% Capacity</span>
+          <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 block">
+            <AnimatedNumber value={overallUtilPct} duration={500} suffix="% Capacity" />
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-gray-100 shadow-xs">
           <span className="text-[11px] font-mono text-[#5E6282] uppercase tracking-wider block">Active Bays</span>
           <span className="text-base sm:text-lg font-bold font-mono text-[#181E4B] mt-1 block">
-            {currentWarehouse.activeBays} / {currentWarehouse.totalBays} Bays
+            <AnimatedNumber value={currentWarehouse.activeBays} duration={500} /> / {currentWarehouse.totalBays} Bays
           </span>
           <span className="text-[11px] text-gray-400 mt-0.5 block">Automated Lift Active</span>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   PackageCheck,
   ShieldAlert,
@@ -11,22 +11,66 @@ import {
 } from 'lucide-react'
 
 export function ScrollShowcase() {
+  const containerRef = useRef<HTMLDivElement>(null)
   const [activeStage, setActiveStage] = useState<1 | 2 | 3>(1)
-  const [isPaused, setIsPaused] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const userManuallySelected = useRef(false)
+  const manualTimeout = useRef<number | null>(null)
 
-  // Subtle auto-advance every 7 seconds if user is not hovering
   useEffect(() => {
-    if (isPaused) return
-    const timer = setInterval(() => {
-      setActiveStage((prev) => (prev === 3 ? 1 : ((prev + 1) as 1 | 2 | 3)))
-    }, 7000)
-    return () => clearInterval(timer)
-  }, [isPaused])
+    let animationFrameId: number | null = null
+
+    const handleScroll = () => {
+      if (animationFrameId !== null) return
+      animationFrameId = requestAnimationFrame(() => {
+        animationFrameId = null
+        const container = containerRef.current
+        if (!container) return
+
+        const rect = container.getBoundingClientRect()
+        const windowHeight = window.innerHeight
+
+        // Calculate progress as the section moves across the viewport:
+        // 0 when section enters view, 1 when it leaves view
+        const totalDistance = rect.height + windowHeight
+        const scrolled = windowHeight - rect.top
+        const rawProgress = Math.max(0, Math.min(1, scrolled / totalDistance))
+        const roundedProgress = Math.round(rawProgress * 100)
+        setScrollProgress(roundedProgress)
+
+        // Only auto-update stage if user hasn't manually clicked recently
+        if (!userManuallySelected.current) {
+          if (rawProgress >= 0.65) {
+            setActiveStage(3)
+          } else if (rawProgress >= 0.35) {
+            setActiveStage(2)
+          } else {
+            setActiveStage(1)
+          }
+        }
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => {
+      if (animationFrameId !== null) cancelAnimationFrame(animationFrameId)
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
+  const handleSelectStage = (stage: 1 | 2 | 3) => {
+    setActiveStage(stage)
+    userManuallySelected.current = true
+    if (manualTimeout.current) clearTimeout(manualTimeout.current)
+    manualTimeout.current = window.setTimeout(() => {
+      userManuallySelected.current = false
+    }, 4000)
+  }
 
   return (
     <section
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      ref={containerRef}
       className="relative w-full bg-white text-[#212832] py-16 sm:py-20 lg:py-24 overflow-x-clip"
       aria-label="Interactive Invora Workflow Showcase"
     >
@@ -42,7 +86,7 @@ export function ScrollShowcase() {
 
       <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex flex-col justify-between gap-10">
         
-        {/* Top Interactive Stage Stepper */}
+        {/* Top Interactive Stage Stepper Synchronized with Scroll */}
         <div className="w-full z-20">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2.5 border border-gray-100 bg-white/80 backdrop-blur-md rounded-2xl px-5 sm:px-6 shadow-xs">
             
@@ -50,7 +94,7 @@ export function ScrollShowcase() {
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm font-sans font-medium">
               <button
                 type="button"
-                onClick={() => setActiveStage(1)}
+                onClick={() => handleSelectStage(1)}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
                   activeStage === 1
                     ? 'bg-[#FFF1EE] text-[#DF6951] font-bold shadow-xs'
@@ -63,7 +107,7 @@ export function ScrollShowcase() {
 
               <button
                 type="button"
-                onClick={() => setActiveStage(2)}
+                onClick={() => handleSelectStage(2)}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
                   activeStage === 2
                     ? 'bg-[#E6F8FB] text-[#14B8A6] font-bold shadow-xs'
@@ -76,7 +120,7 @@ export function ScrollShowcase() {
 
               <button
                 type="button"
-                onClick={() => setActiveStage(3)}
+                onClick={() => handleSelectStage(3)}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
                   activeStage === 3
                     ? 'bg-[#FFF8E6] text-[#F1A501] font-bold shadow-xs'
@@ -88,21 +132,21 @@ export function ScrollShowcase() {
               </button>
             </div>
 
-            {/* Stage Counter & Auto Indicator */}
+            {/* Scroll Progress Metric Synchronized with Viewport */}
             <div className="flex items-center gap-3">
               <span className="text-[11px] font-mono text-[#5E6282] uppercase tracking-wider font-semibold">
-                Pipeline Stage
+                Scroll Progress
               </span>
               <div className="w-24 sm:w-28 bg-gray-100 h-2 rounded-full overflow-hidden p-0.5 border border-gray-200/50">
                 <div
-                  className="bg-gradient-to-r from-[#DF6951] via-[#14B8A6] to-[#F1A501] h-full rounded-full transition-all duration-500 ease-out"
+                  className="bg-gradient-to-r from-[#DF6951] via-[#14B8A6] to-[#F1A501] h-full rounded-full transition-all duration-300 ease-out"
                   style={{
-                    width: activeStage === 1 ? '33%' : activeStage === 2 ? '66%' : '100%',
+                    width: `${scrollProgress}%`,
                   }}
                 />
               </div>
-              <span className="text-xs font-mono font-bold text-[#181E4B] w-8 text-right">
-                0{activeStage}/03
+              <span className="text-xs font-mono font-bold text-[#181E4B] w-9 text-right">
+                {scrollProgress}%
               </span>
             </div>
           </div>

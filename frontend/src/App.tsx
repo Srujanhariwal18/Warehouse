@@ -5,6 +5,8 @@ import { LandingPage } from './pages/LandingPage'
 import { WarehousesPage } from './pages/WarehousesPage'
 import { OperationsPage } from './pages/OperationsPage'
 import { ThresholdsPage } from './pages/ThresholdsPage'
+import { CarouselPage } from './pages/CarouselPage'
+import { CapabilitiesPage } from './pages/CapabilitiesPage'
 import { AuthPage } from './pages/AuthPage'
 
 export function App() {
@@ -22,6 +24,9 @@ export function App() {
               <Route path="/warehouses" element={<WarehousesPage />} />
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/thresholds" element={<ThresholdsPage />} />
+              <Route path="/carousel" element={<CarouselPage />} />
+              <Route path="/motion" element={<CarouselPage />} />
+              <Route path="/capabilities" element={<CapabilitiesPage />} />
               <Route path="/auth" element={<AuthPage />} />
               {/* Fallback to Landing Page */}
               <Route path="*" element={<LandingPage />} />

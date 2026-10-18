@@ -1,22 +1,22 @@
 import { HeroSection } from '../components/HeroSection'
-import { ScrollShowcase } from '../components/ScrollShowcase'
 import { StackedCardCarousel } from '../components/StackedCardCarousel'
 import { BelowFoldPreview } from '../components/BelowFoldPreview'
+import { ScrollShowcase } from '../components/ScrollShowcase'
 
 export function LandingPage() {
   return (
     <div>
-      {/* 1. Initial Hero Section (Jadoo visual style + Mouse effects + Animated grid) */}
+      {/* 1. Initial Hero Section (Page 2: Hero Visual + Live Telemetry) */}
       <HeroSection />
 
-      {/* 2. Pinned Scroll Showcase (Scroll-driven motion reference) */}
-      <ScrollShowcase />
-
-      {/* 3. Stacked-Card Carousel (Overlapping 3D card slider reference) */}
+      {/* 2. Stacked-Card Carousel (Page 3: Intelligent Warehousing in Motion) */}
       <StackedCardCarousel />
 
-      {/* 4. Core Capabilities Section (Click-to-expand architectural panels) */}
+      {/* 3. Core Capabilities Section (Page 4: We Deliver Operational Certainty) */}
       <BelowFoldPreview />
+
+      {/* 4. Scroll Showcase Deep Dive (Continuous Induction Workflow) */}
+      <ScrollShowcase />
     </div>
   )
 }

@@ -102,6 +102,34 @@ export function Navbar() {
           </Link>
 
           <Link
+            to="/carousel"
+            className={`transition-colors py-1 relative group ${
+              isCurrent('/carousel') || isCurrent('/motion') ? 'text-[#DF6951] font-semibold' : 'hover:text-[#DF6951]'
+            }`}
+          >
+            Motion
+            <span
+              className={`absolute bottom-0 left-0 h-0.5 bg-[#DF6951] transition-all duration-200 ${
+                isCurrent('/carousel') || isCurrent('/motion') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}
+            />
+          </Link>
+
+          <Link
+            to="/capabilities"
+            className={`transition-colors py-1 relative group ${
+              isCurrent('/capabilities') ? 'text-[#DF6951] font-semibold' : 'hover:text-[#DF6951]'
+            }`}
+          >
+            Capabilities
+            <span
+              className={`absolute bottom-0 left-0 h-0.5 bg-[#DF6951] transition-all duration-200 ${
+                isCurrent('/capabilities') ? 'w-full' : 'w-0 group-hover:w-full'
+              }`}
+            />
+          </Link>
+
+          <Link
             to="/thresholds"
             className={`transition-colors py-1 relative group ${
               isCurrent('/thresholds') ? 'text-[#DF6951] font-semibold' : 'hover:text-[#DF6951]'
@@ -222,6 +250,20 @@ export function Navbar() {
               className="py-2 hover:text-[#DF6951] border-b border-gray-50"
             >
               Operations
+            </Link>
+            <Link
+              to="/carousel"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 hover:text-[#DF6951] border-b border-gray-50"
+            >
+              Motion (Carousel)
+            </Link>
+            <Link
+              to="/capabilities"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 hover:text-[#DF6951] border-b border-gray-50"
+            >
+              Capabilities
             </Link>
             <Link
               to="/thresholds"

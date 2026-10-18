@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Lock, CheckCircle2, ShieldCheck } from 'lucide-react'
+import { ParagraphReveal } from '../components/AnimatedText'
 
 export function AuthPage() {
   const [email, setEmail] = useState('')
@@ -26,7 +27,7 @@ export function AuthPage() {
       </div>
 
       {/* Card Container */}
-      <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl border border-gray-100 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-3xl border border-gray-100 shadow-2xl relative overflow-hidden text-fade-up">
         {/* Top Accent Strip */}
         <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#DF6951] via-[#14B8A6] to-[#F1A501]" />
 
@@ -37,9 +38,9 @@ export function AuthPage() {
           <h2 className="font-serif font-bold text-2xl sm:text-3xl text-[#181E4B]">
             Invora Access
           </h2>
-          <p className="text-xs text-[#5E6282] mt-1">
+          <ParagraphReveal delay={200} className="text-xs text-[#5E6282] mt-1">
             Enterprise Warehouse Authentication Gateway
-          </p>
+          </ParagraphReveal>
         </div>
 
         {submitted ? (

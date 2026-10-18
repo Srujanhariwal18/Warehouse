@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,6 +12,7 @@ import {
 import { Link } from 'react-router-dom'
 import { AnimatedGrid } from './AnimatedGrid'
 import { TiltCard } from './TiltCard'
+import { ScrollHeadingReveal, ParagraphReveal } from './AnimatedText'
 
 export interface CarouselSlide {
   id: string
@@ -36,8 +37,18 @@ export interface CarouselSlide {
 export function StackedCardCarousel() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+
   const touchStartX = useRef<number | null>(null)
+  const mouseStartX = useRef<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Interaction & Autoplay State Refs
+  const isInteractingRef = useRef(false)
+  const isHoveredRef = useRef(false)
+  const autoplayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const idleDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const slides: CarouselSlide[] = [
     {
@@ -129,6 +140,80 @@ export function StackedCardCarousel() {
 
   const total = slides.length
 
+  // Clear timers safely
+  const clearAutoplayTimer = useCallback(() => {
+    if (autoplayTimerRef.current) {
+      clearInterval(autoplayTimerRef.current)
+      autoplayTimerRef.current = null
+    }
+  }, [])
+
+  const clearIdleTimer = useCallback(() => {
+    if (idleDelayTimerRef.current) {
+      clearTimeout(idleDelayTimerRef.current)
+      idleDelayTimerRef.current = null
+    }
+  }, [])
+
+  // Start continuous slow autoplay (5.5s interval)
+  const startAutoplay = useCallback(() => {
+    clearAutoplayTimer()
+    if (isHoveredRef.current || isInteractingRef.current || (typeof document !== 'undefined' && document.hidden)) {
+      return
+    }
+    autoplayTimerRef.current = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % total)
+    }, 5500)
+  }, [clearAutoplayTimer, total])
+
+  // Trigger user interaction: pause immediately, stay stable, resume after 5s idle
+  const handleUserInteraction = useCallback(
+    (action?: () => void) => {
+      clearAutoplayTimer()
+      clearIdleTimer()
+      isInteractingRef.current = true
+
+      if (action) {
+        action()
+      }
+      setDragOffset(0)
+
+      // 4-6s idle delay (configured to 5.0 seconds)
+      idleDelayTimerRef.current = setTimeout(() => {
+        isInteractingRef.current = false
+        if (!isHoveredRef.current) {
+          startAutoplay()
+        }
+      }, 5000)
+    },
+    [clearAutoplayTimer, clearIdleTimer, startAutoplay]
+  )
+
+  const handleNext = useCallback((e?: React.MouseEvent) => {
+    if (e?.currentTarget) (e.currentTarget as HTMLElement).blur()
+    handleUserInteraction(() => {
+      setActiveIndex((prev) => (prev + 1) % total)
+    })
+  }, [handleUserInteraction, total])
+
+  const handlePrev = useCallback((e?: React.MouseEvent) => {
+    if (e?.currentTarget) (e.currentTarget as HTMLElement).blur()
+    handleUserInteraction(() => {
+      setActiveIndex((prev) => (prev - 1 + total) % total)
+    })
+  }, [handleUserInteraction, total])
+
+  const handleDotClick = useCallback(
+    (idx: number, e?: React.MouseEvent) => {
+      if (e?.currentTarget) (e.currentTarget as HTMLElement).blur()
+      handleUserInteraction(() => {
+        setActiveIndex(idx)
+      })
+    },
+    [handleUserInteraction]
+  )
+
+  // Window resize detection
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
@@ -138,13 +223,26 @@ export function StackedCardCarousel() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % total)
-  }
+  // Visibility change listener & Autoplay Lifecycle
+  useEffect(() => {
+    startAutoplay()
 
-  const handlePrev = () => {
-    setActiveIndex((prev) => (prev - 1 + total) % total)
-  }
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearAutoplayTimer()
+      } else if (!isInteractingRef.current && !isHoveredRef.current) {
+        startAutoplay()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearAutoplayTimer()
+      clearIdleTimer()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [startAutoplay, clearAutoplayTimer, clearIdleTimer])
 
   // Keyboard navigation
   useEffect(() => {
@@ -162,24 +260,77 @@ export function StackedCardCarousel() {
 
     container.addEventListener('keydown', handleKeyDown)
     return () => container.removeEventListener('keydown', handleKeyDown)
-  }, [total])
+  }, [handleNext, handlePrev])
 
-  // Touch handlers
+  // Touch Drag Interaction
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
+    setIsDragging(true)
+    handleUserInteraction()
   }
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return
-    const touchEndX = e.changedTouches[0].clientX
-    const deltaX = touchEndX - touchStartX.current
-    if (deltaX < -40) handleNext()
-    if (deltaX > 40) handlePrev()
+    const currentX = e.touches[0].clientX
+    const delta = currentX - touchStartX.current
+    setDragOffset(Math.max(-80, Math.min(80, delta)))
+  }
+
+  const handleTouchEnd = () => {
+    if (dragOffset < -40) {
+      handleNext()
+    } else if (dragOffset > 40) {
+      handlePrev()
+    } else {
+      setDragOffset(0)
+    }
     touchStartX.current = null
+    setIsDragging(false)
+  }
+
+  // Mouse Drag Interaction
+  const handleMouseDown = (e: React.MouseEvent) => {
+    mouseStartX.current = e.clientX
+    setIsDragging(true)
+    handleUserInteraction()
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (mouseStartX.current === null || !isDragging) return
+    const delta = e.clientX - mouseStartX.current
+    setDragOffset(Math.max(-100, Math.min(100, delta)))
+  }
+
+  const handleMouseUp = () => {
+    if (dragOffset < -45) {
+      handleNext()
+    } else if (dragOffset > 45) {
+      handlePrev()
+    } else {
+      setDragOffset(0)
+    }
+    mouseStartX.current = null
+    setIsDragging(false)
+  }
+
+  const handleCardMouseEnter = () => {
+    isHoveredRef.current = true
+    clearAutoplayTimer()
+  }
+
+  const handleCardMouseLeave = () => {
+    if (isDragging) {
+      handleMouseUp()
+    }
+    isHoveredRef.current = false
+    if (!isInteractingRef.current) {
+      startAutoplay()
+    }
   }
 
   return (
     <section
+      id="carousel"
       ref={containerRef}
       tabIndex={0}
       role="region"
@@ -190,15 +341,15 @@ export function StackedCardCarousel() {
       {/* Animated Technical Grid in Background */}
       <AnimatedGrid intensity="subtle" />
 
-      {/* Decorative Soft Warm Amber Glow (Restrained) */}
+      {/* Decorative Soft Warm Amber Glow */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-[#FFF8E6]/60 filter blur-3xl -z-10"
         aria-hidden="true"
       />
 
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        {/* Section Header: Visible, Balanced Spacing */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 lg:mb-14">
+        {/* Section Header: Visible, Balanced Spacing matching reference */}
+        <ScrollHeadingReveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 lg:mb-14">
           <div>
             <div className="inline-flex items-center gap-2 mb-2.5">
               <span className="text-xs font-mono font-bold tracking-widest text-[#DF6951] uppercase">
@@ -209,9 +360,9 @@ export function StackedCardCarousel() {
             <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-[44px] text-[#181E4B] leading-tight">
               Intelligent Warehousing in Motion
             </h2>
-            <p className="text-sm sm:text-base text-[#5E6282] mt-2.5 max-w-xl leading-relaxed">
+            <ParagraphReveal delay={150} className="text-sm sm:text-base text-[#5E6282] mt-2.5 max-w-xl leading-relaxed">
               Explore the five operational pillars powering Invora's real-time inventory precision.
-            </p>
+            </ParagraphReveal>
           </div>
 
           {/* Carousel Arrows & Counter */}
@@ -238,13 +389,21 @@ export function StackedCardCarousel() {
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-        </div>
+        </ScrollHeadingReveal>
 
-        {/* The Stacked-Card Stage Container: Responsive and Natural Flow */}
+        {/* The Stacked-Card Stage Container with Live Drag Tracking */}
         <div
-          className="relative min-h-[520px] sm:min-h-[550px] lg:min-h-[570px] w-full flex items-center justify-center select-none py-4"
+          className={`relative min-h-[520px] sm:min-h-[550px] lg:min-h-[570px] w-full flex items-center justify-center select-none py-4 ${
+            isDragging ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
+          onMouseEnter={handleCardMouseEnter}
+          onMouseLeave={handleCardMouseLeave}
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
         >
           {slides.map((slide, index) => {
             // Compute circular offset relative to activeIndex
@@ -258,18 +417,21 @@ export function StackedCardCarousel() {
             const isFar = Math.abs(offset) >= 2
 
             // Desktop vs Mobile Transform Geometry:
-            // Mobile: Only ONE card is shown. Adjacent cards are hidden to prevent overlapping clutter.
-            // Desktop: Controlled perspective with active card prominent in center and side cards muted behind.
             let translateX = '0%'
             let rotate = '0deg'
             let scale = 1
             let zIndex = 30
             let opacity = 1
+            let transitionStyle = isDragging
+              ? 'transform 75ms linear'
+              : isFar
+              ? 'none' // Do NOT animate far cards across the screen to prevent jumps!
+              : 'transform 650ms cubic-bezier(0.22, 1, 0.36, 1), opacity 650ms cubic-bezier(0.22, 1, 0.36, 1)'
 
             if (isMobile) {
               if (isActive) {
-                translateX = '0%'
-                rotate = '0deg'
+                translateX = `${dragOffset}px`
+                rotate = `${(dragOffset * 0.04).toFixed(1)}deg`
                 scale = 1
                 zIndex = 30
                 opacity = 1
@@ -282,26 +444,26 @@ export function StackedCardCarousel() {
               }
             } else {
               if (isActive) {
-                translateX = '0%'
-                rotate = '0deg'
+                translateX = `${dragOffset}px`
+                rotate = `${(dragOffset * 0.02).toFixed(1)}deg`
                 scale = 1
                 zIndex = 30
                 opacity = 1
               } else if (isPrev) {
-                translateX = '-58%'
+                translateX = `calc(-58% + ${(dragOffset * 0.4).toFixed(1)}px)`
                 rotate = '-2deg'
                 scale = 0.88
                 zIndex = 20
                 opacity = 0.55
               } else if (isNext) {
-                translateX = '58%'
+                translateX = `calc(58% + ${(dragOffset * 0.4).toFixed(1)}px)`
                 rotate = '2deg'
                 scale = 0.88
                 zIndex = 20
                 opacity = 0.55
               } else {
                 translateX = offset > 0 ? '110%' : '-110%'
-                rotate = offset > 0 ? '4deg' : '-4deg'
+                rotate = '0deg'
                 scale = 0.78
                 zIndex = 10
                 opacity = 0
@@ -313,16 +475,19 @@ export function StackedCardCarousel() {
             return (
               <div
                 key={slide.id}
-                onClick={() => {
-                  if (!isActive) setActiveIndex(index)
+                onClick={(e) => {
+                  if (!isActive && Math.abs(dragOffset) < 10) {
+                    handleDotClick(index, e)
+                  }
                 }}
-                className={`absolute w-full max-w-[340px] sm:max-w-[460px] lg:max-w-[500px] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`absolute w-full max-w-[340px] sm:max-w-[460px] lg:max-w-[500px] ${
                   isActive ? 'cursor-default' : 'cursor-pointer hover:opacity-85'
                 }`}
                 style={{
                   transform: `translateX(${translateX}) scale(${scale}) rotate(${rotate})`,
                   zIndex,
                   opacity,
+                  transition: transitionStyle,
                   pointerEvents: isFar || (isMobile && !isActive) ? 'none' : 'auto',
                 }}
                 role="group"
@@ -330,7 +495,7 @@ export function StackedCardCarousel() {
                 aria-label={`${slide.title} (${index + 1} of ${total})`}
                 aria-hidden={!isActive}
               >
-                <TiltCard maxTilt={isActive && !isMobile ? 3 : 0}>
+                <TiltCard maxTilt={isActive && !isMobile && !isDragging ? 3 : 0}>
                   <div
                     className={`relative rounded-3xl overflow-hidden bg-white border border-gray-100 p-5 sm:p-6 flex flex-col justify-between min-h-[480px] sm:min-h-[510px] transition-shadow duration-300 ${
                       isActive ? 'shadow-2xl ring-1 ring-black/5' : 'shadow-lg'
@@ -341,7 +506,8 @@ export function StackedCardCarousel() {
                       <img
                         src={slide.image}
                         alt={slide.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                        draggable={false}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out select-none"
                         loading={isActive ? 'eager' : 'lazy'}
                       />
 
@@ -401,7 +567,7 @@ export function StackedCardCarousel() {
             <button
               key={slide.id}
               type="button"
-              onClick={() => setActiveIndex(idx)}
+              onClick={(e) => handleDotClick(idx, e)}
               className={`h-2.5 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#DF6951] cursor-pointer ${
                 idx === activeIndex
                   ? 'w-9 bg-[#DF6951]'
