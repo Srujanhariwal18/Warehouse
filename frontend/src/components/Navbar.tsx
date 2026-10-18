@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, X, ChevronDown } from 'lucide-react'
+import { Menu, X, ChevronDown, Database } from 'lucide-react'
+import { invoraApi } from '../services/api'
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [langDropdownOpen, setLangDropdownOpen] = useState(false)
   const [selectedLang, setSelectedLang] = useState<'EN' | 'US' | 'DE'>('EN')
+  const [dbUp, setDbUp] = useState<boolean>(false)
   const location = useLocation()
+
+  useEffect(() => {
+    invoraApi.getHealth().then(() => setDbUp(true)).catch(() => setDbUp(false))
+  }, [])
 
   const isCurrent = (path: string) => location.pathname === path
 
@@ -142,10 +148,147 @@ export function Navbar() {
               }`}
             />
           </Link>
+
+          {/* Management Portal Dropdown with all 12 Functional Pages */}
+          <div className="relative group">
+            <button
+              type="button"
+              className="flex items-center gap-1 transition-colors py-1 hover:text-[#DF6951] font-medium text-[#212832] cursor-pointer"
+              aria-label="Toggle Management Pages"
+            >
+              <span>Operator Portal</span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#DF6951] transition-transform group-hover:rotate-180" />
+            </button>
+
+            <div className="absolute left-0 mt-1 w-64 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="px-3.5 py-1.5 border-b border-gray-50">
+                <span className="text-[10px] font-mono font-bold tracking-wider text-[#DF6951] uppercase">
+                  SPRING BOOT MANAGEMENT PAGES
+                </span>
+              </div>
+              <div className="grid grid-cols-1 py-1 text-xs">
+                <a
+                  href="http://localhost:8080/dashboard.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>1. Dashboard</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Live KPIs</span>
+                </a>
+                <a
+                  href="http://localhost:8080/inventory.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>2. Inventory Ledger</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Stock lots</span>
+                </a>
+                <a
+                  href="http://localhost:8080/products.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>3. Product Catalog</span>
+                  <span className="text-[10px] text-gray-400 font-mono">SKUs</span>
+                </a>
+                <a
+                  href="http://localhost:8080/suppliers.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>4. Suppliers Directory</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Vendors</span>
+                </a>
+                <a
+                  href="http://localhost:8080/stock-in.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>5. Stock IN (Receiving)</span>
+                  <span className="text-[10px] text-emerald-600 font-mono">Intake</span>
+                </a>
+                <a
+                  href="http://localhost:8080/stock-out.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>6. Stock OUT (Dispatch)</span>
+                  <span className="text-[10px] text-amber-600 font-mono">Dispatch</span>
+                </a>
+                <a
+                  href="http://localhost:8080/transfers.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>7. Inter-rack Transfers</span>
+                  <span className="text-[10px] text-teal-600 font-mono">Relocate</span>
+                </a>
+                <a
+                  href="http://localhost:8080/alerts.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>8. Alert Management</span>
+                  <span className="text-[10px] text-rose-600 font-mono">Safety</span>
+                </a>
+                <a
+                  href="http://localhost:8080/activity.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>9. Audit Activity Log</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Immutable</span>
+                </a>
+                <a
+                  href="http://localhost:8080/warehouses.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>10. Facilities &amp; Racks</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Topology</span>
+                </a>
+                <a
+                  href="http://localhost:8080/reports.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>11. Valuation &amp; Reports</span>
+                  <span className="text-[10px] text-indigo-600 font-mono">Exports</span>
+                </a>
+                <a
+                  href="http://localhost:8080/login.html"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 hover:bg-gray-50 text-[#181E4B] hover:text-[#DF6951] flex items-center justify-between font-medium"
+                >
+                  <span>12. Backend Clerk Login</span>
+                  <span className="text-[10px] text-gray-400 font-mono">Auth</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Right Authentication & Actions */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-5">
+          {/* Live DB Status Pill */}
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200/80 rounded-full text-xs font-mono text-emerald-800">
+            <Database className="w-3 h-3 text-emerald-600" />
+            <span className={`w-1.5 h-1.5 rounded-full ${dbUp ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="font-semibold">{dbUp ? 'Supabase Live' : 'Connecting DB'}</span>
+          </div>
+
           <Link
             to="/auth"
             className="text-[15px] font-medium text-[#212832] hover:text-[#DF6951] transition-colors py-1"
@@ -272,6 +415,18 @@ export function Navbar() {
             >
               Thresholds
             </Link>
+            <a
+              href="http://localhost:8080/dashboard.html"
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="py-2 text-[#DF6951] font-semibold flex items-center justify-between border-b border-gray-50"
+            >
+              <span>Operator Portal (12 Management Pages)</span>
+              <span className="text-[10px] bg-[#FFF1EE] text-[#DF6951] px-2 py-0.5 rounded-full border border-[#DF6951]/20 font-mono">
+                Port 8080
+              </span>
+            </a>
           </div>
 
           <div className="pt-2 flex flex-col gap-3">

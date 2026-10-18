@@ -138,30 +138,29 @@ export function BelowFoldPreview() {
           </ParagraphReveal>
         </ScrollHeadingReveal>
 
-        {/* 4 Category / Capability Cards matching input_file_3.png */}
+        {/* 4 Category / Capability Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 items-stretch">
           {capabilities.map((cap) => {
             const Icon = cap.icon
             return (
               <div key={cap.id} className="relative group flex">
-                {/* Jadoo-style Coral Accent Block behind highlighted card 2 */}
-                {cap.highlighted && (
-                  <div
-                    className="absolute -bottom-4 -left-4 sm:-bottom-5 sm:-left-5 w-24 h-24 rounded-tl-[32px] rounded-bl-[16px] rounded-br-[16px] bg-[#DF6951] -z-10 group-hover:scale-105 transition-transform duration-300"
-                    aria-hidden="true"
-                  />
-                )}
-
                 <button
                   type="button"
                   onClick={() => setActiveModal(cap)}
-                  className={`w-full text-center p-7 sm:p-8 rounded-[28px] transition-all duration-300 flex flex-col items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#DF6951] ${
+                  className={`w-full text-center p-7 sm:p-8 rounded-[28px] transition-all duration-300 flex flex-col items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#DF6951] relative ${
                     cap.highlighted
-                      ? 'bg-white shadow-2xl border border-gray-100/90 relative z-10 hover:-translate-y-1'
-                      : 'bg-white hover:bg-white hover:shadow-lg hover:-translate-y-1 border border-transparent hover:border-gray-100/90'
+                      ? 'bg-white shadow-xl ring-1 ring-[#DF6951]/30 border-t-2 border-t-[#DF6951] hover:-translate-y-1.5 hover:shadow-2xl'
+                      : 'bg-white shadow-xs hover:shadow-xl hover:-translate-y-1.5 border border-gray-100/80 hover:border-gray-200'
                   }`}
                   aria-label={`Expand details for ${cap.title}`}
                 >
+                  {/* Subtle Signature Engine Badge for Highlighted Card */}
+                  {cap.highlighted && (
+                    <span className="absolute top-3.5 right-4 text-[9px] font-mono font-bold tracking-wider uppercase text-[#DF6951] bg-[#FFF1EE] px-2 py-0.5 rounded-full border border-[#DF6951]/20">
+                      SIGNATURE ENGINE
+                    </span>
+                  )}
+
                   {/* Icon badge */}
                   <div
                     className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-105 duration-200 shrink-0 ${cap.iconBg}`}

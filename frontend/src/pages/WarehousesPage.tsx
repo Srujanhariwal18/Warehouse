@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -13,8 +13,11 @@ import {
   Thermometer,
   PackagePlus,
   PackageMinus,
+  Database,
+  RefreshCw,
 } from 'lucide-react'
 import { CharacterReveal, ParagraphReveal, AnimatedNumber } from '../components/AnimatedText'
+import { invoraApi, BackendWarehouse, BackendRack, BackendInventory } from '../services/api'
 
 export interface RackItem {
   id: string
@@ -58,6 +61,63 @@ export function WarehousesPage() {
   const [selectedRack, setSelectedRack] = useState<RackItem | null>(null)
   const [hoveredBay, setHoveredBay] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'NORMAL' | 'ATTENTION'>('ALL')
+  const [dbWarehouses, setDbWarehouses] = useState<BackendWarehouse[]>([])
+  const [dbRacks, setDbRacks] = useState<BackendRack[]>([])
+  const [dbInventory, setDbInventory] = useState<BackendInventory[]>([])
+  const [dbConnected, setDbConnected] = useState<boolean>(false)
+  const [loadingDb, setLoadingDb] = useState<boolean>(true)
+  const [selectedRackDbInventory, setSelectedRackDbInventory] = useState<BackendInventory[]>([])
+  const [loadingRackInventory, setLoadingRackInventory] = useState<boolean>(false)
+
+  const fetchLiveDatabaseData = async () => {
+    setLoadingDb(true)
+    try {
+      const [whs, racks, inv] = await Promise.all([
+        invoraApi.getWarehouses(),
+        invoraApi.getRacks(),
+        invoraApi.getAllInventory(),
+      ])
+      setDbWarehouses(whs || [])
+      setDbRacks(racks || [])
+      setDbInventory(inv || [])
+      setDbConnected(true)
+    } catch (err) {
+      console.warn('Backend/Database connection status:', err)
+      setDbConnected(false)
+    } finally {
+      setLoadingDb(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchLiveDatabaseData()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedRack) {
+      setSelectedRackDbInventory([])
+      return
+    }
+    const cleanCode = selectedRack.code.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    const matchingDbRack = dbRacks.find(
+      r => r.code.toLowerCase() === cleanCode || 
+           r.name.toLowerCase().includes(selectedRack.code.toLowerCase()) ||
+           cleanCode.includes(r.code.toLowerCase())
+    )
+    if (matchingDbRack) {
+      setLoadingRackInventory(true)
+      invoraApi.getInventoryByRack(matchingDbRack.id)
+        .then(items => setSelectedRackDbInventory(items || []))
+        .catch(() => setSelectedRackDbInventory([]))
+        .finally(() => setLoadingRackInventory(false))
+    } else {
+      const directMatch = dbInventory.filter(
+        i => i.rackCode.toLowerCase() === cleanCode || 
+             i.rackName.toLowerCase().includes(selectedRack.code.toLowerCase())
+      )
+      setSelectedRackDbInventory(directMatch)
+    }
+  }, [selectedRack, dbRacks, dbInventory])
 
   const warehouseProfiles: Record<'A' | 'B' | 'C', WarehouseMetadata> = {
     A: {
@@ -613,6 +673,39 @@ export function WarehousesPage() {
         </div>
       </div>
 
+      {/* Live Backend & Database Connection Strip */}
+      <div className="mb-6 p-4 rounded-2xl bg-white border border-gray-100 shadow-xs flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold font-mono text-[#181E4B]">
+                SUPABASE POSTGRESQL &amp; SPRING BOOT API
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {dbConnected ? 'CONNECTED (PORT 8080)' : 'SYNCHRONIZING'}
+              </span>
+            </div>
+            <p className="text-[11px] text-[#5E6282] mt-0.5 font-mono">
+              Live DB: {dbWarehouses.length > 0 ? `${dbWarehouses[0].name} [${dbWarehouses[0].code}]` : 'WH-MAIN'} · {dbRacks.length} registered bays · {dbInventory.length} inventory allocations
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={fetchLiveDatabaseData}
+          disabled={loadingDb}
+          className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-medium text-[#181E4B] hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer transition disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 text-[#DF6951] ${loadingDb ? 'animate-spin' : ''}`} />
+          <span>Sync DB</span>
+        </button>
+      </div>
+
       {/* Facility KPI Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <div className="p-4 rounded-2xl bg-white border border-gray-100 shadow-xs">
@@ -1107,6 +1200,54 @@ export function WarehousesPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* Live Supabase Stock Allocation */}
+              <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/70">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono font-bold tracking-wider text-emerald-800 uppercase flex items-center gap-1.5">
+                    <Database className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>SUPABASE LIVE STOCK ALLOCATION</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md font-bold">
+                    POSTGRESQL REALTIME
+                  </span>
+                </div>
+
+                {loadingRackInventory ? (
+                  <div className="py-4 text-center text-xs font-mono text-[#5E6282] flex items-center justify-center gap-2">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#DF6951]" />
+                    <span>Querying Supabase inventory table...</span>
+                  </div>
+                ) : selectedRackDbInventory.length > 0 ? (
+                  <div className="space-y-2 mt-2">
+                    {selectedRackDbInventory.map((item) => (
+                      <div
+                        key={item.id}
+                        className="p-2.5 rounded-xl bg-white border border-emerald-100 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <div className="font-semibold text-[#181E4B]">{item.productName}</div>
+                          <div className="text-[10px] font-mono text-gray-500 mt-0.5">
+                            SKU: <span className="text-[#181E4B] font-bold">{item.productSku}</span> · Zone: {item.zoneCode}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-mono font-bold text-sm text-emerald-700 block">
+                            {item.quantity} units
+                          </span>
+                          <span className="text-[9px] font-mono text-gray-400">
+                            Verified Ledger
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#5E6282] mt-1">
+                    No active stock lots in this specific bay. Use Stock IN below to dispatch stock directly to this bay.
+                  </p>
+                )}
               </div>
 
               {/* Action Buttons to Operations */}

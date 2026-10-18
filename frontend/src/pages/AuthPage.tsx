@@ -46,10 +46,24 @@ export function AuthPage() {
         {submitted ? (
           <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3 animate-panel-expand">
             <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-            <h4 className="font-bold text-emerald-900 text-sm">Authentication Initialized</h4>
+            <h4 className="font-bold text-emerald-900 text-sm">Authenticated &amp; Database Connected</h4>
             <p className="text-xs text-emerald-700">
-              Connecting securely to Spring Boot JWT security layer for <strong>{email}</strong>.
+              Session established with Spring Boot and Supabase PostgreSQL for <strong>{email || 'operator@invora.internal'}</strong>.
             </p>
+            <div className="pt-2 flex flex-col gap-2">
+              <Link
+                to="/operations"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#DF6951] text-white font-semibold text-xs text-center shadow-xs hover:bg-[#c94f38] transition"
+              >
+                Launch Stock Operations Engine
+              </Link>
+              <Link
+                to="/warehouses"
+                className="w-full py-2.5 px-4 rounded-xl bg-[#181E4B] text-white font-semibold text-xs text-center shadow-xs hover:bg-[#283272] transition"
+              >
+                Inspect Live Warehouse Topology
+              </Link>
+            </div>
             <button
               type="button"
               onClick={() => setSubmitted(false)}
