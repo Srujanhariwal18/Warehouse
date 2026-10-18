@@ -1,0 +1,192 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-serif: 'Volkhov', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+
+  --color-coral: #DF6951;
+  --color-coral-light: #FFF1EE;
+  --color-amber-gold: #F1A501;
+  --color-amber-light: #FFF8E6;
+  --color-teal-brand: #14B8A6;
+  --color-navy-dark: #181E4B;
+  --color-navy-muted: #5E6282;
+  --color-navy-body: #212832;
+}
+
+:root {
+  font-family: var(--font-sans);
+  color: #212832;
+  background-color: #ffffff;
+}
+
+/* Smooth scrolling and focus outline */
+html {
+  scroll-behavior: smooth;
+}
+
+:focus-visible {
+  outline: 2px solid #DF6951;
+  outline-offset: 3px;
+}
+
+/* Custom organic background blob for top-right */
+.hero-blob-bg {
+  background: radial-gradient(
+    circle at 70% 30%,
+    rgba(255, 241, 218, 0.85) 0%,
+    rgba(254, 226, 226, 0.45) 55%,
+    rgba(255, 255, 255, 0) 75%
+  );
+  filter: blur(40px);
+}
+
+/* Jadoo-inspired soft floating card shadow */
+.shadow-soft-card {
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.08), 0 8px 16px -6px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-coral-button {
+  box-shadow: 0 15px 30px rgba(223, 105, 81, 0.35);
+}
+
+.shadow-amber-button {
+  box-shadow: 0 20px 35px -5px rgba(241, 165, 1, 0.4);
+}
+
+/* The curved decorative underline beneath hero headline */
+.curved-underline {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  padding-bottom: 2px;
+}
+
+.curved-underline::after {
+  content: '';
+  position: absolute;
+  left: -2%;
+  bottom: -4px;
+  width: 104%;
+  height: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg width='385' height='12' viewBox='0 0 385 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 9.5C82.5 3 248.5 -2.5 383 6' stroke='%23DF6951' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Subtle floating micro-animation */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 6s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: floatReverse 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-reverse,
+  .animate-page-enter,
+  .animate-panel-expand,
+  .animate-grid-wave,
+  .animate-route-bar {
+    animation: none !important;
+    transition: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Page & Section Transition Animations */
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panelExpand {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes routeBarReveal {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+.animate-page-enter {
+  animation: pageEnter 450ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-panel-expand {
+  animation: panelExpand 350ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-route-bar {
+  transform-origin: left;
+  animation: routeBarReveal 500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Ambient Grid Wave Sweep */
+@keyframes gridWave {
+  0% {
+    transform: translate(-50%, -50%);
+  }
+  100% {
+    transform: translate(50%, 50%);
+  }
+}
+
+.animate-grid-wave {
+  animation: gridWave 16s ease-in-out infinite alternate;
+}
+
+/* Smooth Image Clip Path Hover */
+.transition-clip {
+  transition: clip-path 400ms cubic-bezier(0.22, 1, 0.36, 1), transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
